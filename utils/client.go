@@ -154,7 +154,7 @@ func (c *Client) CreateLan(datacenterId, name string, public bool) (*sdkgo.LanPo
 }
 
 func (c *Client) RemoveLan(datacenterId, lanId string) error {
-	_, resp, err := c.LanApi.DatacentersLansDelete(context.TODO(), datacenterId, lanId).Execute()
+	_, resp, err := c.LanApi.DatacentersLansDelete(c.ctx, datacenterId, lanId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting LAN %v", err)
 	}
@@ -197,7 +197,7 @@ func (c *Client) CreateServer(datacenterId, name, cpufamily, zone string, ram, c
 }
 
 func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error) {
-	server, resp, err := c.ServerApi.DatacentersServersFindById(context.TODO(), datacenterId, serverId).Execute()
+	server, resp, err := c.ServerApi.DatacentersServersFindById(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting server: %v", err)
 	}
@@ -213,7 +213,7 @@ func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error)
 }
 
 func (c *Client) StartServer(datacenterId, serverId string) error {
-	_, _, err := c.ServerApi.DatacentersServersStartPost(context.TODO(), datacenterId, serverId).Execute()
+	_, _, err := c.ServerApi.DatacentersServersStartPost(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return fmt.Errorf("error starting server: %v", err)
 	}
@@ -221,7 +221,7 @@ func (c *Client) StartServer(datacenterId, serverId string) error {
 }
 
 func (c *Client) StopServer(datacenterId, serverId string) error {
-	_, _, err := c.ServerApi.DatacentersServersStopPost(context.TODO(), datacenterId, serverId).Execute()
+	_, _, err := c.ServerApi.DatacentersServersStopPost(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return fmt.Errorf("error stoping server: %v", err)
 	}
@@ -229,7 +229,7 @@ func (c *Client) StopServer(datacenterId, serverId string) error {
 }
 
 func (c *Client) RestartServer(datacenterId, serverId string) error {
-	_, _, err := c.ServerApi.DatacentersServersRebootPost(context.TODO(), datacenterId, serverId).Execute()
+	_, _, err := c.ServerApi.DatacentersServersRebootPost(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return fmt.Errorf("error restarting server: %v", err)
 	}
@@ -237,7 +237,7 @@ func (c *Client) RestartServer(datacenterId, serverId string) error {
 }
 
 func (c *Client) RemoveServer(datacenterId, serverId string) error {
-	_, resp, err := c.ServerApi.DatacentersServersDelete(context.TODO(), datacenterId, serverId).Execute()
+	_, resp, err := c.ServerApi.DatacentersServersDelete(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting server: %v", err)
 	}
@@ -280,7 +280,7 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId, diskType, name, imag
 }
 
 func (c *Client) RemoveVolume(datacenterId, volumeId string) error {
-	_, resp, err := c.VolumeApi.DatacentersVolumesDelete(context.TODO(), datacenterId, volumeId).Execute()
+	_, resp, err := c.VolumeApi.DatacentersVolumesDelete(c.ctx, datacenterId, volumeId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting volume: %v", err)
 	}
@@ -321,7 +321,7 @@ func (c *Client) CreateAttachNIC(datacenterId, serverId, name string, dhcp bool,
 }
 
 func (c *Client) RemoveNic(datacenterId, serverId, nicId string) error {
-	_, resp, err := c.NicApi.DatacentersServersNicsDelete(context.TODO(), datacenterId, serverId, nicId).Execute()
+	_, resp, err := c.NicApi.DatacentersServersNicsDelete(c.ctx, datacenterId, serverId, nicId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting NIC: %v", err)
 	}
@@ -337,7 +337,7 @@ func (c *Client) RemoveNic(datacenterId, serverId, nicId string) error {
 }
 
 func (c *Client) GetLocationById(regionId, locationId string) (*sdkgo.Location, error) {
-	location, _, err := c.LocationApi.LocationsFindByRegionIdAndId(context.TODO(), regionId, locationId).Execute()
+	location, _, err := c.LocationApi.LocationsFindByRegionIdAndId(c.ctx, regionId, locationId).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -345,7 +345,7 @@ func (c *Client) GetLocationById(regionId, locationId string) (*sdkgo.Location, 
 }
 
 func (c *Client) GetImages() (sdkgo.Images, error) {
-	images, imagesResp, err := c.ImageApi.ImagesGet(context.TODO()).Execute()
+	images, imagesResp, err := c.ImageApi.ImagesGet(c.ctx).Execute()
 	if err != nil {
 		return sdkgo.Images{}, err
 	}
@@ -357,7 +357,7 @@ func (c *Client) GetImages() (sdkgo.Images, error) {
 
 func (c *Client) waitTillProvisioned(path string) error {
 	for i := 0; i < waitCount; i++ {
-		requestStatus, _, err := c.RequestApi.RequestsStatusGet(context.TODO(), getRequestId(path)).Execute()
+		requestStatus, _, err := c.RequestApi.RequestsStatusGet(c.ctx, getRequestId(path)).Execute()
 		if err != nil {
 			return fmt.Errorf("error getting request status: %s", err.Error())
 		}
