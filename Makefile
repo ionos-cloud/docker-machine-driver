@@ -1,45 +1,57 @@
-default: build
+# Driver Binary Name
+BIN_NAME := docker-machine-driver-ionoscloud
 
-version := "v1.3.4"
-
-mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
-name := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
-
+GOFILES= $(shell find . -type f -name '*.go')
 ifeq ($(OS),Windows_NT)
-	bin_suffix := ".exe"
+	BIN_SUFFIX := ".exe"
 else
-	bin_suffix :=
+	BIN_SUFFIX :=
 endif
 
-clean:
-	rm -f ./bin/$(name)*
-	rm -f /usr/local/bin/$(name)*
+.PHONY: build
+build: compile print-success
 
+.PHONY : install
+install: compile
+ifeq ($(OS),Windows_NT)
+	cp bin/${BIN_NAME} $(GOPATH)/bin/
+else
+	cp ./bin/${BIN_NAME}${BIN_SUFFIX} ${GOPATH}/bin/
+endif
+
+.PHONY: compile
 compile:
-	GOGC=off CGOENABLED=0 go build -i -o ./bin/$(name)$(bin_suffix) ./bin
+	GOGC=off CGOENABLED=0 go build -o ./bin/${BIN_NAME}${BIN_SUFFIX} ./bin
 
+.PHONY: print-success
 print-success:
 	@echo
 	@echo "Plugin built."
 	@echo
 	@echo "To use it, either run 'make install' or set your PATH environment variable correctly."
 
-build: compile print-success
+.PHONY: test
+test: test_unit
 
-release:
-	GOOS=linux GOARCH=amd64 GOGC=off CGOENABLED=0 go build  -i -o bin/$(name) ./bin
-	tar  -cvzf bin/$(name)-$(version)-linux-amd64.tar.gz -C bin $(name)
-	GOOS=darwin GOARCH=amd64 GOGC=off CGOENABLED=0 go build  -i -o bin/$(name) ./bin
-	tar -cvzf bin/$(name)-$(version)-darwin-amd64.tar.gz -C bin $(name)
-	GOOS=windows GOARCH=amd64 GOGC=off CGOENABLED=0 go build  -i -o bin/$(name).exe ./bin
-	tar -cvzf bin/$(name)-$(version)-windows-amd64.tar.gz -C bin $(name).exe
+.PHONY: test_unit
+test_unit:
+	@echo "Run unit tests"
+	@go test -cover .
+	@echo "DONE"
 
-install: compile
-ifeq ($(OS),Windows_NT)
-	cp bin/$(name) $(GOPATH)/bin/
-else
-	cp ./bin/$(name)$(bin_suffix) ${GOPATH}/bin/
-endif
+.PHONY: gofmt_check
+gofmt_check:
+	@echo "Ensure code adheres to gofmt and list files whose formatting differs from gofmt's"
+	@if [ "$(shell echo $$(gofmt -l ${GOFILES}))" != "" ]; then (echo "Format files: $(shell echo $$(gofmt -l ${GOFILES})) Hint: use \`make gofmt_update\`"; exit 1); fi
+	@echo "DONE"
 
+.PHONY: gofmt_update
+gofmt_update:
+	@echo "Ensure code adheres to gofmt and change files accordingly"
+	@gofmt -w ${GOFILES}
+	@echo "DONE"
 
-.PHONY : build release install
+.PHONY: clean
+clean:
+	rm -f ./bin/${BIN_NAME}*
+	rm -f ${GOPATH}/bin/${BIN_NAME}*

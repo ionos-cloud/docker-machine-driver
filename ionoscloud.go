@@ -55,8 +55,6 @@ type Driver struct {
 	Ram                    int
 	Cores                  int
 	SSHKey                 string
-	VolumeAvailabilityZone string
-	ServerAvailabilityZone string
 	DiskSize               int
 	DiskType               string
 	Image                  string
@@ -65,12 +63,13 @@ type Driver struct {
 	CpuFamily              string
 	DCExists               bool
 	UseAlias               bool
-
-	LanId        string
-	DatacenterId string
-	VolumeId     string
-	NicId        string
-	ServerId     string
+	VolumeAvailabilityZone string
+	ServerAvailabilityZone string
+	LanId                  string
+	DatacenterId           string
+	VolumeId               string
+	NicId                  string
+	ServerId               string
 }
 
 // NewDriver returns a new driver instance.
@@ -485,7 +484,7 @@ func (d *Driver) GetState() (state.State, error) {
 				return state.Stopped, nil
 			case "SHUTOFF":
 				return state.Stopped, nil
-			case "CHRASHED":
+			case "CRASHED":
 				return state.Error, nil
 			case "INACTIVE":
 				return state.Stopped, nil

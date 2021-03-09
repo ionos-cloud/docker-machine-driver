@@ -1251,9 +1251,52 @@ func TestDriver_GetStateErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_GetState(t *testing.T) {
+func TestDriver_GetStateShutDown(t *testing.T) {
 	var (
 		state  = "SHUTDOWN"
+		server = &sdkgo.Server{
+			Id: &testVar,
+			Metadata: &sdkgo.DatacenterElementMetadata{
+				State: &state,
+			},
+			Entities: &sdkgo.ServerEntities{
+				Nics: &sdkgo.Nics{
+					Items: &[]sdkgo.Nic{
+						{
+							Properties: &sdkgo.NicProperties{
+								Ips: &[]string{testVar},
+							},
+						},
+					},
+				},
+			},
+		}
+	)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
+
+	checkFlags := &drivers.CheckDriverOptions{
+		FlagsValues: map[string]interface{}{
+			flagUsername: "IONOSCLOUD_USERNAME",
+			flagPassword: "IONOSCLOUD_PASSWORD",
+		},
+		CreateFlags: driver.GetCreateFlags(),
+	}
+	err := driver.SetConfigFromFlags(checkFlags)
+	assert.NoError(t, err)
+	assert.Empty(t, checkFlags.InvalidFlags)
+
+	driver.DatacenterId = testVar
+	driver.ServerId = testVar
+	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId).Return(server, nil)
+	_, err = driver.GetState()
+	assert.NoError(t, err)
+}
+
+func TestDriver_GetStateCrashed(t *testing.T) {
+	var (
+		state  = "CRASHED"
 		server = &sdkgo.Server{
 			Id: &testVar,
 			Metadata: &sdkgo.DatacenterElementMetadata{

@@ -1,0 +1,32 @@
+# CI workflow
+
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  install:
+    name: Test rancher-driver
+    env:
+      go-version: ^1.14
+      package-name: ionoscloud
+    runs-on: ubuntu-latest
+    outputs:
+      go-version: ${{ env.go-version }}
+      package-name: ${{ env.package-name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.go-version }}
+      - name: Check code format
+        run: make gofmt_check
+      - name: Run tests
+        run: make test
+      - name: Build
+        run: make build
