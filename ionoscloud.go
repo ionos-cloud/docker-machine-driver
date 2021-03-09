@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
-	"time"
 
+	"github.com/ionos-cloud/rancher-driver/utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v5"
 	"github.com/rancher/machine/libmachine/drivers"
 	"github.com/rancher/machine/libmachine/log"
@@ -41,23 +41,20 @@ const (
 	defaultAvailabilityZone = "AUTO"
 	defaultDiskType         = "HDD"
 	defaultSize             = 10
-
-	driverName = "ionoscloud"
-	waitCount  = 1000
+	driverName              = "ionoscloud"
 )
 
 type Driver struct {
 	*drivers.BaseDriver
-	URL                    string
-	Username               string
-	Password               string
-	ServerId               string
+	client func() utils.ClientService
+
+	URL      string
+	Username string
+	Password string
+
 	Ram                    int
 	Cores                  int
 	SSHKey                 string
-	DatacenterId           string
-	VolumeId               string
-	NicId                  string
 	VolumeAvailabilityZone string
 	ServerAvailabilityZone string
 	DiskSize               int
@@ -68,13 +65,21 @@ type Driver struct {
 	CpuFamily              string
 	DCExists               bool
 	UseAlias               bool
-	LanId                  string
-	Config                 *sdkgo.APIClient
+
+	LanId        string
+	DatacenterId string
+	VolumeId     string
+	NicId        string
+	ServerId     string
 }
 
 // NewDriver returns a new driver instance.
 func NewDriver(hostName, storePath string) drivers.Driver {
-	return &Driver{
+	return NewDerivedDriver(hostName, storePath)
+}
+
+func NewDerivedDriver(hostName, storePath string) *Driver {
+	driver := &Driver{
 		Size:     defaultSize,
 		Location: defaultRegion,
 		BaseDriver: &drivers.BaseDriver{
@@ -82,6 +87,10 @@ func NewDriver(hostName, storePath string) drivers.Driver {
 			StorePath:   storePath,
 		},
 	}
+	driver.client = func() utils.ClientService {
+		return utils.New(context.TODO(), driver.Username, driver.Password, driver.URL)
+	}
+	return driver
 }
 
 // GetCreateFlags returns list of create flags driver accepts.
@@ -203,26 +212,19 @@ func (d *Driver) PreCreateCheck() error {
 	if d.Password == "" {
 		return fmt.Errorf("please provide password as parameter --ionoscloud-password or as environment variable $IONOSCLOUD_PASSWORD")
 	}
-
 	if d.DatacenterId != "" {
-		err := d.getClient()
+		dc, err := d.client().GetDatacenter(d.DatacenterId)
 		if err != nil {
 			return err
 		}
-		dc, resp, err := d.Config.DataCenterApi.DatacentersFindById(context.TODO(), d.DatacenterId).Execute()
-		if err != nil {
-			return err
-		}
-
-		if resp.StatusCode == 404 {
-			return fmt.Errorf("DataCenter UUID %s does not exist", d.DatacenterId)
-		} else {
-			log.Info("Creating machine under " + *dc.Properties.Name + " datacenter")
+		if dcprop, ok := dc.GetPropertiesOk(); ok && dcprop != nil {
+			if name, ok := dcprop.GetNameOk(); ok && name != nil {
+				log.Info("Creating machine under " + *name + " datacenter")
+			}
 		}
 	}
-
 	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
-		return fmt.Errorf("The image/alias  %s does not exist.", d.Image)
+		return fmt.Errorf("error getting image/alias %s: %v", d.Image, err)
 	}
 
 	return nil
@@ -230,11 +232,7 @@ func (d *Driver) PreCreateCheck() error {
 
 // Create creates the machine.
 func (d *Driver) Create() error {
-	err := d.getClient()
-	if err != nil {
-		return err
-	}
-
+	var err error
 	log.Infof("Creating SSH key...")
 	if d.SSHKey == "" {
 		d.SSHKey, err = d.createSSHKey()
@@ -242,194 +240,88 @@ func (d *Driver) Create() error {
 			return fmt.Errorf("error creating SSH keys: %v", err)
 		}
 	}
+
 	result, err := d.getImageId(d.Image)
 	if err != nil {
-		return fmt.Errorf("error getting image: %v", err)
+		return fmt.Errorf("error getting image/alias %s: %v", d.Image, err)
 	}
-
 	var alias string
 	if d.UseAlias {
 		alias = result
 	}
 
-	ipBlockSize := int32(1)
-	ipBlock, ipBlockResp, err := d.Config.IPBlocksApi.IpblocksPost(context.TODO()).Ipblock(sdkgo.IpBlock{
-		Properties: &sdkgo.IpBlockProperties{
-			Location: &d.Location,
-			Size:     &ipBlockSize,
-		}}).Execute()
+	ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
 	if err != nil {
-		return fmt.Errorf("error creating ipblock: %v", err)
+		return err
 	}
-
-	if ipBlockResp.StatusCode > 299 {
-		return fmt.Errorf("error reserving an ipblock: %s", ipBlockResp.Response.Status)
-	}
-
-	err = d.waitTillProvisioned(ipBlockResp.Header.Get("location"))
-	if err != nil {
-		return fmt.Errorf("error waiting untill provisioned: %v", err)
-	}
-
-	var dc sdkgo.Datacenter
+	var dc *sdkgo.Datacenter
 	if d.DatacenterId == "" {
 		d.DCExists = false
 		var err error
-		var dcResp *sdkgo.APIResponse
-
-		dc, dcResp, err = d.Config.DataCenterApi.DatacentersPost(context.TODO()).Datacenter(sdkgo.Datacenter{
-			Properties: &sdkgo.DatacenterProperties{
-				Name:     &d.MachineName,
-				Location: &d.Location,
-			}}).Execute()
+		dc, err = d.client().CreateDatacenter(d.MachineName, d.Location)
 		if err != nil {
-			return fmt.Errorf("error creating datacenter: %v", err)
-		}
-		if dcResp.StatusCode == 202 {
-			log.Info("DataCenter Created")
-		} else {
-			return fmt.Errorf("error creating DC: %s", dcResp.Response.Status)
-		}
-		err = d.waitTillProvisioned(dcResp.Header.Get("location"))
-		if err != nil {
-			return fmt.Errorf("error waiting untill provisioned: %v", err)
+			return err
 		}
 	} else {
 		d.DCExists = true
-		dc, _, err = d.Config.DataCenterApi.DatacentersFindById(context.TODO(), d.DatacenterId).Execute()
+		dc, err = d.client().GetDatacenter(d.DatacenterId)
 		if err != nil {
-			return fmt.Errorf("error getting datacenter: %v", err)
+			return err
 		}
 	}
-	d.DatacenterId = *dc.Id
-
-	lanPublic := true
-	lan, lanResp, err := d.Config.LanApi.DatacentersLansPost(context.TODO(), *dc.Id).Lan(sdkgo.LanPost{
-		Properties: &sdkgo.LanPropertiesPost{
-			Name:   &d.MachineName,
-			Public: &lanPublic,
-		}}).Execute()
-	if err != nil {
-		return fmt.Errorf("error creating LAN: %v", err)
-	}
-	if lanResp.StatusCode == 202 {
-		log.Info("LAN Created")
-	} else {
-		err := d.Remove()
-		if err != nil {
-			return fmt.Errorf("error deleting resources after unsuccesfull creation of LAN: %v", err)
-		}
-		return fmt.Errorf("error creating a LAN: %s", lanResp.Response.Status)
-	}
-	err = d.waitTillProvisioned(lanResp.Header.Get("location"))
-	if err != nil {
-		return fmt.Errorf("error waiting untill provisioned: %v", err)
-	}
-	d.LanId = *lan.Id
-
-	svrRam := int32(d.Ram)
-	svrCores := int32(d.Cores)
-	diskSize := float32(d.DiskSize)
-
-	server := sdkgo.Server{
-		Properties: &sdkgo.ServerProperties{
-			Name:             &d.MachineName,
-			Ram:              &svrRam,
-			Cores:            &svrCores,
-			CpuFamily:        &d.CpuFamily,
-			AvailabilityZone: &d.ServerAvailabilityZone,
-		},
+	if dcId, ok := dc.GetIdOk(); ok && dcId != nil {
+		d.DatacenterId = *dcId
 	}
 
-	svr, serverResp, err := d.Config.ServerApi.DatacentersServersPost(context.TODO(), d.DatacenterId).Server(server).Execute()
+	lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, true)
 	if err != nil {
-		return fmt.Errorf("error creating server: %v", err)
+		return err
 	}
-	if serverResp.StatusCode == 202 {
-		log.Info("Server Created")
-	} else {
-		err := d.Remove()
-		if err != nil {
-			return fmt.Errorf("error deleting resources after unsuccesfull creation of server: %v", err)
-		}
-		return fmt.Errorf("error creating a server: %s", serverResp.Status)
+	if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
+		d.LanId = *lanId
 	}
 
-	err = d.waitTillProvisioned(serverResp.Header.Get("location"))
+	server, err := d.client().CreateServer(d.DatacenterId, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
 	if err != nil {
-		return fmt.Errorf("error waiting untill provisioned: %v", err)
+		return err
 	}
-	d.ServerId = *svr.Id
+	if serverId, ok := server.GetIdOk(); ok && serverId != nil {
+		d.ServerId = *serverId
+	}
 
-	volume := sdkgo.Volume{
-		Properties: &sdkgo.VolumeProperties{
-			Type:             &d.DiskType,
-			Size:             &diskSize,
-			Name:             &d.MachineName,
-			ImageAlias:       &alias,
-			SshKeys:          &[]string{d.SSHKey},
-			AvailabilityZone: &d.VolumeAvailabilityZone,
-		},
-	}
-	volume, volumeResp, err := d.Config.ServerApi.DatacentersServersVolumesPost(context.TODO(), d.DatacenterId, d.ServerId).Volume(volume).Execute()
+	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, d.DiskType, d.MachineName, alias, d.VolumeAvailabilityZone, d.SSHKey, float32(d.DiskSize))
 	if err != nil {
-		return fmt.Errorf("error attaching volume to server: %v", err)
+		return err
 	}
-	if volumeResp.StatusCode == 202 {
-		log.Info("Volume Attached to Server")
-	} else {
-		err := d.Remove()
-		if err != nil {
-			return fmt.Errorf("error deleting resources after unsuccesfull creation of volume: %v", err)
-		}
-		return fmt.Errorf("error attaching a volume to a server: %s", volumeResp.Status)
+	if volumeId, ok := volume.GetIdOk(); ok && volumeId != nil {
+		d.VolumeId = *volumeId
 	}
-	err = d.waitTillProvisioned(volumeResp.Header.Get("location"))
-	if err != nil {
-		return fmt.Errorf("error waiting till provisioned: %s", err.Error())
-	}
-	d.VolumeId = *volume.Id
 
 	l, _ := strconv.Atoi(d.LanId)
-	lanId := int32(l)
-	nicDhcp := true
-	nic := sdkgo.Nic{
-		Properties: &sdkgo.NicProperties{
-			Name: &d.MachineName,
-			Lan:  &lanId,
-			Ips:  ipBlock.Properties.Ips,
-			Dhcp: &nicDhcp,
-		},
-	}
-	nic, nicResp, err := d.Config.NicApi.DatacentersServersNicsPost(context.TODO(), *dc.Id, d.ServerId).Nic(nic).Execute()
+	ips, err := d.client().GetIpBlock(ipBlock)
 	if err != nil {
-		return fmt.Errorf("error attaching NIC to server: %s", err.Error())
+		return err
 	}
-	if nicResp.StatusCode == 202 {
-		log.Info("NIC Attached to Server")
-	} else {
-		err := d.Remove()
-		if err != nil {
-			return fmt.Errorf("error deleting resources after unsuccesfull creation of NIC: %v", err)
-		}
-		return fmt.Errorf("error creating a NIC: %s", nicResp.Status)
-	}
-	err = d.waitTillProvisioned(nicResp.Header.Get("location"))
-	if err != nil {
-		return fmt.Errorf("error waiting till provisioned: %s", err.Error())
-	}
-	d.NicId = *nic.Id
 
-	ips := *ipBlock.Properties.Ips
-	d.IPAddress = ips[0]
-	log.Info(d.IPAddress)
+	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(l), ips)
+	if err != nil {
+		return err
+	}
+	if nicId, ok := nic.GetIdOk(); ok && nicId != nil {
+		d.NicId = *nic.Id
+	}
+
+	if len(*ips) > 0 {
+		ipBlockIps := *ips
+		d.IPAddress = ipBlockIps[0]
+		log.Info(d.IPAddress)
+	}
 
 	return nil
 }
 
 // Remove deletes the machine and resources associated to it.
 func (d *Driver) Remove() error {
-	ctx := context.Background()
 	multierr := mcnutils.MultiError{
 		Errs: []error{},
 	}
@@ -439,54 +331,34 @@ func (d *Driver) Remove() error {
 	//     continue removing other resources instead of failing
 
 	log.Info("Starting deleting resources...")
-	err := d.getClient()
+
+	err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
 	if err != nil {
 		multierr.Errs = append(multierr.Errs, err)
 	}
-
+	err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)
+	if err != nil {
+		multierr.Errs = append(multierr.Errs, err)
+	}
+	err = d.client().RemoveServer(d.DatacenterId, d.ServerId)
+	if err != nil {
+		multierr.Errs = append(multierr.Errs, err)
+	}
+	err = d.client().RemoveLan(d.DatacenterId, d.LanId)
+	if err != nil {
+		multierr.Errs = append(multierr.Errs, err)
+	}
 	// If the DataCenter existed before creating the machine, do not delete it at clean-up
 	if !d.DCExists {
-		err := d.removeServer(d.DatacenterId, d.ServerId, d.LanId)
+		err = d.client().RemoveDatacenter(d.DatacenterId)
 		if err != nil {
-			multierr.Errs = append(multierr.Errs, fmt.Errorf("error deleting server: %v", err))
-		}
-		_, resp, err := d.Config.DataCenterApi.DatacentersDelete(ctx, d.DatacenterId).Execute()
-		if err != nil {
-			multierr.Errs = append(multierr.Errs, fmt.Errorf("erro deleting datacenter: %v", err))
-		}
-		if resp.StatusCode > 299 {
-			multierr.Errs = append(multierr.Errs, fmt.Errorf("error deleting datacenter, API Response status: %s", resp.Status))
-		}
-		err = d.waitTillProvisioned(resp.Header.Get("location"))
-		if err != nil {
-			multierr.Errs = append(multierr.Errs, fmt.Errorf("error waiting for datacenter to be deleted: %v", err))
-		}
-		log.Info("DataCenter Deleted")
-	} else {
-		err := d.removeServer(d.DatacenterId, d.ServerId, d.LanId)
-		if err != nil {
-			multierr.Errs = append(multierr.Errs, fmt.Errorf("error deleting server: %v", err))
+			multierr.Errs = append(multierr.Errs, err)
 		}
 	}
-
-	ipBlocks, _, err := d.Config.IPBlocksApi.IpblocksGet(ctx).Execute()
+	err = d.client().RemoveIpBlock(d.IPAddress)
 	if err != nil {
-		multierr.Errs = append(multierr.Errs, fmt.Errorf("error getting ipblock: %v", err))
+		multierr.Errs = append(multierr.Errs, err)
 	}
-	for _, i := range *ipBlocks.Items {
-		for _, v := range *i.Properties.Ips {
-			if d.IPAddress == v {
-				_, resp, err := d.Config.IPBlocksApi.IpblocksDelete(ctx, *i.Id).Execute()
-				if err != nil {
-					multierr.Errs = append(multierr.Errs, fmt.Errorf("error deleting ipblock: %v", err))
-				}
-				if resp.StatusCode > 299 {
-					multierr.Errs = append(multierr.Errs, fmt.Errorf("error deleting ipblock, API Response status: %s", resp.Status))
-				}
-			}
-		}
-	}
-	log.Info("IpBlock Deleted")
 
 	if len(multierr.Errs) == 0 {
 		return nil
@@ -501,15 +373,10 @@ func (d *Driver) Start() error {
 	if err != nil {
 		return fmt.Errorf("error getting state: %v", err)
 	}
-	err = d.getClient()
-	if err != nil {
-		return err
-	}
-
 	if serverState != state.Running {
-		_, _, err = d.Config.ServerApi.DatacentersServersStartPost(context.TODO(), d.DatacenterId, d.ServerId).Execute()
+		err = d.client().StartServer(d.DatacenterId, d.ServerId)
 		if err != nil {
-			return fmt.Errorf("error starting server: %v", err)
+			return err
 		}
 	} else {
 		log.Info("Host is already running or starting")
@@ -527,42 +394,27 @@ func (d *Driver) Stop() error {
 		log.Infof("Host is already stopped")
 		return nil
 	}
-
-	err = d.getClient()
+	err = d.client().StopServer(d.DatacenterId, d.ServerId)
 	if err != nil {
 		return err
-	}
-	_, _, err = d.Config.ServerApi.DatacentersServersStopPost(context.TODO(), d.DatacenterId, d.ServerId).Execute()
-	if err != nil {
-		return fmt.Errorf("error stoping server: %v", err)
 	}
 	return nil
 }
 
 // Restart reboots the machine instance.
 func (d *Driver) Restart() error {
-	err := d.getClient()
+	err := d.client().RestartServer(d.DatacenterId, d.ServerId)
 	if err != nil {
 		return err
-	}
-	_, resp, err := d.Config.ServerApi.DatacentersServersRebootPost(context.TODO(), d.DatacenterId, d.ServerId).Execute()
-	if err != nil {
-		return fmt.Errorf("error restarting server: %v", err)
-	}
-	if resp.StatusCode != 202 {
-		return fmt.Errorf("error restarting server, API Response status: %v", resp.Status)
 	}
 	return nil
 }
 
 // Kill stops the machine instance
 func (d *Driver) Kill() error {
-	_, resp, err := d.Config.ServerApi.DatacentersServersStopPost(context.TODO(), d.DatacenterId, d.ServerId).Execute()
+	err := d.client().StopServer(d.DatacenterId, d.ServerId)
 	if err != nil {
-		return fmt.Errorf("error stoping server: %v", err)
-	}
-	if resp.StatusCode != 202 {
-		return fmt.Errorf(resp.Status)
+		return err
 	}
 	return nil
 }
@@ -586,20 +438,25 @@ func (d *Driver) GetURL() (string, error) {
 
 // GetIP returns public IP address or hostname of the machine instance.
 func (d *Driver) GetIP() (string, error) {
-	err := d.getClient()
-	if err != nil {
-		return "", err
-	}
-	server, _, err := d.Config.ServerApi.DatacentersServersFindById(context.TODO(), d.DatacenterId, d.ServerId).Execute()
+	server, err := d.client().GetServer(d.DatacenterId, d.ServerId)
 	if err != nil {
 		return "", fmt.Errorf("error getting server by id: %v", err)
 	}
 
-	entitiesNicItems := *server.Entities.Nics.Items
-	entityNic := entitiesNicItems[0]
-	entityNicIps := *entityNic.Properties.Ips
-	d.IPAddress = entityNicIps[0]
-
+	if serverEntities, ok := server.GetEntitiesOk(); ok && serverEntities != nil {
+		if serverEntitiesNic, ok := serverEntities.GetNicsOk(); ok && serverEntitiesNic != nil {
+			if serverEntitiesNicItems, ok := serverEntitiesNic.GetItemsOk(); ok && serverEntitiesNicItems != nil {
+				entitiesNicItems := *serverEntitiesNicItems
+				entityNic := entitiesNicItems[0]
+				if nicProp, ok := entityNic.GetPropertiesOk(); ok && nicProp != nil {
+					if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
+						entityNicIps := *nicIps
+						d.IPAddress = entityNicIps[0]
+					}
+				}
+			}
+		}
+	}
 	if d.IPAddress == "" {
 		return "", fmt.Errorf("IP address is not set")
 	}
@@ -608,65 +465,39 @@ func (d *Driver) GetIP() (string, error) {
 
 // GetState returns the state of the machine role instance.
 func (d *Driver) GetState() (state.State, error) {
-	err := d.getClient()
+	server, err := d.client().GetServer(d.DatacenterId, d.ServerId)
 	if err != nil {
 		return state.None, err
 	}
-	server, serverResp, err := d.Config.ServerApi.DatacentersServersFindById(context.TODO(), d.DatacenterId, d.ServerId).Execute()
-	if err != nil {
-		return state.None, err
-	}
-	if serverResp.StatusCode > 299 {
-		if serverResp.StatusCode == 401 {
-			return state.None, fmt.Errorf("unauthorized: either user name or password are incorrect")
 
-		} else {
-			return state.None, fmt.Errorf("error occurred fetching a server: %s", serverResp.Status)
+	if metadata, ok := server.GetMetadataOk(); ok && metadata != nil {
+		if metadataState, ok := metadata.GetStateOk(); ok && metadataState != nil {
+			switch *metadataState {
+			case "NOSTATE":
+				return state.None, nil
+			case "AVAILABLE":
+				return state.Running, nil
+			case "PAUSED":
+				return state.Paused, nil
+			case "BLOCKED":
+				return state.Stopped, nil
+			case "SHUTDOWN":
+				return state.Stopped, nil
+			case "SHUTOFF":
+				return state.Stopped, nil
+			case "CHRASHED":
+				return state.Error, nil
+			case "INACTIVE":
+				return state.Stopped, nil
+			}
 		}
 	}
-
-	switch *server.Metadata.State {
-	case "NOSTATE":
-		return state.None, nil
-	case "AVAILABLE":
-		return state.Running, nil
-	case "PAUSED":
-		return state.Paused, nil
-	case "BLOCKED":
-		return state.Stopped, nil
-	case "SHUTDOWN":
-		return state.Stopped, nil
-	case "SHUTOFF":
-		return state.Stopped, nil
-	case "CHRASHED":
-		return state.Error, nil
-	case "INACTIVE":
-		return state.Stopped, nil
-	}
-	return state.None, nil
+	return state.None, fmt.Errorf("error getting server information")
 }
 
 /*
 	Private helper functions
 */
-
-func (d *Driver) getClient() error {
-	if d.Username == "" || d.Password == "" || d.URL == "" {
-		return fmt.Errorf("username, password or server-url not provided")
-	}
-	clientConfig := &sdkgo.Configuration{
-		Username: d.Username,
-		Password: d.Password,
-		Servers: sdkgo.ServerConfigurations{
-			sdkgo.ServerConfiguration{
-				URL: d.URL,
-			},
-		},
-	}
-
-	d.Config = sdkgo.NewAPIClient(clientConfig)
-	return nil
-}
 
 func (d *Driver) publicSSHKeyPath() string {
 	return d.GetSSHKeyPath() + ".pub"
@@ -687,151 +518,48 @@ func (d *Driver) isSwarmMaster() bool {
 	return d.SwarmMaster
 }
 
-func (d *Driver) waitTillProvisioned(path string) error {
-	err := d.getClient()
-	if err != nil {
-		return err
-	}
-	for i := 0; i < waitCount; i++ {
-		requestStatus, _, err := d.Config.RequestApi.RequestsStatusGet(context.TODO(), d.getRequestId(path)).Execute()
-		if err != nil {
-			return fmt.Errorf("error getting request status: %s", err.Error())
-		}
-		if *requestStatus.Metadata.Status == "DONE" {
-			return nil
-		}
-		if *requestStatus.Metadata.Status == "FAILED" {
-			return fmt.Errorf(*requestStatus.Metadata.Message)
-		}
-		time.Sleep(10 * time.Second)
-		i++
-	}
-
-	return fmt.Errorf("timeout has expired")
-}
-
-func (d *Driver) removeServer(datacenterId string, serverId string, lanId string) error {
-	server, serverResp, err := d.Config.ServerApi.DatacentersServersFindById(context.TODO(), datacenterId, serverId).Execute()
-	if err != nil {
-		return err
-	}
-	if serverResp.StatusCode > 299 {
-		return fmt.Errorf(serverResp.Status)
-	}
-
-	if server.Entities != nil && server.Entities.Nics != nil && len(*server.Entities.Nics.Items) > 0 {
-		nicItems := *server.Entities.Nics.Items
-		nicId := *nicItems[0].Id
-		_, resp, err := d.Config.NicApi.DatacentersServersNicsDelete(context.TODO(), d.DatacenterId, serverId, nicId).Execute()
-		if err != nil {
-			return err
-		}
-		if resp.StatusCode > 299 {
-			return fmt.Errorf(resp.Status)
-		}
-		err = d.waitTillProvisioned(resp.Header.Get("location"))
-		if err != nil {
-			return err
-		}
-		log.Info("NIC Deleted")
-	}
-
-	if server.Entities != nil && server.Entities.Volumes != nil && len(*server.Entities.Volumes.Items) > 0 {
-		volumesItems := *server.Entities.Volumes.Items
-		volumeId := *volumesItems[0].Id
-		_, resp, err := d.Config.VolumeApi.DatacentersVolumesDelete(context.TODO(), d.DatacenterId, volumeId).Execute()
-		if err != nil {
-			return err
-		}
-		if resp.StatusCode > 299 {
-			return fmt.Errorf(resp.Status)
-		}
-		err = d.waitTillProvisioned(resp.Header.Get("location"))
-		if err != nil {
-			return err
-		}
-		log.Info("Volume Deleted")
-	}
-
-	_, resp, err := d.Config.ServerApi.DatacentersServersDelete(context.TODO(), datacenterId, serverId).Execute()
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode > 299 {
-		return fmt.Errorf(resp.Status)
-	}
-	err = d.waitTillProvisioned(resp.Header.Get("location"))
-	if err != nil {
-		return err
-	}
-	log.Info("Server Deleted")
-
-	_, resp, err = d.Config.LanApi.DatacentersLansDelete(context.TODO(), datacenterId, lanId).Execute()
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode > 299 {
-		return fmt.Errorf(resp.Status)
-	}
-	err = d.waitTillProvisioned(resp.Header.Get("location"))
-	if err != nil {
-		return err
-	}
-	log.Info("LAN Deleted")
-
-	return nil
-}
-
-func (d *Driver) getRequestId(path string) string {
-	if !strings.Contains(path, d.URL) {
-		fmt.Errorf("path does not contain %s", d.URL)
-		return ""
-	}
-	str := strings.Split(path, "/")
-	return str[len(str)-2]
-}
-
 func (d *Driver) getImageId(imageName string) (string, error) {
-	err := d.getClient()
-	if err != nil {
-		return "", err
-	}
 	d.UseAlias = false
 	// first look if the provided parameter matches an alias, if a match is found we return the image alias
 	regionId, locationId := d.getRegionIdAndLocationId()
-	location, _, err := d.Config.LocationApi.LocationsFindByRegionIdAndId(context.TODO(), regionId, locationId).Execute()
+	location, err := d.client().GetLocationById(regionId, locationId)
 	if err != nil {
 		return "", err
 	}
-	for _, alias := range *location.Properties.ImageAliases {
-		if alias == imageName {
-			d.UseAlias = true
-			return imageName, nil
+	if locationProp, ok := location.GetPropertiesOk(); ok && locationProp != nil {
+		if imageAliases, ok := locationProp.GetImageAliasesOk(); ok && imageAliases != nil {
+			for _, alias := range *imageAliases {
+				if alias == imageName {
+					d.UseAlias = true
+					return imageName, nil
+				}
+			}
 		}
 	}
-
 	// if no alias matches we do extended search and return the image id
-	images, imagesResp, err := d.Config.ImageApi.ImagesGet(context.TODO()).Execute()
+	images, err := d.client().GetImages()
 	if err != nil {
 		return "", err
 	}
 
-	if imagesResp.StatusCode == 401 {
-		return "", fmt.Errorf("error: authentication failed")
-	}
-
-	for _, image := range *images.Items {
-		imgName := ""
-		if *image.Properties.Name != "" {
-			imgName = *image.Properties.Name
-		}
-		diskType := d.DiskType
-		if d.DiskType == "SSD" {
-			diskType = defaultDiskType
-		}
-		if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(imageName)) &&
-			*image.Properties.ImageType == diskType && *image.Properties.Location == d.Location {
-			return *image.Id, nil
+	if imagesItems, ok := images.GetItemsOk(); ok && imagesItems != nil {
+		for _, image := range *imagesItems {
+			imgName := ""
+			if imgProp, ok := image.GetPropertiesOk(); ok && imgProp != nil {
+				if name, ok := imgProp.GetNameOk(); ok && name != nil {
+					if *name != "" {
+						imgName = *name
+					}
+				}
+			}
+			diskType := d.DiskType
+			if d.DiskType == "SSD" {
+				diskType = defaultDiskType
+			}
+			if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(imageName)) &&
+				*image.Properties.ImageType == diskType && *image.Properties.Location == d.Location {
+				return *image.Id, nil
+			}
 		}
 	}
 	return "", nil
