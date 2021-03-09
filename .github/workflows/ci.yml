@@ -13,7 +13,11 @@ jobs:
     env:
       go-version: ^1.14
       package-name: ionoscloud
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     outputs:
       go-version: ${{ env.go-version }}
       package-name: ${{ env.package-name }}

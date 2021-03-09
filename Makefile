@@ -3,7 +3,7 @@ BIN_NAME := docker-machine-driver-ionoscloud
 
 GOFILES= $(shell find . -type f -name '*.go')
 ifeq ($(OS),Windows_NT)
-	BIN_SUFFIX := ".exe"
+	BIN_SUFFIX := .exe
 else
 	BIN_SUFFIX :=
 endif
