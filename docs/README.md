@@ -1,7 +1,5 @@
 # Introduction
 
-![CI](https://github.com/ionos-cloud/rancher-driver/workflows/CI/badge.svg)
-
 ## Overview
 
 Rancher Driver is the official driver for Rancher Machine to use with Ionos Cloud. 
@@ -53,15 +51,15 @@ Note that the development version is a work-in-progress of a future stable relea
 
 ### Usage
 
-Before you start creating a Rancher Machine with the Ionos Cloud Rancher Driver, you need to authenticate in your Ionos Cloud account. Check the steps in the [Authentication](./docs/usage/authentication.md) section.
+Before you start creating a Rancher Machine with the Ionos Cloud Rancher Driver, you need to authenticate in your Ionos Cloud account. Check the steps in the [Authentication](./usage/authentication.md) section.
 
-For information about how to create a Rancher Machine with Ionos Cloud Rancher Driver, check the [Create a Machine](./docs/usage/create-machine.md) section.
+For information about how to create a Rancher Machine with Ionos Cloud Rancher Driver, check the [Create a Machine](./usage/create-machine.md) section.
 
-For information about how to create a Rancher Machine with Ionos Cloud Rancher Driver with [Swarm Mode](https://docs.docker.com/engine/swarm/), check the [Create a Swarm](./docs/usage/create-swarm.md) section.
+For information about how to create a Rancher Machine with Ionos Cloud Rancher Driver with [Swarm Mode](https://docs.docker.com/engine/swarm/), check the [Create a Swarm](./usage/create-swarm.md) section.
 
-In order to see the available options and flags, check the [Options](./docs/usage/options.md) section.
+In order to see the available options and flags, check the [Options](./usage/options.md) section.
 
-For more information about Rancher Machine commands on how to manage a machine, including examples, check the [Rancher Machine Commands](./docs/usage/rancher-commands.md) section. 
+For more information about Rancher Machine commands on how to manage a machine, including examples, check the [Rancher Machine Commands](./usage/rancher-commands.md) section. 
 
 ## Feature Reference 
 
