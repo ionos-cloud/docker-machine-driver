@@ -151,7 +151,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			EnvVar: "IONOSCLOUD_SERVER_CPU_FAMILY",
 			Name:   flagServerCpuFamily,
 			Value:  defaultCpuFamily,
-			Usage:  "Ionos Cloud Server CPU families (AMD_OPTERON,INTEL_XEON)",
+			Usage:  "Ionos Cloud Server CPU families (AMD_OPTERON, INTEL_XEON, INTEL_SKYLAKE)",
 		},
 		mcnflag.StringFlag{
 			Name:  flagDatacenterId,
@@ -280,7 +280,7 @@ func (d *Driver) Create() error {
 		d.LanId = *lanId
 	}
 
-	server, err := d.client().CreateServer(d.DatacenterId, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
+	server, err := d.client().CreateServer(d.DatacenterId, d.Location, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
 	if err != nil {
 		return err
 	}
