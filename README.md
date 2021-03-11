@@ -48,8 +48,7 @@ sudo mv ~/docker-machine-driver-ionoscloud /usr/local/bin
 rancher-machine create --help --driver ionoscloud
 ```
 
-For Windows users, you can download the latest release available on [Release Page](https://github.com/ionos-cloud/rancher-driver/releases), unzip it and copy the binary in your `PATH`.
-You can follow this [official guide](https://msdn.microsoft.com/en-us/library/office/ee537574(v=office.14).aspx) that explains how to add tools to your `PATH`. 
+For Windows users, you can download the latest release available on [Release Page](https://github.com/ionos-cloud/rancher-driver/releases), unzip it and copy the binary in your `PATH`. You can follow this [official guide](https://msdn.microsoft.com/en-us/library/office/ee537574(v=office.14).aspx) that explains how to add tools to your `PATH`. 
 
 #### Local Version 
 
@@ -68,7 +67,11 @@ make install
 
 When successful, we will end up with a newly created `docker-machine-driver-ionoscloud` binary in `rancher-driver/bin/` and in `$GOPATH/bin/`. 
 
-Depending how your `$PATH` is being set, you may need to copy the binary to `$PATH` in order to use the Rancher Driver. 
+Depending on how your `$PATH` is being set, you may need to copy the binary to `$PATH` in order to use the Rancher Driver: 
+
+```
+sudo cp $DIRECTORY_PATH/rancher-driver/bin/docker-machine-driver-ionoscloud /usr/local/bin/docker-machine-driver-ionoscloud
+```
 
 Note that the development version is a work-in-progress of a future stable release and can include bugs. Officially released versions will generally be more stable. Check the latest releases in the [Release Page](https://github.com/ionos-cloud/rancher-driver/releases).
 

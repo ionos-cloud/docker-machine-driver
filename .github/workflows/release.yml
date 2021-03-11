@@ -6,7 +6,7 @@ on:
       - 'v*'
 jobs:
   goreleaser:
-    name: Publish release
+    name: Publish Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

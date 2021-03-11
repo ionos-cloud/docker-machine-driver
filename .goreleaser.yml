@@ -1,4 +1,4 @@
-project_name: test
+project_name: rancher-driver
 
 before:
   hooks:
@@ -11,6 +11,7 @@ builds:
     mod_timestamp: '{{ .CommitTimestamp }}'
     flags:
       - -trimpath
+      - -mod=vendor
     goos:
       - windows
       - linux
