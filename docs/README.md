@@ -28,6 +28,27 @@ export PATH=$PATH:/usr/local/go/bin
 
 ### Installing
 
+#### Released Binaries
+
+Check the [Release Page](https://github.com/ionos-cloud/rancher-driver/releases) and find the corresponding archive for your operating system and architecture. You can download the archive from your browser or you can follow the next steps:
+
+```
+# Check if /usr/local/bin is part of your PATH
+echo $PATH
+
+# Download and extract the binary (<version> is the full semantic version): 
+curl -sL https://github.com/ionos-cloud/rancher-driver/releases/download/v<version>/rancher-driver-<version>-linux-amd64.tar.gz | tar -xzv
+
+# Move the binary somewhere in your $PATH:
+sudo mv ~/docker-machine-driver-ionoscloud /usr/local/bin
+
+# See options for the driver to use with the Rancher Machine
+rancher-machine create --help --driver ionoscloud
+```
+
+For Windows users, you can download the latest release available on [Release Page](https://github.com/ionos-cloud/rancher-driver/releases), unzip it and copy the binary in your `PATH`.
+You can follow this [official guide](https://msdn.microsoft.com/en-us/library/office/ee537574(v=office.14).aspx) that explains how to add tools to your `PATH`. 
+
 #### Local Version 
 
 With the prerequisites taken care of, will need to run the following commands to install the Ionos Cloud Rancher Machine Driver:

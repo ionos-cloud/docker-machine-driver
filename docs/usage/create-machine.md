@@ -8,6 +8,12 @@ In order to create a Rancher Machine with Ionos Cloud Rancher Driver, run:
 rancher-machine create --driver ionoscloud test-machine
 ```
 
+For Windows users: 
+
+```
+rancher-machine create --driver ionoscloud.exe test-machine
+```
+
 It should produce results similar to this:
 
 ```
