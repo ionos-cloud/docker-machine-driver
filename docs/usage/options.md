@@ -20,7 +20,7 @@ Available Options for the `rancher-machine create` command with the Rancher Driv
 | --ionoscloud-password | Ionos Cloud Password |
 | --ionoscloud-server-availability-zone | Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3) |
 | --ionoscloud-server-cores	| Ionos Cloud Server Cores (2, 3, 4, 5, 6, etc.) | 
-| --ionoscloud-server-cpu-family | Ionos Cloud Server CPU families (AMD_OPTERON,INTEL_XEON) | 
+| --ionoscloud-server-cpu-family | Ionos Cloud Server CPU families (AMD_OPTERON,INTEL_XEON, INTEL_SKYLAKE) | 
 | --ionoscloud-server-ram | Ionos Cloud Server Ram (1024, 2048, 3072, 4096, etc.) |
 | --ionoscloud-username | Ionos Cloud Username |
 | --ionoscloud-volume-availability-zone	| Ionos Cloud Volume Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3) | 

@@ -119,6 +119,11 @@ func (c *Client) GetDatacenter(datacenterId string) (*sdkgo.Datacenter, error) {
 func (c *Client) RemoveDatacenter(datacenterId string) error {
 	_, resp, err := c.DataCenterApi.DatacentersDelete(c.ctx, datacenterId).Execute()
 	if err != nil {
+		if resp != nil {
+			if resp.StatusCode == 405 {
+				return fmt.Errorf("error deleting datacenter: %v. Please consider to delete it manually", err)
+			}
+		}
 		return fmt.Errorf("error deleting datacenter: %v", err)
 	}
 	if resp.StatusCode > 299 {
@@ -169,7 +174,7 @@ func (c *Client) RemoveLan(datacenterId, lanId string) error {
 	return nil
 }
 
-func (c *Client) CreateServer(datacenterId, name, cpufamily, zone string, ram, cores int32) (*sdkgo.Server, error) {
+func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone string, ram, cores int32) (*sdkgo.Server, error) {
 	server := sdkgo.Server{
 		Properties: &sdkgo.ServerProperties{
 			Name:             &name,
@@ -182,7 +187,7 @@ func (c *Client) CreateServer(datacenterId, name, cpufamily, zone string, ram, c
 
 	svr, serverResp, err := c.ServerApi.DatacentersServersPost(c.ctx, datacenterId).Server(server).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error creating server: %v", err)
+		return nil, fmt.Errorf("error creating server in location %s with cpu-family %s, err: %v. Please consider some regions may offer different features for Server CPU_ARHITECTURE", location, cpufamily, err)
 	}
 	if serverResp.StatusCode == 202 {
 		log.Info("Server Created")
