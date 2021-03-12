@@ -568,7 +568,7 @@ func (d *Driver) getRegionIdAndLocationId() (regionId, locationId string) {
 	ids := strings.Split(d.Location, "/")
 	// location has standard format: {regionId}/{locationId}
 	if len(ids) != 2 {
-		fmt.Errorf("error getting Region Id and Location Id from %s", d.Location)
+		log.Errorf("error getting Region Id and Location Id from %s", d.Location)
 		return "", ""
 	}
 	return ids[0], ids[1]

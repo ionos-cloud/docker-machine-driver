@@ -30,6 +30,7 @@ jobs:
           go-version: ${{ env.go-version }}
       - name: Check code format
         run: make gofmt_check
+        if: matrix.os == 'ubuntu-latest'
       - name: Run tests
         run: make test
       - name: Build
