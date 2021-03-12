@@ -1,0 +1,74 @@
+# github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78
+github.com/Azure/go-ansiterm
+github.com/Azure/go-ansiterm/winterm
+# github.com/davecgh/go-spew v1.1.0
+github.com/davecgh/go-spew/spew
+# github.com/docker/docker v20.10.5+incompatible
+## explicit
+github.com/docker/docker/pkg/term
+# github.com/golang/mock v1.4.0
+## explicit
+github.com/golang/mock/gomock
+# github.com/golang/protobuf v1.3.3
+github.com/golang/protobuf/proto
+# github.com/ionos-cloud/sdk-go/v5 v5.0.2
+## explicit
+github.com/ionos-cloud/sdk-go/v5
+# github.com/moby/term v0.0.0-20201216013528-df9cb8a40635
+## explicit
+github.com/moby/term
+github.com/moby/term/windows
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
+# github.com/rancher/machine v0.15.0-rancher52
+## explicit
+github.com/rancher/machine/libmachine/drivers
+github.com/rancher/machine/libmachine/drivers/plugin
+github.com/rancher/machine/libmachine/drivers/plugin/localbinary
+github.com/rancher/machine/libmachine/drivers/rpc
+github.com/rancher/machine/libmachine/log
+github.com/rancher/machine/libmachine/mcnflag
+github.com/rancher/machine/libmachine/mcnutils
+github.com/rancher/machine/libmachine/ssh
+github.com/rancher/machine/libmachine/state
+github.com/rancher/machine/libmachine/version
+github.com/rancher/machine/version
+# github.com/stretchr/testify v1.7.0
+## explicit
+github.com/stretchr/testify/assert
+# golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+## explicit
+golang.org/x/crypto/blowfish
+golang.org/x/crypto/chacha20
+golang.org/x/crypto/curve25519
+golang.org/x/crypto/ed25519
+golang.org/x/crypto/ed25519/internal/edwards25519
+golang.org/x/crypto/internal/subtle
+golang.org/x/crypto/poly1305
+golang.org/x/crypto/ssh
+golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
+golang.org/x/crypto/ssh/terminal
+# golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+golang.org/x/net/context
+golang.org/x/net/context/ctxhttp
+# golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+golang.org/x/oauth2
+golang.org/x/oauth2/internal
+# golang.org/x/sys v0.0.0-20200831180312-196b9ba8737a
+golang.org/x/sys/cpu
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/plan9
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# golang.org/x/term v0.0.0-20201117132131-f5c789dd3221
+golang.org/x/term
+# google.golang.org/appengine v1.6.5
+google.golang.org/appengine/internal
+google.golang.org/appengine/internal/base
+google.golang.org/appengine/internal/datastore
+google.golang.org/appengine/internal/log
+google.golang.org/appengine/internal/remote_api
+google.golang.org/appengine/internal/urlfetch
+google.golang.org/appengine/urlfetch
+# gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
+gopkg.in/yaml.v3
