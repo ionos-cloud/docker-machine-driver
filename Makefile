@@ -1,6 +1,5 @@
 # Driver Binary Name
 BIN_NAME := docker-machine-driver-ionoscloud
-
 GOFILES_NOVENDOR=$(shell find . -type f -name '*.go' | grep -v vendor)
 ifeq ($(OS),Windows_NT)
 	BIN_SUFFIX := .exe
@@ -21,7 +20,7 @@ endif
 
 .PHONY: compile
 compile:
-	GOGC=off CGOENABLED=0 go build -mod=vendor -o ./bin/${BIN_NAME}${BIN_SUFFIX} ./bin
+	GOGC=off CGOENABLED=0 go build -o ./bin/${BIN_NAME}${BIN_SUFFIX} ./bin
 
 .PHONY: print-success
 print-success:
@@ -36,20 +35,18 @@ test: test_unit
 .PHONY: test_unit
 test_unit:
 	@echo "Run unit tests"
-	@go test -cover -mod=vendor .
+	@go test -cover .
 	@echo "DONE"
 
 .PHONY: gofmt_check
 gofmt_check:
-	@echo "Ensure code adheres to gofmt and list files whose formatting differs from gofmt's"
-	@echo "(vendor directory excluded)"
+	@echo "Ensure code adheres to gofmt and list files whose formatting differs from gofmt's (vendor directory excluded)"
 	@if [ "$(shell echo $$(gofmt -l ${GOFILES_NOVENDOR}))" != "" ]; then (echo "Format files: $(shell echo $$(gofmt -l ${GOFILES_NOVENDOR})) Hint: use \`make gofmt_update\`"; exit 1); fi
 	@echo "DONE"
 
 .PHONY: gofmt_update
 gofmt_update:
-	@echo "Ensure code adheres to gofmt and change files accordingly"
-	@echo "(vendor directory excluded)"
+	@echo "Ensure code adheres to gofmt and change files accordingly (vendor directory excluded)"
 	@gofmt -w ${GOFILES_NOVENDOR}
 	@echo "DONE"
 
