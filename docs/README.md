@@ -14,6 +14,11 @@ Rancher Driver is the official driver for Rancher Machine to use with Ionos Clou
 
 This Ionos Cloud plugin will only work with Rancher Machine. Before we continue, you will need to install [Rancher Machine](https://github.com/rancher/machine/releases/).
 
+Rancher Machine requires to:
+
+* allow inbound traffic to port 22 (SSH) to the node subnet.
+* allow inbound traffic to port 2376 (Docker) to the node subnet.
+
 #### Installing Go
 
 The Ionos Cloud Rancher Driver is written in the Go programming language. Your system will need to have Go installed. Please refer to the [Go Install Documentation](https://golang.org/doc/install) if you do not have Go installed and configured for your system.
