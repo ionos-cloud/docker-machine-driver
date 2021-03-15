@@ -36,7 +36,7 @@ export PATH=$PATH:/usr/local/go/bin
 
 Check the [Release Page](https://github.com/ionos-cloud/rancher-driver/releases) and find the corresponding archive for your operating system and architecture. You can download the archive from your browser or you can follow the next steps:
 
-```
+```text
 # Check if /usr/local/bin is part of your PATH
 echo $PATH
 
@@ -71,7 +71,7 @@ When successful, we will end up with a newly created `docker-machine-driver-iono
 
 Depending on how your `$PATH` is being set, you may need to copy the binary to `$PATH` in order to use the Rancher Driver. 
 
-```
+```text
 sudo cp $DIRECTORY_PATH/rancher-driver/bin/docker-machine-driver-ionoscloud /usr/local/bin/docker-machine-driver-ionoscloud
 ```
 

@@ -28,7 +28,7 @@ The Ionos Cloud Rancher Driver is written in the Go programming language. Your s
 
 Remember to set `$GOPATH` and update `$PATH`. The following are just examples using the `export` command, you will need to adjust the paths for your particular installation.
 
-```
+```text
 export GOPATH=/usr/local/go
 export PATH=$PATH:/usr/local/go/bin
 ```
@@ -39,7 +39,7 @@ export PATH=$PATH:/usr/local/go/bin
 
 Check the [Release Page](https://github.com/ionos-cloud/rancher-driver/releases) and find the corresponding archive for your operating system and architecture. You can download the archive from your browser or you can follow the next steps:
 
-```
+```text
 # Check if /usr/local/bin is part of your PATH
 echo $PATH
 
@@ -59,13 +59,13 @@ For Windows users, you can download the latest release available on [Release Pag
 
 With the prerequisites taken care of, will need to run the following commands to install the Ionos Cloud Rancher Machine Driver:
 
-```
+```text
 git clone https://github.com/ionos-cloud/rancher-driver.git
 ```
 
 After cloning the repository, you can build and install the driver itself:
 
-```
+```text
 cd $DIRECTORY_PATH/rancher-driver
 make install
 ```
@@ -74,7 +74,7 @@ When successful, we will end up with a newly created `docker-machine-driver-iono
 
 Depending on how your `$PATH` is being set, you may need to copy the binary to `$PATH` in order to use the Rancher Driver: 
 
-```
+```text
 sudo cp $DIRECTORY_PATH/rancher-driver/bin/docker-machine-driver-ionoscloud /usr/local/bin/docker-machine-driver-ionoscloud
 ```
 
@@ -95,14 +95,17 @@ For more information about Rancher Machine commands on how to manage a machine, 
 ## Feature Reference 
 
 The IONOS Cloud Rancher Driver aims to offer access to all resources in the IONOS Cloud API and also offers some additional features that make the integration easier: 
-- authentication for API calls
-- handling of asynchronous requests 
+
+* authentication for API calls
+* handling of asynchronous requests 
 
 ## FAQ
-- How can I open a bug/feature request?
+
+* How can I open a bug/feature request?
 
 Bugs & feature requests can be open on the repository issues: https://github.com/ionos-cloud/rancher-driver/issues/new/choose
 
-- Can I contribute to the Rancher Driver?
+* Can I contribute to the Rancher Driver?
 
 Sure! Our repository is public, feel free to fork it and file a PR for one of the issues opened in the issues list. We will review it and work together to get it released.
+

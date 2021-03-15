@@ -10,7 +10,7 @@ rancher-machine create --driver ionoscloud test-machine
 
 For Windows users: 
 
-```
+```text
 rancher-machine create --driver ionoscloud.exe test-machine
 ```
 
