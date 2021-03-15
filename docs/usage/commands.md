@@ -1,11 +1,11 @@
-# Rancher Machine Commands 
+# Commands
 
-## Commands
+## Rancher Machine Commands
 
 [Rancher Machine](https://github.com/rancher/machine) has multiple commands in order to manage a machine. 
 
 | Command | Description |
-| :------ | :---------- |
+| :--- | :--- |
 | active		| Print which machine is active |
 | config		| Print the connection config for machine |
 | create		| Create a machine |
@@ -37,13 +37,13 @@ For more available options to manage a Rancher Machine, use `rancher-machine hel
 
 To list the machines you have created, use the command:
 
-```
+```text
 rancher-machine ls
 ```
 
 It will return information about your machines, similar to this:
 
-```
+```text
 NAME           ACTIVE   DRIVER         STATE     URL                         SWARM   DOCKER    ERRORS
 test-machine   *        ionoscloud     Running   tcp://158.222.102.154:2376           v20.10.5
 ```
@@ -52,13 +52,13 @@ test-machine   *        ionoscloud     Running   tcp://158.222.102.154:2376     
 
 To start a Rancher Machine, run: 
 
-```
+```text
 rancher-machine start test-machine
 ```
 
 Expected output:
 
-```
+```text
 Starting "test-machine"...
 Machine "test-machine" was started.
 Waiting for SSH to be available...
@@ -70,13 +70,13 @@ Started machines may have new IP addresses. You may need to re-run the `rancher-
 
 To stop a Rancher Machine, run: 
 
-```
+```text
 rancher-machine stop test-machine
 ```
 
 Expected output:
 
-```
+```text
 Stopping "test-machine"...
 Machine "test-machine" was stopped.
 ```
@@ -85,13 +85,13 @@ Machine "test-machine" was stopped.
 
 To restart a Rancher Machine, run: 
 
-```
+```text
 rancher-machine restart test-machine
 ```
 
 Expected output:
 
-```
+```text
 Restarting "test-machine"...
 Waiting for SSH to be available...
 Detecting the provisioner...
@@ -102,7 +102,7 @@ Restarted machines may have new IP addresses. You may need to re-run the `ranche
 
 To get the status of a Rancher Machine created, run: 
 
-```
+```text
 rancher-machine status test-machine
 ```
 
@@ -110,13 +110,13 @@ rancher-machine status test-machine
 
 To remove a Rancher Machine and all the resources associated with it, run: 
 
-```
+```text
 rancher-machine rm test-machine
 ```
 
 It should produce results similar to this:
 
-```
+```text
 About to remove test-machine
 WARNING: This action will delete both local reference and remote instance.
 Are you sure? (y/n): y
@@ -131,3 +131,4 @@ Successfully removed test-machine
 ```
 
 The remove command can also be used with `--force` or `-f` flag. 
+

@@ -17,6 +17,11 @@ For more information about Rancher Machine, you can visit the [GitHub Repository
 
 This Ionos Cloud plugin will only work with Rancher Machine. Before we continue, you will need to install [Rancher Machine](https://github.com/rancher/machine/releases/).
 
+Rancher Machine requires to:
+
+* allow inbound traffic to port 22 (SSH) to the node subnet.
+* allow inbound traffic to port 2376 (Docker) to the node subnet.
+
 #### Installing Go
 
 The Ionos Cloud Rancher Driver is written in the Go programming language. Your system will need to have Go installed. Please refer to the [Go Install Documentation](https://golang.org/doc/install) if you do not have Go installed and configured for your system.
@@ -53,15 +58,15 @@ Note that the development version is a work-in-progress of a future stable relea
 
 ### Usage
 
-Before you start creating a Rancher Machine with the Ionos Cloud Rancher Driver, you need to authenticate in your Ionos Cloud account. Check the steps in the [Authentication](./docs/usage/authentication.md) section.
+Before you start creating a Rancher Machine with the Ionos Cloud Rancher Driver, you need to authenticate in your Ionos Cloud account. Check the steps in the [Authentication](docs/usage/authentication.md) section.
 
-For information about how to create a Rancher Machine with Ionos Cloud Rancher Driver, check the [Create a Machine](./docs/usage/create-machine.md) section.
+For information about how to create a Rancher Machine with Ionos Cloud Rancher Driver, check the [Create Machine](docs/usage/create-machine.md) section.
 
-For information about how to create a Rancher Machine with Ionos Cloud Rancher Driver with [Swarm Mode](https://docs.docker.com/engine/swarm/), check the [Create a Swarm](./docs/usage/create-swarm.md) section.
+For information about how to create a Rancher Machine with Ionos Cloud Rancher Driver with [Swarm Mode](https://docs.docker.com/engine/swarm/), check the [Create Swarm](docs/usage/create-swarm.md) section.
 
-In order to see the available options and flags, check the [Options](./docs/usage/options.md) section.
+In order to see the available options and flags, check the [Options](docs/usage/options.md) section.
 
-For more information about Rancher Machine commands on how to manage a machine, including examples, check the [Rancher Machine Commands](./docs/usage/rancher-commands.md) section. 
+For more information about Rancher Machine commands on how to manage a machine, including examples, check the [Commands](docs/usage/commands.md) section. 
 
 ## Feature Reference 
 
