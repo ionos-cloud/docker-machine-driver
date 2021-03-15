@@ -32,6 +32,26 @@ export PATH=$PATH:/usr/local/go/bin
 
 ### Installing
 
+#### Released Binaries
+
+Check the [Release Page](https://github.com/ionos-cloud/rancher-driver/releases) and find the corresponding archive for your operating system and architecture. You can download the archive from your browser or you can follow the next steps:
+
+```text
+# Check if /usr/local/bin is part of your PATH
+echo $PATH
+
+# Download and extract the binary (<version> is the full semantic version): 
+curl -sL https://github.com/ionos-cloud/rancher-driver/releases/download/v<version>/rancher-driver-<version>-linux-amd64.tar.gz | tar -xzv
+
+# Move the binary somewhere in your $PATH:
+sudo mv ~/docker-machine-driver-ionoscloud /usr/local/bin
+
+# See options for the driver to use with the Rancher Machine
+rancher-machine create --help --driver ionoscloud
+```
+
+For Windows users, you can download the latest release available on [Release Page](https://github.com/ionos-cloud/rancher-driver/releases), unzip it and copy the binary in your `PATH`. You can follow this [official guide](https://msdn.microsoft.com/en-us/library/office/ee537574(v=office.14).aspx) that explains how to add tools to your `PATH`. 
+
 #### Local Version 
 
 With the prerequisites taken care of, will need to run the following commands to install the Ionos Cloud Rancher Machine Driver:
@@ -49,7 +69,11 @@ make install
 
 When successful, we will end up with a newly created `docker-machine-driver-ionoscloud` binary in `rancher-driver/bin/` and in `$GOPATH/bin/`. 
 
-Depending how your `$PATH` is being set, you may need to copy the binary to `$PATH` in order to use the Rancher Driver. 
+Depending on how your `$PATH` is being set, you may need to copy the binary to `$PATH` in order to use the Rancher Driver. 
+
+```text
+sudo cp $DIRECTORY_PATH/rancher-driver/bin/docker-machine-driver-ionoscloud /usr/local/bin/docker-machine-driver-ionoscloud
+```
 
 Note that the development version is a work-in-progress of a future stable release and can include bugs. Officially released versions will generally be more stable. Check the latest releases in the [Release Page](https://github.com/ionos-cloud/rancher-driver/releases).
 
