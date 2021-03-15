@@ -18,7 +18,11 @@ builds:
       - darwin
     goarch:
       - amd64
+      - '386'
       - arm64
+    ignore:
+      - goos: darwin
+        goarch: '386'
     binary: 'docker-machine-driver-ionoscloud'
 archives:
   - name_template: '{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}'
