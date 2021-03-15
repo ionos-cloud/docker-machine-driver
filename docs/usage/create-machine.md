@@ -1,10 +1,10 @@
-# Create a Machine
+# Create Machine
 
 ## Command
 
-In order to create a Rancher Machine with Ionos Cloud Rancher Driver, run:
+In order to create Rancher Machine with Ionos Cloud Rancher Driver, run:
 
-```
+```text
 rancher-machine create --driver ionoscloud test-machine
 ```
 
@@ -16,7 +16,7 @@ rancher-machine create --driver ionoscloud.exe test-machine
 
 It should produce results similar to this:
 
-```
+```text
 Running pre-create checks...
 Creating machine...
 (test-machine) Creating SSH key...
@@ -42,13 +42,13 @@ To see how to connect your Docker Client to the Docker Engine running on this vi
 
 After creating a machine it is recommended to configure your shell, to set up your environment for the Docker client:
 
-```
+```text
 eval $(rancher-machine env test-machine)
 ```
 
 All the resources created will be named with the machine name, in this example `test-machine`. 
 
-The example above uses mostly the default values and the resources will therefore be created in the `us/las` location.
-To change that or to see more options that can be used with this command, check the [Options](./options.md) section.
+The example above uses mostly the default values and the resources will therefore be created in the `us/las` location. To change that or to see more options that can be used with this command, check the [Options](options.md) section.
 
-For more available commands and examples on how to manage a Rancher Machine, check the [Rancher Machine Commands](./rancher-commands.md) section.
+For more available commands and examples on how to manage a Rancher Machine, check the [Rancher Machine Commands](commands.md) section.
+
