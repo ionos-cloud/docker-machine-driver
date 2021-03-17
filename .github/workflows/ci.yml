@@ -9,7 +9,7 @@ on:
     branches: [ master ]
 jobs:
   install:
-    name: Test rancher-driver
+    name: Test
     env:
       go-version: ^1.14
       package-name: ionoscloud

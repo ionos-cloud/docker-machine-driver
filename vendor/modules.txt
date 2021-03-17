@@ -6,11 +6,29 @@ github.com/davecgh/go-spew/spew
 # github.com/docker/docker v20.10.5+incompatible
 ## explicit
 github.com/docker/docker/pkg/term
+# github.com/docker/machine v0.16.2
+## explicit
+github.com/docker/machine/libmachine/drivers
+github.com/docker/machine/libmachine/drivers/plugin
+github.com/docker/machine/libmachine/drivers/plugin/localbinary
+github.com/docker/machine/libmachine/drivers/rpc
+github.com/docker/machine/libmachine/log
+github.com/docker/machine/libmachine/mcnflag
+github.com/docker/machine/libmachine/mcnutils
+github.com/docker/machine/libmachine/ssh
+github.com/docker/machine/libmachine/state
+github.com/docker/machine/libmachine/version
+github.com/docker/machine/version
 # github.com/golang/mock v1.4.0
 ## explicit
 github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.3.3
 github.com/golang/protobuf/proto
+# github.com/hashicorp/errwrap v1.0.0
+github.com/hashicorp/errwrap
+# github.com/hashicorp/go-multierror v1.1.1
+## explicit
+github.com/hashicorp/go-multierror
 # github.com/ionos-cloud/sdk-go/v5 v5.0.2
 ## explicit
 github.com/ionos-cloud/sdk-go/v5
@@ -23,15 +41,11 @@ github.com/pmezard/go-difflib/difflib
 # github.com/rancher/machine v0.15.0-rancher52
 ## explicit
 github.com/rancher/machine/libmachine/drivers
-github.com/rancher/machine/libmachine/drivers/plugin
-github.com/rancher/machine/libmachine/drivers/plugin/localbinary
-github.com/rancher/machine/libmachine/drivers/rpc
 github.com/rancher/machine/libmachine/log
 github.com/rancher/machine/libmachine/mcnflag
 github.com/rancher/machine/libmachine/mcnutils
 github.com/rancher/machine/libmachine/ssh
 github.com/rancher/machine/libmachine/state
-github.com/rancher/machine/libmachine/version
 github.com/rancher/machine/version
 # github.com/stretchr/testify v1.7.0
 ## explicit

@@ -7,14 +7,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/docker/machine/libmachine/drivers"
+	"github.com/docker/machine/libmachine/log"
+	"github.com/docker/machine/libmachine/mcnflag"
+	"github.com/docker/machine/libmachine/ssh"
+	"github.com/docker/machine/libmachine/state"
+	"github.com/hashicorp/go-multierror"
 	"github.com/ionos-cloud/rancher-driver/utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v5"
-	"github.com/rancher/machine/libmachine/drivers"
-	"github.com/rancher/machine/libmachine/log"
-	"github.com/rancher/machine/libmachine/mcnflag"
-	"github.com/rancher/machine/libmachine/mcnutils"
-	"github.com/rancher/machine/libmachine/ssh"
-	"github.com/rancher/machine/libmachine/state"
 )
 
 const (
@@ -321,9 +321,7 @@ func (d *Driver) Create() error {
 
 // Remove deletes the machine and resources associated to it.
 func (d *Driver) Remove() error {
-	multierr := mcnutils.MultiError{
-		Errs: []error{},
-	}
+	var result *multierror.Error
 
 	// NOTE:
 	//   - if a resource is already gone or errors occur while deleting it, we
@@ -333,37 +331,33 @@ func (d *Driver) Remove() error {
 
 	err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
 	if err != nil {
-		multierr.Errs = append(multierr.Errs, err)
+		result = multierror.Append(result, err)
 	}
 	err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)
 	if err != nil {
-		multierr.Errs = append(multierr.Errs, err)
+		result = multierror.Append(result, err)
 	}
 	err = d.client().RemoveServer(d.DatacenterId, d.ServerId)
 	if err != nil {
-		multierr.Errs = append(multierr.Errs, err)
+		result = multierror.Append(result, err)
 	}
 	err = d.client().RemoveLan(d.DatacenterId, d.LanId)
 	if err != nil {
-		multierr.Errs = append(multierr.Errs, err)
+		result = multierror.Append(result, err)
 	}
 	// If the DataCenter existed before creating the machine, do not delete it at clean-up
 	if !d.DCExists {
 		err = d.client().RemoveDatacenter(d.DatacenterId)
 		if err != nil {
-			multierr.Errs = append(multierr.Errs, err)
+			result = multierror.Append(result, err)
 		}
 	}
 	err = d.client().RemoveIpBlock(d.IPAddress)
 	if err != nil {
-		multierr.Errs = append(multierr.Errs, err)
+		result = multierror.Append(result, err)
 	}
 
-	if len(multierr.Errs) == 0 {
-		return nil
-	}
-
-	return multierr
+	return result.ErrorOrNil()
 }
 
 // Start issues a power on for the machine instance.

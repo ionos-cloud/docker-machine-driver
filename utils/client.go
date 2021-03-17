@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/machine/libmachine/log"
 	sdkgo "github.com/ionos-cloud/sdk-go/v5"
-	"github.com/rancher/machine/libmachine/log"
 )
 
 const waitCount = 1000

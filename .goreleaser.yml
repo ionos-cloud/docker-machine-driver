@@ -1,4 +1,4 @@
-project_name: rancher-driver
+project_name: docker-machine-driver
 
 before:
   hooks:
