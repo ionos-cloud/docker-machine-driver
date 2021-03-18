@@ -2,7 +2,7 @@
 
 Here is a quick troubleshooting guide which may help you to resolve issues you may be facing. We all know that sometimes things do not go according to the plan. 
 
-## Create Command - Unable to verify the Docker daemon
+## Unable to verify the Docker daemon is listening...
 
 When running the following command:
 
@@ -88,3 +88,10 @@ NAME           ACTIVE   DRIVER       STATE     URL                          SWAR
 test-machine   -        ionoscloud   Running   tcp://158.222.102.185:2376           v19.03.9  
 ```
 
+## Debug Option
+
+Docker Machine has a `--debug` or `-D` option in order to get detailed output about the command running:
+
+```text
+docker-machine -D create --driver ionoscloud test-machine
+```
