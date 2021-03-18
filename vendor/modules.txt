@@ -23,6 +23,7 @@ github.com/docker/machine/version
 ## explicit
 github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.3.3
+## explicit
 github.com/golang/protobuf/proto
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
@@ -32,21 +33,14 @@ github.com/hashicorp/go-multierror
 # github.com/ionos-cloud/sdk-go/v5 v5.0.2
 ## explicit
 github.com/ionos-cloud/sdk-go/v5
+# github.com/kr/pretty v0.1.0
+## explicit
 # github.com/moby/term v0.0.0-20201216013528-df9cb8a40635
 ## explicit
 github.com/moby/term
 github.com/moby/term/windows
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/rancher/machine v0.15.0-rancher52
-## explicit
-github.com/rancher/machine/libmachine/drivers
-github.com/rancher/machine/libmachine/log
-github.com/rancher/machine/libmachine/mcnflag
-github.com/rancher/machine/libmachine/mcnutils
-github.com/rancher/machine/libmachine/ssh
-github.com/rancher/machine/libmachine/state
-github.com/rancher/machine/version
 # github.com/stretchr/testify v1.7.0
 ## explicit
 github.com/stretchr/testify/assert
@@ -63,9 +57,11 @@ golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 # golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+## explicit
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
 # golang.org/x/sys v0.0.0-20200831180312-196b9ba8737a
@@ -77,6 +73,7 @@ golang.org/x/sys/windows
 # golang.org/x/term v0.0.0-20201117132131-f5c789dd3221
 golang.org/x/term
 # google.golang.org/appengine v1.6.5
+## explicit
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/base
 google.golang.org/appengine/internal/datastore
@@ -84,5 +81,7 @@ google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
+# gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15
+## explicit
 # gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 gopkg.in/yaml.v3
