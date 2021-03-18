@@ -13,7 +13,7 @@ import (
 	"github.com/docker/machine/libmachine/ssh"
 	"github.com/docker/machine/libmachine/state"
 	"github.com/hashicorp/go-multierror"
-	"github.com/ionos-cloud/rancher-driver/utils"
+	"github.com/ionos-cloud/docker-machine-driver/utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v5"
 )
 

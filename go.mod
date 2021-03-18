@@ -1,4 +1,4 @@
-module github.com/ionos-cloud/rancher-driver
+module github.com/ionos-cloud/docker-machine-driver
 
 go 1.14
 
