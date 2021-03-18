@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Here is a quick troubleshooting guide which may help you to resolve issues you may be facing. We all know that something things do not go accordingly to the plan. 
+Here is a quick troubleshooting guide which may help you to resolve issues you may be facing. We all know that sometimes things do not go according to the plan. 
 
 ## Create Command - Unable to verify the Docker daemon
 
