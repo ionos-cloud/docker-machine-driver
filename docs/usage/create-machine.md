@@ -46,11 +46,13 @@ After creating a machine it is recommended to configure your shell, to set up yo
 eval $(docker-machine env test-machine)
 ```
 
-All the resources created will be named with the machine name, in this example `test-machine`. 
+All the resources created will be named with the machine name, in this example `test-machine`.
 
 The example above uses mostly the default values and the resources will therefore be created in the `us/las` location. To change that or to see more options that can be used with this command, check the [Options](options.md) section.
 
 For more available commands and examples on how to manage a Docker Machine, check the [Commands](commands.md) section.
+
+For more details about possible issues, check the [Troubleshooting](troubleshooting.md) section.
 
 ## Rancher Machine Command
 

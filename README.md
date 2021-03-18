@@ -86,6 +86,8 @@ In order to see the available options and flags, check the [Options](docs/usage/
 
 For more information about Docker Machine commands on how to manage a machine, including examples, check the [Commands](docs/usage/commands.md) section.
 
+For more details about possible issues, check the [Troubleshooting](docs/usage/troubleshooting.md) section.
+
 ## Feature Reference
 
 The IONOS Cloud Docker Machine Driver aims to offer access to all resources in the IONOS Cloud API and also offers some additional features that make the integration easier:
