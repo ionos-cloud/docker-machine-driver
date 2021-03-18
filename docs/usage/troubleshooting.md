@@ -38,20 +38,14 @@ Error creating machine: Error running provisioning: Unable to verify the Docker 
 
 The resources on Ionos Cloud are created, but the machine is unable to verify the Docker daemon, even after a number of retries.
 
-If you run: 
-
-```text
-docker-machine ls
-```
-
-you will probably get:
+If you run `docker-machine ls`, the output will probably be:
 
 ```text
 NAME           ACTIVE   DRIVER       STATE     URL                          SWARM   DOCKER    ERRORS
 test-machine   -        ionoscloud   Running   tcp://158.222.102.183:2376           Unknown   Unable to query docker version: Cannot connect to the docker engine endpoint
 ```
 
-The problem is incompatibilities between Docker version 20.10.0+ and Docker Machine version 0.16. This is the official issue: https://github.com/docker/machine/issues/4858.
+The problem is incompatibilities between Docker version 20.10.0+ and Docker Machine version 0.16. This is the [official issue](https://github.com/docker/machine/issues/4858) on [GitHub Repository](https://github.com/docker/machine) of Docker Machine.
 
 To install an older version of Docker when using Docker Machine, please run the following command: 
 
@@ -85,5 +79,12 @@ Setting Docker configuration on the remote daemon...
 Checking connection to Docker...
 Docker is up and running!
 To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: docker-machine env test-machine
+```
+
+When running `docke-machine ls`, the output should be similar to this:
+
+```text
+NAME           ACTIVE   DRIVER       STATE     URL                          SWARM   DOCKER     ERRORS
+test-machine   -        ionoscloud   Running   tcp://158.222.102.185:2376           v19.03.9  
 ```
 

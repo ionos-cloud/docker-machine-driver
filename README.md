@@ -1,12 +1,12 @@
 # Introduction
 
-![CI](https://github.com/ionos-cloud/rancher-driver/workflows/CI/badge.svg)
+![CI](https://github.com/ionos-cloud/docker-machine-driver/workflows/CI/badge.svg)
 
 ## Overview
 
 Docker Machine Driver is the official driver for Docker Machine to use with IONOS Cloud. It adds support for creating Docker Machines hosted on the IONOS Cloud. 
 
-[Docker Machine](https://github.com/docker/machine) lets you create Docker hosts on your computer, on cloud providers, and inside your own data center. It creates servers, installs Docker on them, then configures the Docker client to talk to them. For more information about Docker Machine, check the official [GitHub Repository](https://github.com/docker/machine).
+[Docker Machine](https://github.com/docker/machine) lets you create Docker hosts on your computer and inside your own data center. It creates servers, installs Docker on them, then configures the Docker client to talk to them. For more information about Docker Machine, check the official [GitHub Repository](https://github.com/docker/machine).
 
 ## Getting started
 

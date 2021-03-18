@@ -56,7 +56,7 @@ For more details about possible issues, check the [Troubleshooting](troubleshoot
 
 ## Rancher Machine Command
 
-Ionos Cloud Docker Machine Driver is also compatible with [Rancher Machine](https://github.com/rancher/machine).
+Ionos Cloud Docker Machine Driver is also compatible with [Rancher Machine](https://github.com/rancher/machine). A Rancher Machine can be created using `ionoscloud` driver.
 
 In order to create Rancher Machine with Ionos Cloud Docker Machine Driver, run:
 
