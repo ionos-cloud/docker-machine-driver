@@ -81,7 +81,7 @@ Docker is up and running!
 To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: docker-machine env test-machine
 ```
 
-When running `docke-machine ls`, the output should be similar to this:
+When running `docker-machine ls`, the output should be similar to this:
 
 ```text
 NAME           ACTIVE   DRIVER       STATE     URL                          SWARM   DOCKER     ERRORS
