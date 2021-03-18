@@ -7,23 +7,23 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ionos-cloud/rancher-driver/utils"
+	"github.com/docker/machine/libmachine/drivers"
+	"github.com/docker/machine/libmachine/log"
+	"github.com/docker/machine/libmachine/mcnflag"
+	"github.com/docker/machine/libmachine/ssh"
+	"github.com/docker/machine/libmachine/state"
+	"github.com/hashicorp/go-multierror"
+	"github.com/ionos-cloud/docker-machine-driver/utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v5"
-	"github.com/rancher/machine/libmachine/drivers"
-	"github.com/rancher/machine/libmachine/log"
-	"github.com/rancher/machine/libmachine/mcnflag"
-	"github.com/rancher/machine/libmachine/mcnutils"
-	"github.com/rancher/machine/libmachine/ssh"
-	"github.com/rancher/machine/libmachine/state"
 )
 
 const (
 	flagEndpoint               = "ionoscloud-endpoint"
 	flagUsername               = "ionoscloud-username"
 	flagPassword               = "ionoscloud-password"
-	flagServerCores            = "ionoscloud-server-cores"
-	flagServerRam              = "ionoscloud-server-ram"
-	flagServerCpuFamily        = "ionoscloud-server-cpu-family"
+	flagServerCores            = "ionoscloud-cores"
+	flagServerRam              = "ionoscloud-ram"
+	flagServerCpuFamily        = "ionoscloud-cpu-family"
 	flagServerAvailabilityZone = "ionoscloud-server-availability-zone"
 	flagDiskSize               = "ionoscloud-disk-size"
 	flagDiskType               = "ionoscloud-disk-type"
@@ -112,13 +112,13 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Password",
 		},
 		mcnflag.IntFlag{
-			EnvVar: "IONOSCLOUD_SERVER_CORES",
+			EnvVar: "IONOSCLOUD_CORES",
 			Name:   flagServerCores,
 			Value:  4,
 			Usage:  "Ionos Cloud Server Cores (2, 3, 4, 5, 6, etc.)",
 		},
 		mcnflag.IntFlag{
-			EnvVar: "IONOSCLOUD_SERVER_RAM",
+			EnvVar: "IONOSCLOUD_RAM",
 			Name:   flagServerRam,
 			Value:  2048,
 			Usage:  "Ionos Cloud Server Ram (1024, 2048, 3072, 4096, etc.)",
@@ -148,24 +148,27 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Volume Disk-Type (HDD, SSD)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_SERVER_CPU_FAMILY",
+			EnvVar: "IONOSCLOUD_CPU_FAMILY",
 			Name:   flagServerCpuFamily,
 			Value:  defaultCpuFamily,
 			Usage:  "Ionos Cloud Server CPU families (AMD_OPTERON, INTEL_XEON, INTEL_SKYLAKE)",
 		},
 		mcnflag.StringFlag{
-			Name:  flagDatacenterId,
-			Usage: "Ionos Cloud Virtual Data Center Id",
+			EnvVar: "IONOSCLOUD_DATACENTER_ID",
+			Name:   flagDatacenterId,
+			Usage:  "Ionos Cloud Virtual Data Center Id",
 		},
 		mcnflag.StringFlag{
-			Name:  flagVolumeAvailabilityZone,
-			Value: defaultAvailabilityZone,
-			Usage: "Ionos Cloud Volume Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
+			EnvVar: "IONOSCLOUD_VOLUME_ZONE",
+			Name:   flagVolumeAvailabilityZone,
+			Value:  defaultAvailabilityZone,
+			Usage:  "Ionos Cloud Volume Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 		mcnflag.StringFlag{
-			Name:  flagServerAvailabilityZone,
-			Value: defaultAvailabilityZone,
-			Usage: "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
+			EnvVar: "IONOSCLOUD_SERVER_ZONE",
+			Name:   flagServerAvailabilityZone,
+			Value:  defaultAvailabilityZone,
+			Usage:  "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 	}
 }
@@ -321,9 +324,7 @@ func (d *Driver) Create() error {
 
 // Remove deletes the machine and resources associated to it.
 func (d *Driver) Remove() error {
-	multierr := mcnutils.MultiError{
-		Errs: []error{},
-	}
+	var result *multierror.Error
 
 	// NOTE:
 	//   - if a resource is already gone or errors occur while deleting it, we
@@ -333,37 +334,33 @@ func (d *Driver) Remove() error {
 
 	err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
 	if err != nil {
-		multierr.Errs = append(multierr.Errs, err)
+		result = multierror.Append(result, err)
 	}
 	err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)
 	if err != nil {
-		multierr.Errs = append(multierr.Errs, err)
+		result = multierror.Append(result, err)
 	}
 	err = d.client().RemoveServer(d.DatacenterId, d.ServerId)
 	if err != nil {
-		multierr.Errs = append(multierr.Errs, err)
+		result = multierror.Append(result, err)
 	}
 	err = d.client().RemoveLan(d.DatacenterId, d.LanId)
 	if err != nil {
-		multierr.Errs = append(multierr.Errs, err)
+		result = multierror.Append(result, err)
 	}
 	// If the DataCenter existed before creating the machine, do not delete it at clean-up
 	if !d.DCExists {
 		err = d.client().RemoveDatacenter(d.DatacenterId)
 		if err != nil {
-			multierr.Errs = append(multierr.Errs, err)
+			result = multierror.Append(result, err)
 		}
 	}
 	err = d.client().RemoveIpBlock(d.IPAddress)
 	if err != nil {
-		multierr.Errs = append(multierr.Errs, err)
+		result = multierror.Append(result, err)
 	}
 
-	if len(multierr.Errs) == 0 {
-		return nil
-	}
-
-	return multierr
+	return result.ErrorOrNil()
 }
 
 // Start issues a power on for the machine instance.

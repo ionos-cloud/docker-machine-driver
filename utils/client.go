@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/docker/machine/libmachine/log"
 	sdkgo "github.com/ionos-cloud/sdk-go/v5"
-	"github.com/rancher/machine/libmachine/log"
 )
 
 const waitCount = 1000
@@ -161,7 +161,7 @@ func (c *Client) CreateLan(datacenterId, name string, public bool) (*sdkgo.LanPo
 func (c *Client) RemoveLan(datacenterId, lanId string) error {
 	_, resp, err := c.LanApi.DatacentersLansDelete(c.ctx, datacenterId, lanId).Execute()
 	if err != nil {
-		return fmt.Errorf("error deleting LAN %v", err)
+		return fmt.Errorf("error deleting LAN: %v", err)
 	}
 	if resp.StatusCode > 299 {
 		return fmt.Errorf(resp.Status)

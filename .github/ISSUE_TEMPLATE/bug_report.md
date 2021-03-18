@@ -18,10 +18,10 @@ assignees: LiviusP
 Go Version: 
 ```
 ```
-Rancher Driver version: 
+Docker Machine version:
 ```
 ```
-Rancher Machine version: 
+Docker Machine Driver Ionos Cloud version: 
 ```
 ```
 OS: 

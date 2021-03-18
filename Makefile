@@ -50,6 +50,12 @@ gofmt_update:
 	@gofmt -w ${GOFILES_NOVENDOR}
 	@echo "DONE"
 
+.PHONY: mock_update
+mock_update:
+	@echo "Update mock for tests"
+	@mockgen -source=utils/client_service.go > utils/mocks/ClientService.go
+	@echo "DONE"
+
 .PHONY: vendor_status
 vendor_status:
 	@govendor status

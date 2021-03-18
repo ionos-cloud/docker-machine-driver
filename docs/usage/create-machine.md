@@ -1,17 +1,17 @@
 # Create Machine
 
-## Command
+## Docker Machine Command
 
-In order to create Rancher Machine with Ionos Cloud Rancher Driver, run:
+In order to create Docker Machine with Ionos Cloud Docker Machine Driver, run:
 
 ```text
-rancher-machine create --driver ionoscloud test-machine
+docker-machine create --driver ionoscloud test-machine
 ```
 
 For Windows users: 
 
 ```text
-rancher-machine create --driver ionoscloud.exe test-machine
+docker-machine create --driver ionoscloud.exe test-machine
 ```
 
 It should produce results similar to this:
@@ -31,24 +31,42 @@ Detecting operating system of created instance...
 Waiting for SSH to be available...
 Detecting the provisioner...
 Provisioning with ubuntu(systemd)...
-Installing Docker from: https://get.docker.com
+Installing Docker...
 Copying certs to the local machine directory...
 Copying certs to the remote machine...
 Setting Docker configuration on the remote daemon...
 Checking connection to Docker...
 Docker is up and running!
-To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: rancher-machine env test-machine
+To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: docker-machine env test-machine
 ```
 
 After creating a machine it is recommended to configure your shell, to set up your environment for the Docker client:
 
 ```text
-eval $(rancher-machine env test-machine)
+eval $(docker-machine env test-machine)
 ```
 
-All the resources created will be named with the machine name, in this example `test-machine`. 
+All the resources created will be named with the machine name, in this example `test-machine`.
 
 The example above uses mostly the default values and the resources will therefore be created in the `us/las` location. To change that or to see more options that can be used with this command, check the [Options](options.md) section.
 
-For more available commands and examples on how to manage a Rancher Machine, check the [Rancher Machine Commands](commands.md) section.
+For more available commands and examples on how to manage a Docker Machine, check the [Commands](commands.md) section.
+
+For more details about possible issues, check the [Troubleshooting](troubleshooting.md) section.
+
+## Rancher Machine Command
+
+Ionos Cloud Docker Machine Driver is also compatible with [Rancher Machine](https://github.com/rancher/machine). A Rancher Machine can be created using `ionoscloud` driver.
+
+In order to create Rancher Machine with Ionos Cloud Docker Machine Driver, run:
+
+```text
+rancher-machine create --driver ionoscloud test-machine
+```
+
+For Windows users:
+
+```text
+rancher-machine create --driver ionoscloud.exe test-machine
+```
 

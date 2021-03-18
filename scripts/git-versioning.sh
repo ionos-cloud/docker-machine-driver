@@ -3,11 +3,11 @@
 version="${1}"
 old_version="${2}"
 
-committer_name=${COMMITTER_NAME:-"IONOS Cloud Rancher Driver Robot"}
+committer_name=${COMMITTER_NAME:-"IONOS Cloud Docker Machine Driver Robot"}
 committer_email=${COMMITTER_EMAIL:-"sdk@cloud.ionos.com"}
 
 function usage() {
-  echo "usage: rancher-driver <version>"
+  echo "usage: docker-machine-driver <version>"
 }
 
 function error() {
