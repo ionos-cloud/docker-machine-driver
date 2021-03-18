@@ -160,15 +160,15 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		},
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_VOLUME_ZONE",
-			Name:  flagVolumeAvailabilityZone,
-			Value: defaultAvailabilityZone,
-			Usage: "Ionos Cloud Volume Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
+			Name:   flagVolumeAvailabilityZone,
+			Value:  defaultAvailabilityZone,
+			Usage:  "Ionos Cloud Volume Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_SERVER_ZONE",
-			Name:  flagServerAvailabilityZone,
-			Value: defaultAvailabilityZone,
-			Usage: "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
+			Name:   flagServerAvailabilityZone,
+			Value:  defaultAvailabilityZone,
+			Usage:  "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 	}
 }
