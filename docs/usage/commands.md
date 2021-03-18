@@ -1,8 +1,8 @@
 # Commands
 
-## Rancher Machine Commands
+## Docker Machine Commands
 
-[Rancher Machine](https://github.com/rancher/machine) has multiple commands in order to manage a machine. 
+[Docker Machine](https://github.com/docker/machine) has multiple commands in order to manage a machine. 
 
 | Command | Description |
 | :--- | :--- |
@@ -29,7 +29,7 @@
 | version		| Show the Docker Machine version or a machine docker version |
 | help			| Shows a list of commands or help for one command |
 
-For more available options to manage a Rancher Machine, use `rancher-machine help`.
+For more available options to manage a Docker Machine, use `docker-machine help`.
 
 ## Examples
 
@@ -38,7 +38,7 @@ For more available options to manage a Rancher Machine, use `rancher-machine hel
 To list the machines you have created, use the command:
 
 ```text
-rancher-machine ls
+docker-machine ls
 ```
 
 It will return information about your machines, similar to this:
@@ -50,10 +50,10 @@ test-machine   *        ionoscloud     Running   tcp://158.222.102.154:2376     
 
 ### Start a Machine
 
-To start a Rancher Machine, run: 
+To start a Docker Machine, run: 
 
 ```text
-rancher-machine start test-machine
+docker-machine start test-machine
 ```
 
 Expected output:
@@ -63,15 +63,15 @@ Starting "test-machine"...
 Machine "test-machine" was started.
 Waiting for SSH to be available...
 Detecting the provisioner...
-Started machines may have new IP addresses. You may need to re-run the `rancher-machine env` command.
+Started machines may have new IP addresses. You may need to re-run the `docker-machine env` command.
 ```
 
 ### Stop a Machine
 
-To stop a Rancher Machine, run: 
+To stop a Docker Machine, run: 
 
 ```text
-rancher-machine stop test-machine
+docker-machine stop test-machine
 ```
 
 Expected output:
@@ -83,10 +83,10 @@ Machine "test-machine" was stopped.
 
 ### Restart a Machine
 
-To restart a Rancher Machine, run: 
+To restart a Docker Machine, run: 
 
 ```text
-rancher-machine restart test-machine
+docker-machine restart test-machine
 ```
 
 Expected output:
@@ -95,23 +95,23 @@ Expected output:
 Restarting "test-machine"...
 Waiting for SSH to be available...
 Detecting the provisioner...
-Restarted machines may have new IP addresses. You may need to re-run the `rancher-machine env` command.
+Restarted machines may have new IP addresses. You may need to re-run the `docker-machine env` command.
 ```
 
 ### Get Status
 
-To get the status of a Rancher Machine created, run: 
+To get the status of a Docker Machine created, run: 
 
 ```text
-rancher-machine status test-machine
+docker-machine status test-machine
 ```
 
 ### Remove a Machine
 
-To remove a Rancher Machine and all the resources associated with it, run: 
+To remove a Docker Machine and all the resources associated with it, run: 
 
 ```text
-rancher-machine rm test-machine
+docker-machine rm test-machine
 ```
 
 It should produce results similar to this:

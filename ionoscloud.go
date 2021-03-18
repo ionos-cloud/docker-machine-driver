@@ -21,9 +21,9 @@ const (
 	flagEndpoint               = "ionoscloud-endpoint"
 	flagUsername               = "ionoscloud-username"
 	flagPassword               = "ionoscloud-password"
-	flagServerCores            = "ionoscloud-server-cores"
-	flagServerRam              = "ionoscloud-server-ram"
-	flagServerCpuFamily        = "ionoscloud-server-cpu-family"
+	flagServerCores            = "ionoscloud-cores"
+	flagServerRam              = "ionoscloud-ram"
+	flagServerCpuFamily        = "ionoscloud-cpu-family"
 	flagServerAvailabilityZone = "ionoscloud-server-availability-zone"
 	flagDiskSize               = "ionoscloud-disk-size"
 	flagDiskType               = "ionoscloud-disk-type"
@@ -112,13 +112,13 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Password",
 		},
 		mcnflag.IntFlag{
-			EnvVar: "IONOSCLOUD_SERVER_CORES",
+			EnvVar: "IONOSCLOUD_CORES",
 			Name:   flagServerCores,
 			Value:  4,
 			Usage:  "Ionos Cloud Server Cores (2, 3, 4, 5, 6, etc.)",
 		},
 		mcnflag.IntFlag{
-			EnvVar: "IONOSCLOUD_SERVER_RAM",
+			EnvVar: "IONOSCLOUD_RAM",
 			Name:   flagServerRam,
 			Value:  2048,
 			Usage:  "Ionos Cloud Server Ram (1024, 2048, 3072, 4096, etc.)",
@@ -148,21 +148,24 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Volume Disk-Type (HDD, SSD)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_SERVER_CPU_FAMILY",
+			EnvVar: "IONOSCLOUD_CPU_FAMILY",
 			Name:   flagServerCpuFamily,
 			Value:  defaultCpuFamily,
 			Usage:  "Ionos Cloud Server CPU families (AMD_OPTERON, INTEL_XEON, INTEL_SKYLAKE)",
 		},
 		mcnflag.StringFlag{
-			Name:  flagDatacenterId,
-			Usage: "Ionos Cloud Virtual Data Center Id",
+			EnvVar: "IONOSCLOUD_DATACENTER_ID",
+			Name:   flagDatacenterId,
+			Usage:  "Ionos Cloud Virtual Data Center Id",
 		},
 		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_VOLUME_ZONE",
 			Name:  flagVolumeAvailabilityZone,
 			Value: defaultAvailabilityZone,
 			Usage: "Ionos Cloud Volume Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_SERVER_ZONE",
 			Name:  flagServerAvailabilityZone,
 			Value: defaultAvailabilityZone,
 			Usage: "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",

@@ -10,5 +10,6 @@
 * [Create Swarm](usage/create-swarm.md)
 * [Options](usage/options.md)
 * [Commands](usage/commands.md)
+* [Troubleshooting](usage/troubleshooting.md)
 * [Testing](usage/testing.md)
 

@@ -1,6 +1,6 @@
 # Create Swarm
 
-You can use Rancher Machine to provision Swarm clusters. 
+You can use Docker Machine to provision Swarm clusters. 
 
 Before you create a swarm of Ionos Cloud machines, run this command:
 
@@ -11,7 +11,7 @@ docker swarm init
 Then use the output `${DOCKER_SWARM_TOKEN}` to create the swarm and set a swarm master:
 
 ```text
-rancher-machine create --driver ionoscloud --swarm --swarm-master --swarm-discovery token://${DOCKER_SWARM_TOKEN} swarm-master-test
+docker-machine create --driver ionoscloud --swarm --swarm-master --swarm-discovery token://${DOCKER_SWARM_TOKEN} swarm-master-test
 ```
 
 It should produce results similar to this:
@@ -31,23 +31,22 @@ Detecting operating system of created instance...
 Waiting for SSH to be available...
 Detecting the provisioner...
 Provisioning with ubuntu(systemd)...
-Installing Docker from: https://get.docker.com
+Installing Docker...
 Copying certs to the local machine directory...
 Copying certs to the remote machine...
 Setting Docker configuration on the remote daemon...
-Configuring swarm...
 Checking connection to Docker...
 Docker is up and running!
-To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: rancher-machine env swarm-master-test
+To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: docker-machine env test-machine
 ```
 
 To create a swarm child, use the command:
 
 ```text
-rancher-machine create -d ionoscloud --swarm --swarm-discovery token://${DOCKER_SWARM_TOKEN} swarm-child-test
+docker-machine create -d ionoscloud --swarm --swarm-discovery token://${DOCKER_SWARM_TOKEN} swarm-child-test
 ```
 
-When running `rancher-machine ls`, it should produce results similar to this:
+When running `docker-machine ls`, it should produce results similar to this:
 
 ```text
 NAME                ACTIVE   DRIVER       STATE     URL                          SWARM                        DOCKER     ERRORS

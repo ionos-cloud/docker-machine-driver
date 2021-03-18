@@ -1,12 +1,14 @@
 # Options
 
-To get more detailed information about the options below, run the command:
+To get more detailed information about the options and the environment variables available, run the command:
 
 ```text
-rancher-machine create --help --driver ionoscloud
+docker-machine create --help --driver ionoscloud
 ```
 
-Available Options for the `rancher-machine create` command with the Rancher Driver: 
+## Options
+
+Available Options for the `docker-machine create` command with the IONOS Cloud Docker Machine Driver: 
 
 | Option | Description |
 | :--- | :--- |
@@ -19,9 +21,9 @@ Available Options for the `rancher-machine create` command with the Rancher Driv
 | --ionoscloud-location | Ionos Cloud Location |
 | --ionoscloud-password | Ionos Cloud Password |
 | --ionoscloud-server-availability-zone | Ionos Cloud Server Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\) |
-| --ionoscloud-server-cores | Ionos Cloud Server Cores \(2, 3, 4, 5, 6, etc.\) |
-| --ionoscloud-server-cpu-family | Ionos Cloud Server CPU families \(AMD\_OPTERON,INTEL\_XEON, INTEL\_SKYLAKE\) |
-| --ionoscloud-server-ram | Ionos Cloud Server Ram \(1024, 2048, 3072, 4096, etc.\) |
+| --ionoscloud-cores | Ionos Cloud Server Cores \(2, 3, 4, 5, 6, etc.\) |
+| --ionoscloud-cpu-family | Ionos Cloud Server CPU families \(AMD\_OPTERON,INTEL\_XEON, INTEL\_SKYLAKE\) |
+| --ionoscloud-ram | Ionos Cloud Server Ram \(1024, 2048, 3072, 4096, etc.\) |
 | --ionoscloud-username | Ionos Cloud Username |
 | --ionoscloud-volume-availability-zone | Ionos Cloud Volume Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\) |
 | --swarm | Configure Machine to join a Swarm cluster |
@@ -42,4 +44,24 @@ Available Options for the `rancher-machine create` command with the Rancher Driv
 | --engine-registry-mirror | Specify registry mirrors to use |
 | --engine-storage-driver | Specify a storage driver to use with the engine |
 | --tls-san | Support extra SANs for TLS certs |
+
+## Environment variables
+
+Environment variables are also supported for setting options. This is a list of the environment variables available for Docker Machine Driver.
+
+| Option | Environment variable |
+| :--- | :--- |
+| --ionoscloud-datacenter-id | IONOSCLOUD_DATACENTER_ID |
+| --ionoscloud-disk-size | IONOSCLOUD_DISK_SIZE |
+| --ionoscloud-disk-type | IONOSCLOUD_DISK_TYPE |
+| --ionoscloud-endpoint | IONOSCLOUD_ENDPOINT |
+| --ionoscloud-image | IONOSCLOUD_IMAGE |
+| --ionoscloud-location | IONOSCLOUD_LOCATION |
+| --ionoscloud-password | IONOSCLOUD_PASSWORD |
+| --ionoscloud-server-availability-zone | IONOSCLOUD_SERVER_ZONE |
+| --ionoscloud-cores | IONOSCLOUD_CORES |
+| --ionoscloud-cpu-family | IONOSCLOUD_CPU_FAMILY |
+| --ionoscloud-ram | IONOSCLOUD_RAM |
+| --ionoscloud-username | IONOSCLOUD_USERNAME |
+| --ionoscloud-volume-availability-zone | IONOSCLOUD_VOLUME_ZONE |
 
