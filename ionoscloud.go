@@ -219,9 +219,12 @@ func (d *Driver) PreCreateCheck() error {
 		if err != nil {
 			return err
 		}
-		if dcprop, ok := dc.GetPropertiesOk(); ok && dcprop != nil {
-			if name, ok := dcprop.GetNameOk(); ok && name != nil {
+		if dcProp, ok := dc.GetPropertiesOk(); ok && dcProp != nil {
+			if name, ok := dcProp.GetNameOk(); ok && name != nil {
 				log.Info("Creating machine under " + *name + " datacenter")
+			}
+			if dcLocation, ok := dcProp.GetLocationOk(); ok && dcLocation != nil {
+				d.Location = *dcLocation
 			}
 		}
 	}
@@ -256,6 +259,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		return err
 	}
+
 	var dc *sdkgo.Datacenter
 	if d.DatacenterId == "" {
 		d.DCExists = false
