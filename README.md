@@ -1,6 +1,13 @@
 # Introduction
 
 ![CI](https://github.com/ionos-cloud/docker-machine-driver/workflows/CI/badge.svg)
+[![Gitter](https://img.shields.io/gitter/room/ionos-cloud/sdk-general)](https://gitter.im/ionos-cloud/sdk-general)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=alert_status)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=bugs)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=security_rating)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
 
 ## Overview
 
@@ -99,13 +106,11 @@ The IONOS Cloud Docker Machine Driver aims to offer access to all resources in t
 * authentication for API calls
 * handling of asynchronous requests
 
-## FAQ
-
-* How can I open a bug/feature request?
+## Contributing
 
 Bugs & feature requests can be open on the repository issues: [https://github.com/ionos-cloud/docker-machine-driver/issues/new/choose](https://github.com/ionos-cloud/docker-machine-driver/issues/new/choose)
 
-* Can I contribute to the Docker Machine Driver?
+### Can I contribute to the Docker Machine Driver?
 
 Sure! Our repository is public, feel free to fork it and file a PR for one of the issues opened in the issues list. We will review it and work together to get it released.
 
