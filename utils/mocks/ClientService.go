@@ -50,18 +50,18 @@ func (mr *MockClientServiceMockRecorder) CreateAttachNIC(datacenterId, serverId,
 }
 
 // CreateAttachVolume mocks base method.
-func (m *MockClientService) CreateAttachVolume(datacenterId, serverId, diskType, name, imagealias, zone, sshkey string, diskSize float32) (*ionoscloud.Volume, error) {
+func (m *MockClientService) CreateAttachVolume(datacenterId, serverId, diskType, name, imageAlias, imagePassword, zone, sshKey string, diskSize float32) (*ionoscloud.Volume, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAttachVolume", datacenterId, serverId, diskType, name, imagealias, zone, sshkey, diskSize)
+	ret := m.ctrl.Call(m, "CreateAttachVolume", datacenterId, serverId, diskType, name, imageAlias, imagePassword, zone, sshKey, diskSize)
 	ret0, _ := ret[0].(*ionoscloud.Volume)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateAttachVolume indicates an expected call of CreateAttachVolume.
-func (mr *MockClientServiceMockRecorder) CreateAttachVolume(datacenterId, serverId, diskType, name, imagealias, zone, sshkey, diskSize interface{}) *gomock.Call {
+func (mr *MockClientServiceMockRecorder) CreateAttachVolume(datacenterId, serverId, diskType, name, imageAlias, imagePassword, zone, sshKey, diskSize interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAttachVolume", reflect.TypeOf((*MockClientService)(nil).CreateAttachVolume), datacenterId, serverId, diskType, name, imagealias, zone, sshkey, diskSize)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAttachVolume", reflect.TypeOf((*MockClientService)(nil).CreateAttachVolume), datacenterId, serverId, diskType, name, imageAlias, imagePassword, zone, sshKey, diskSize)
 }
 
 // CreateDatacenter mocks base method.

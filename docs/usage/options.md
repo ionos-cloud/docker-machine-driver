@@ -17,7 +17,8 @@ Available Options for the `docker-machine create` command with the IONOS Cloud D
 | `--ionoscloud-disk-size` | Ionos Cloud Volume Disk-Size \(10, 50, 100, 200, 400\) |
 | `--ionoscloud-disk-type` | Ionos Cloud Volume Disk-Type \(HDD, SSD\) |
 | `--ionoscloud-endpoint` | Ionos Cloud API Endpoint |
-| `--ionoscloud-image` | Ionos Cloud Image Alias |
+| `--ionoscloud-image` | Ionos Cloud Image Alias (ubuntu:latest, ubuntu:20.04) |
+| `--ionoscloud-image-password` | Ionos Cloud Image Password to be able to access the server from DCD platform |
 | `--ionoscloud-location` | Ionos Cloud Location |
 | `--ionoscloud-password` | Ionos Cloud Password |
 | `--ionoscloud-server-availability-zone` | Ionos Cloud Server Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\) |
@@ -56,6 +57,7 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-disk-type` | `IONOSCLOUD_DISK_TYPE` |
 | `--ionoscloud-endpoint` | `IONOSCLOUD_ENDPOINT` |
 | `--ionoscloud-image` | `IONOSCLOUD_IMAGE` |
+| `--ionoscloud-image-password` | `IONOSCLOUD_IMAGE_PASSWORD` |
 | `--ionoscloud-location` | `IONOSCLOUD_LOCATION` |
 | `--ionoscloud-password` | `IONOSCLOUD_PASSWORD` |
 | `--ionoscloud-server-availability-zone` | `IONOSCLOUD_SERVER_ZONE` |
