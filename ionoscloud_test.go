@@ -61,7 +61,16 @@ var (
 	nic = &sdkgo.Nic{
 		Id: &testVar,
 	}
-	ips = []string{testVar}
+	ips        = []string{testVar}
+	properties = &utils.ClientVolumeProperties{
+		DiskType:      defaultDiskType,
+		Name:          defaultHostName,
+		ImageAlias:    "",
+		ImagePassword: defaultImagePassword,
+		Zone:          defaultAvailabilityZone,
+		SshKey:        testVar,
+		DiskSize:      float32(50),
+	}
 )
 
 func NewTestDriver(ctrl *gomock.Controller, hostName, storePath string) (*Driver, *mockutils.MockClientService) {
@@ -351,7 +360,7 @@ func TestDriver_Create(t *testing.T) {
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
-	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, driver.DiskType, driver.MachineName, "", defaultImagePassword, driver.VolumeAvailabilityZone, testVar, float32(50)).Return(volume, nil)
+	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, nil)
 	clientMock.EXPECT().GetIpBlock(ipblock).Return(&ips, nil)
 	clientMock.EXPECT().CreateAttachNIC(driver.DatacenterId, driver.ServerId, driver.MachineName, true, int32(0), &ips).Return(nic, nil)
 
@@ -557,7 +566,7 @@ func TestDriver_CreateAttachVolumeErr(t *testing.T) {
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
-	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, driver.DiskType, driver.MachineName, "", defaultImagePassword, driver.VolumeAvailabilityZone, testVar, float32(50)).Return(volume, fmt.Errorf("error"))
+	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, fmt.Errorf("error"))
 	err = driver.Create()
 	assert.Error(t, err)
 }
@@ -592,7 +601,7 @@ func TestDriver_CreateGetIpBlockErr(t *testing.T) {
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
-	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, driver.DiskType, driver.MachineName, "", defaultImagePassword, driver.VolumeAvailabilityZone, testVar, float32(50)).Return(volume, nil)
+	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, nil)
 	clientMock.EXPECT().GetIpBlock(ipblock).Return(&ips, fmt.Errorf("error"))
 	err = driver.Create()
 	assert.Error(t, err)
@@ -628,7 +637,7 @@ func TestDriver_CreateAttachNicErr(t *testing.T) {
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
-	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, driver.DiskType, driver.MachineName, "", defaultImagePassword, driver.VolumeAvailabilityZone, testVar, float32(50)).Return(volume, nil)
+	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, nil)
 	clientMock.EXPECT().GetIpBlock(ipblock).Return(&ips, nil)
 	clientMock.EXPECT().CreateAttachNIC(driver.DatacenterId, driver.ServerId, driver.MachineName, true, int32(0), &ips).Return(nic, fmt.Errorf("error"))
 	err = driver.Create()

@@ -17,6 +17,16 @@ type Client struct {
 	ctx context.Context
 }
 
+type ClientVolumeProperties struct {
+	DiskType      string
+	Name          string
+	ImageAlias    string
+	ImagePassword string
+	Zone          string
+	SshKey        string
+	DiskSize      float32
+}
+
 func New(ctx context.Context, name, password, url string) ClientService {
 	clientConfig := &sdkgo.Configuration{
 		Username: name,
@@ -257,16 +267,16 @@ func (c *Client) RemoveServer(datacenterId, serverId string) error {
 	return nil
 }
 
-func (c *Client) CreateAttachVolume(datacenterId, serverId, diskType, name, imageAlias, imagePassword, zone, sshKey string, diskSize float32) (*sdkgo.Volume, error) {
+func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties *ClientVolumeProperties) (*sdkgo.Volume, error) {
 	vol := sdkgo.Volume{
 		Properties: &sdkgo.VolumeProperties{
-			Type:             &diskType,
-			Size:             &diskSize,
-			Name:             &name,
-			ImageAlias:       &imageAlias,
-			ImagePassword:    &imagePassword,
-			SshKeys:          &[]string{sshKey},
-			AvailabilityZone: &zone,
+			Type:             &volProperties.DiskType,
+			Size:             &volProperties.DiskSize,
+			Name:             &volProperties.Name,
+			ImageAlias:       &volProperties.ImageAlias,
+			ImagePassword:    &volProperties.ImagePassword,
+			SshKeys:          &[]string{volProperties.SshKey},
+			AvailabilityZone: &volProperties.Zone,
 		},
 	}
 	volume, volumeResp, err := c.ServerApi.DatacentersServersVolumesPost(c.ctx, datacenterId, serverId).Volume(vol).Execute()
