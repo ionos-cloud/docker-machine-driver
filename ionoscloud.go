@@ -307,7 +307,16 @@ func (d *Driver) Create() error {
 		d.ServerId = *serverId
 	}
 
-	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, d.DiskType, d.MachineName, alias, d.ImagePassword, d.VolumeAvailabilityZone, d.SSHKey, float32(d.DiskSize))
+	properties := &utils.ClientVolumeProperties{
+		DiskType:      d.DiskType,
+		Name:          d.MachineName,
+		ImageAlias:    alias,
+		ImagePassword: d.ImagePassword,
+		Zone:          d.VolumeAvailabilityZone,
+		SshKey:        d.SSHKey,
+		DiskSize:      float32(d.DiskSize),
+	}
+	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, properties)
 	if err != nil {
 		return err
 	}

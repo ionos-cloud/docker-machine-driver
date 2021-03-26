@@ -8,6 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	utils "github.com/ionos-cloud/docker-machine-driver/utils"
 	ionoscloud "github.com/ionos-cloud/sdk-go/v5"
 )
 
@@ -50,18 +51,18 @@ func (mr *MockClientServiceMockRecorder) CreateAttachNIC(datacenterId, serverId,
 }
 
 // CreateAttachVolume mocks base method.
-func (m *MockClientService) CreateAttachVolume(datacenterId, serverId, diskType, name, imageAlias, imagePassword, zone, sshKey string, diskSize float32) (*ionoscloud.Volume, error) {
+func (m *MockClientService) CreateAttachVolume(datacenterId, serverId string, properties *utils.ClientVolumeProperties) (*ionoscloud.Volume, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAttachVolume", datacenterId, serverId, diskType, name, imageAlias, imagePassword, zone, sshKey, diskSize)
+	ret := m.ctrl.Call(m, "CreateAttachVolume", datacenterId, serverId, properties)
 	ret0, _ := ret[0].(*ionoscloud.Volume)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateAttachVolume indicates an expected call of CreateAttachVolume.
-func (mr *MockClientServiceMockRecorder) CreateAttachVolume(datacenterId, serverId, diskType, name, imageAlias, imagePassword, zone, sshKey, diskSize interface{}) *gomock.Call {
+func (mr *MockClientServiceMockRecorder) CreateAttachVolume(datacenterId, serverId, properties interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAttachVolume", reflect.TypeOf((*MockClientService)(nil).CreateAttachVolume), datacenterId, serverId, diskType, name, imageAlias, imagePassword, zone, sshKey, diskSize)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAttachVolume", reflect.TypeOf((*MockClientService)(nil).CreateAttachVolume), datacenterId, serverId, properties)
 }
 
 // CreateDatacenter mocks base method.
