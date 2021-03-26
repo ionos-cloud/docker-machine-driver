@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := build
+
 # Driver Binary Name
 BIN_NAME := docker-machine-driver-ionoscloud
 GOFILES_NOVENDOR=$(shell find . -type f -name '*.go' | grep -v vendor)

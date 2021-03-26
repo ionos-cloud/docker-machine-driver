@@ -257,14 +257,15 @@ func (c *Client) RemoveServer(datacenterId, serverId string) error {
 	return nil
 }
 
-func (c *Client) CreateAttachVolume(datacenterId, serverId, diskType, name, imagealias, zone, sshkey string, diskSize float32) (*sdkgo.Volume, error) {
+func (c *Client) CreateAttachVolume(datacenterId, serverId, diskType, name, imageAlias, imagePassword, zone, sshKey string, diskSize float32) (*sdkgo.Volume, error) {
 	vol := sdkgo.Volume{
 		Properties: &sdkgo.VolumeProperties{
 			Type:             &diskType,
 			Size:             &diskSize,
 			Name:             &name,
-			ImageAlias:       &imagealias,
-			SshKeys:          &[]string{sshkey},
+			ImageAlias:       &imageAlias,
+			ImagePassword:    &imagePassword,
+			SshKeys:          &[]string{sshKey},
 			AvailabilityZone: &zone,
 		},
 	}

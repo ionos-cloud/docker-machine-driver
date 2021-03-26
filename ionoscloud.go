@@ -28,6 +28,7 @@ const (
 	flagDiskSize               = "ionoscloud-disk-size"
 	flagDiskType               = "ionoscloud-disk-type"
 	flagImage                  = "ionoscloud-image"
+	flagImagePassword          = "ionoscloud-image-password"
 	flagLocation               = "ionoscloud-location"
 	flagDatacenterId           = "ionoscloud-datacenter-id"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
@@ -37,6 +38,7 @@ const (
 	defaultRegion           = "us/las"
 	defaultApiEndpoint      = "https://api.ionos.com/cloudapi/v5"
 	defaultImageAlias       = "ubuntu:latest"
+	defaultImagePassword    = "abcde12345" // Must contain both letters and numbers, at least 8 characters
 	defaultCpuFamily        = "AMD_OPTERON"
 	defaultAvailabilityZone = "AUTO"
 	defaultDiskType         = "HDD"
@@ -58,6 +60,7 @@ type Driver struct {
 	DiskSize               int
 	DiskType               string
 	Image                  string
+	ImagePassword          string
 	Size                   int
 	Location               string
 	CpuFamily              string
@@ -133,7 +136,13 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			EnvVar: "IONOSCLOUD_IMAGE",
 			Name:   flagImage,
 			Value:  defaultImageAlias,
-			Usage:  "Ionos Cloud Image Alias",
+			Usage:  "Ionos Cloud Image Alias (ubuntu:latest, ubuntu:20.04)",
+		},
+		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_IMAGE_PASSWORD",
+			Name:   flagImagePassword,
+			Value:  defaultImagePassword,
+			Usage:  "Ionos Cloud Image Password to be able to access the server from DCD platform",
 		},
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_LOCATION",
@@ -180,6 +189,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.Password = opts.String(flagPassword)
 	d.DiskSize = opts.Int(flagDiskSize)
 	d.Image = opts.String(flagImage)
+	d.ImagePassword = opts.String(flagImagePassword)
 	d.Cores = opts.Int(flagServerCores)
 	d.Ram = opts.Int(flagServerRam)
 	d.Location = opts.String(flagLocation)
@@ -219,9 +229,14 @@ func (d *Driver) PreCreateCheck() error {
 		if err != nil {
 			return err
 		}
-		if dcprop, ok := dc.GetPropertiesOk(); ok && dcprop != nil {
-			if name, ok := dcprop.GetNameOk(); ok && name != nil {
+		if dcProp, ok := dc.GetPropertiesOk(); ok && dcProp != nil {
+			if name, ok := dcProp.GetNameOk(); ok && name != nil {
 				log.Info("Creating machine under " + *name + " datacenter")
+			}
+			// If the datacenter already exists, update the driver location
+			// from the default one to the datacenter's location
+			if dcLocation, ok := dcProp.GetLocationOk(); ok && dcLocation != nil {
+				d.Location = *dcLocation
 			}
 		}
 	}
@@ -256,6 +271,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		return err
 	}
+
 	var dc *sdkgo.Datacenter
 	if d.DatacenterId == "" {
 		d.DCExists = false
@@ -291,7 +307,7 @@ func (d *Driver) Create() error {
 		d.ServerId = *serverId
 	}
 
-	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, d.DiskType, d.MachineName, alias, d.VolumeAvailabilityZone, d.SSHKey, float32(d.DiskSize))
+	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, d.DiskType, d.MachineName, alias, d.ImagePassword, d.VolumeAvailabilityZone, d.SSHKey, float32(d.DiskSize))
 	if err != nil {
 		return err
 	}

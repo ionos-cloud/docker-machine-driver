@@ -17,7 +17,7 @@ type ClientService interface {
 	StopServer(datacenterId, serverId string) error
 	RestartServer(datacenterId, serverId string) error
 	RemoveServer(datacenterId, serverId string) error
-	CreateAttachVolume(datacenterId, serverId, diskType, name, imagealias, zone, sshkey string, diskSize float32) (*ionoscloud.Volume, error)
+	CreateAttachVolume(datacenterId, serverId, diskType, name, imageAlias, imagePassword, zone, sshKey string, diskSize float32) (*ionoscloud.Volume, error)
 	RemoveVolume(datacenterId, volumeId string) error
 	CreateAttachNIC(datacenterId, serverId, name string, dhcp bool, lanId int32, ips *[]string) (*ionoscloud.Nic, error)
 	RemoveNic(datacenterId, serverId, nicId string) error
