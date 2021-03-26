@@ -95,10 +95,6 @@ For more information about Docker Machine commands on how to manage a machine, i
 
 For more details about possible issues, check the [Troubleshooting](docs/usage/troubleshooting.md) section.
 
-### Rancher UI
-
-For information on how to create a Rancher Cluster via Rancher UI, using Ionos Cloud Docker Machine Driver, check the [Rancher](docs/rancher/rancher-ui.md) section.
-
 ## Feature Reference
 
 The IONOS Cloud Docker Machine Driver aims to offer access to all resources in the IONOS Cloud API and also offers some additional features that make the integration easier:

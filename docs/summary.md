@@ -13,7 +13,3 @@
 * [Troubleshooting](usage/troubleshooting.md)
 * [Testing](usage/testing.md)
 
-## Rancher
-
-* [Rancher Support](rancher/rancher-ui.md)
-
