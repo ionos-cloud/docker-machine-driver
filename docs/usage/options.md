@@ -6,9 +6,15 @@ To get more detailed information about the options and the environment variables
 docker-machine create --help --driver ionoscloud
 ```
 
+or 
+
+```text
+rancher-machine create --help --driver ionoscloud
+```
+
 ## Options
 
-Available Options for the `docker-machine create` command with the IONOS Cloud Docker Machine Driver: 
+Available Options for the IONOS Cloud Docker Machine Driver: 
 
 | Option | Description |
 | :--- | :--- |
