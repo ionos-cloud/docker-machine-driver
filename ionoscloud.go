@@ -325,7 +325,7 @@ func (d *Driver) Create() error {
 	}
 
 	l, _ := strconv.Atoi(d.LanId)
-	ips, err := d.client().GetIpBlock(ipBlock)
+	ips, err := d.client().GetIpBlockIps(ipBlock)
 	if err != nil {
 		return err
 	}
@@ -380,7 +380,11 @@ func (d *Driver) Remove() error {
 			result = multierror.Append(result, err)
 		}
 	}
-	err = d.client().RemoveIpBlock(d.IPAddress)
+	ipsBlock, err := d.client().GetIpBlocks()
+	if err != nil {
+		result = multierror.Append(result, err)
+	}
+	err = d.client().RemoveIpBlock(ipsBlock, d.IPAddress)
 	if err != nil {
 		result = multierror.Append(result, err)
 	}

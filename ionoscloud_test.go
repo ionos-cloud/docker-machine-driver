@@ -49,6 +49,11 @@ var (
 	ipblock = &sdkgo.IpBlock{
 		Id: &testVar,
 	}
+	ipblocks = &sdkgo.IpBlocks{
+		Items: &[]sdkgo.IpBlock{
+			*ipblock,
+		},
+	}
 	lan = &sdkgo.LanPost{
 		Id: &testVar,
 	}
@@ -82,11 +87,11 @@ func NewTestDriver(ctrl *gomock.Controller, hostName, storePath string) (*Driver
 	return d, clientMock
 }
 
-func TestDriver_NewDriver(t *testing.T) {
+func TestNewDriver(t *testing.T) {
 	NewDriver("test-machine", defaultStorePath)
 }
 
-func TestDriver_SetConfigFromDefaultFlags(t *testing.T) {
+func TestSetConfigFromDefaultFlags(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, _ := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -115,7 +120,7 @@ func TestDriver_SetConfigFromDefaultFlags(t *testing.T) {
 	assert.Equal(t, defaultAvailabilityZone, driver.ServerAvailabilityZone)
 }
 
-func TestDriver_SetConfigFromCustomFlags(t *testing.T) {
+func TestSetConfigFromCustomFlags(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, _ := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -148,7 +153,7 @@ func TestDriver_SetConfigFromCustomFlags(t *testing.T) {
 	assert.Equal(t, defaultAvailabilityZone, driver.ServerAvailabilityZone)
 }
 
-func TestDriver_DriverName(t *testing.T) {
+func TestDriverName(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, _ := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -156,7 +161,7 @@ func TestDriver_DriverName(t *testing.T) {
 	assert.Equal(t, driverName, driver.DriverName())
 }
 
-func TestDriver_PreCreateCheckUserNameErr(t *testing.T) {
+func TestPreCreateCheckUserNameErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, _ := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -174,7 +179,7 @@ func TestDriver_PreCreateCheckUserNameErr(t *testing.T) {
 	assert.Equal(t, err.Error(), "please provide username as parameter --ionoscloud-username or as environment variable $IONOSCLOUD_USERNAME")
 }
 
-func TestDriver_PreCreateCheckPasswordErr(t *testing.T) {
+func TestPreCreateCheckPasswordErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, _ := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -194,7 +199,7 @@ func TestDriver_PreCreateCheckPasswordErr(t *testing.T) {
 	assert.Equal(t, err.Error(), "please provide password as parameter --ionoscloud-password or as environment variable $IONOSCLOUD_PASSWORD")
 }
 
-func TestDriver_PreCreateCheckDataCenterIdErr(t *testing.T) {
+func TestPreCreateCheckDataCenterIdErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -219,7 +224,7 @@ func TestDriver_PreCreateCheckDataCenterIdErr(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDriver_PreCreateCheckDataCenterErr(t *testing.T) {
+func TestPreCreateCheckDataCenterErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -242,7 +247,7 @@ func TestDriver_PreCreateCheckDataCenterErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_PreCreateImageIdErr(t *testing.T) {
+func TestPreCreateImageIdErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -267,7 +272,7 @@ func TestDriver_PreCreateImageIdErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_PreCreateCheck(t *testing.T) {
+func TestPreCreateCheck(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -289,7 +294,7 @@ func TestDriver_PreCreateCheck(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDriver_CreateSSHKeyErr(t *testing.T) {
+func TestCreateSSHKeyErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, _ := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -310,7 +315,7 @@ func TestDriver_CreateSSHKeyErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_CreateErr(t *testing.T) {
+func TestCreateErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, _ := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -330,7 +335,7 @@ func TestDriver_CreateErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_Create(t *testing.T) {
+func TestCreate(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -361,14 +366,14 @@ func TestDriver_Create(t *testing.T) {
 	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
 	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, nil)
-	clientMock.EXPECT().GetIpBlock(ipblock).Return(&ips, nil)
+	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
 	clientMock.EXPECT().CreateAttachNIC(driver.DatacenterId, driver.ServerId, driver.MachineName, true, int32(0), &ips).Return(nic, nil)
 
 	err = driver.Create()
 	assert.NoError(t, err)
 }
 
-func TestDriver_CreateIpBlockErr(t *testing.T) {
+func TestCreateIpBlockErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -394,7 +399,7 @@ func TestDriver_CreateIpBlockErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_CreateGetImageErr(t *testing.T) {
+func TestCreateGetImageErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -422,7 +427,7 @@ func TestDriver_CreateGetImageErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_CreateGetDatacenterErr(t *testing.T) {
+func TestCreateGetDatacenterErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -449,7 +454,7 @@ func TestDriver_CreateGetDatacenterErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_CreateDatacenterErr(t *testing.T) {
+func TestCreateDatacenterErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -476,7 +481,7 @@ func TestDriver_CreateDatacenterErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_CreateLanErr(t *testing.T) {
+func TestCreateLanErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -505,7 +510,7 @@ func TestDriver_CreateLanErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_CreateServerErr(t *testing.T) {
+func TestCreateServerErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -537,7 +542,7 @@ func TestDriver_CreateServerErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_CreateAttachVolumeErr(t *testing.T) {
+func TestCreateAttachVolumeErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -571,7 +576,7 @@ func TestDriver_CreateAttachVolumeErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_CreateGetIpBlockErr(t *testing.T) {
+func TestCreateGetIpBlockErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -602,12 +607,12 @@ func TestDriver_CreateGetIpBlockErr(t *testing.T) {
 	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
 	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, nil)
-	clientMock.EXPECT().GetIpBlock(ipblock).Return(&ips, fmt.Errorf("error"))
+	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, fmt.Errorf("error"))
 	err = driver.Create()
 	assert.Error(t, err)
 }
 
-func TestDriver_CreateAttachNicErr(t *testing.T) {
+func TestCreateAttachNicErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -638,13 +643,13 @@ func TestDriver_CreateAttachNicErr(t *testing.T) {
 	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
 	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, nil)
-	clientMock.EXPECT().GetIpBlock(ipblock).Return(&ips, nil)
+	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
 	clientMock.EXPECT().CreateAttachNIC(driver.DatacenterId, driver.ServerId, driver.MachineName, true, int32(0), &ips).Return(nic, fmt.Errorf("error"))
 	err = driver.Create()
 	assert.Error(t, err)
 }
 
-func TestDriver_Remove(t *testing.T) {
+func TestRemove(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -673,12 +678,13 @@ func TestDriver_Remove(t *testing.T) {
 	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(nil)
 	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(nil)
 	clientMock.EXPECT().RemoveDatacenter(driver.DatacenterId).Return(nil)
-	clientMock.EXPECT().RemoveIpBlock(driver.IPAddress).Return(nil)
+	clientMock.EXPECT().GetIpBlocks().Return(ipblocks, nil)
+	clientMock.EXPECT().RemoveIpBlock(ipblocks, driver.IPAddress).Return(nil)
 	err = driver.Remove()
 	assert.NoError(t, err)
 }
 
-func TestDriver_RemoveErr(t *testing.T) {
+func TestRemoveErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -708,12 +714,13 @@ func TestDriver_RemoveErr(t *testing.T) {
 	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(errOccured)
 	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(errOccured)
 	clientMock.EXPECT().RemoveDatacenter(driver.DatacenterId).Return(errOccured)
-	clientMock.EXPECT().RemoveIpBlock(driver.IPAddress).Return(errOccured)
+	clientMock.EXPECT().GetIpBlocks().Return(ipblocks, errOccured)
+	clientMock.EXPECT().RemoveIpBlock(ipblocks, driver.IPAddress).Return(errOccured)
 	err = driver.Remove()
 	assert.Error(t, err)
 }
 
-func TestDriver_StartErr(t *testing.T) {
+func TestStartErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -736,7 +743,7 @@ func TestDriver_StartErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_Start(t *testing.T) {
+func TestStart(t *testing.T) {
 	var (
 		state  = "PAUSED"
 		server = &sdkgo.Server{
@@ -769,7 +776,7 @@ func TestDriver_Start(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDriver_StartServerErr(t *testing.T) {
+func TestStartServerErr(t *testing.T) {
 	var (
 		state  = "INACTIVE"
 		server = &sdkgo.Server{
@@ -802,7 +809,7 @@ func TestDriver_StartServerErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_StartRunningServer(t *testing.T) {
+func TestStartRunningServer(t *testing.T) {
 	var (
 		state  = "AVAILABLE"
 		server = &sdkgo.Server{
@@ -834,7 +841,7 @@ func TestDriver_StartRunningServer(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDriver_StopErr(t *testing.T) {
+func TestStopErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -858,7 +865,7 @@ func TestDriver_StopErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_Stop(t *testing.T) {
+func TestStop(t *testing.T) {
 	var (
 		state  = "NOSTATE"
 		server = &sdkgo.Server{
@@ -891,7 +898,7 @@ func TestDriver_Stop(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDriver_StopServerErr(t *testing.T) {
+func TestStopServerErr(t *testing.T) {
 	var (
 		state  = "PAUSED"
 		server = &sdkgo.Server{
@@ -924,7 +931,7 @@ func TestDriver_StopServerErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_StopStoppedServer(t *testing.T) {
+func TestStopStoppedServer(t *testing.T) {
 	var (
 		state  = "BLOCKED"
 		server = &sdkgo.Server{
@@ -956,7 +963,7 @@ func TestDriver_StopStoppedServer(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDriver_RestartErr(t *testing.T) {
+func TestRestartErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -979,7 +986,7 @@ func TestDriver_RestartErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_Restart(t *testing.T) {
+func TestRestart(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -1002,7 +1009,7 @@ func TestDriver_Restart(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDriver_KillErr(t *testing.T) {
+func TestKillErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -1025,7 +1032,7 @@ func TestDriver_KillErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_Kill(t *testing.T) {
+func TestKill(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	driver, clientMock := NewTestDriver(ctrl, defaultHostName, defaultStorePath)
@@ -1048,7 +1055,7 @@ func TestDriver_Kill(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDriver_GetSSHHostnameErr(t *testing.T) {
+func TestGetSSHHostnameErr(t *testing.T) {
 	var (
 		state  = "CRASHED"
 		server = &sdkgo.Server{
@@ -1080,7 +1087,7 @@ func TestDriver_GetSSHHostnameErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_GetURLErr(t *testing.T) {
+func TestGetURLErr(t *testing.T) {
 	var (
 		state  = "SHUTOFF"
 		server = &sdkgo.Server{
@@ -1112,7 +1119,7 @@ func TestDriver_GetURLErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_GetURL(t *testing.T) {
+func TestGetURL(t *testing.T) {
 	var (
 		state  = "AVAILABLE"
 		server = &sdkgo.Server{
@@ -1144,7 +1151,7 @@ func TestDriver_GetURL(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_GetIPErr(t *testing.T) {
+func TestGetIPErr(t *testing.T) {
 	var (
 		state  = "AVAILABLE"
 		server = &sdkgo.Server{
@@ -1176,7 +1183,7 @@ func TestDriver_GetIPErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_GetIP(t *testing.T) {
+func TestGetIP(t *testing.T) {
 	var (
 		state  = "AVAILABLE"
 		server = &sdkgo.Server{
@@ -1219,7 +1226,7 @@ func TestDriver_GetIP(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDriver_GetStateErr(t *testing.T) {
+func TestGetStateErr(t *testing.T) {
 	var (
 		state  = "AVAILABLE"
 		server = &sdkgo.Server{
@@ -1262,7 +1269,7 @@ func TestDriver_GetStateErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestDriver_GetStateShutDown(t *testing.T) {
+func TestGetStateShutDown(t *testing.T) {
 	var (
 		state  = "SHUTDOWN"
 		server = &sdkgo.Server{
@@ -1305,7 +1312,7 @@ func TestDriver_GetStateShutDown(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDriver_GetStateCrashed(t *testing.T) {
+func TestGetStateCrashed(t *testing.T) {
 	var (
 		state  = "CRASHED"
 		server = &sdkgo.Server{

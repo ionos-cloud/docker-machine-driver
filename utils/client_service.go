@@ -4,8 +4,9 @@ import ionoscloud "github.com/ionos-cloud/sdk-go/v5"
 
 type ClientService interface {
 	CreateIpBlock(size int32, location string) (*ionoscloud.IpBlock, error)
-	GetIpBlock(ipBlock *ionoscloud.IpBlock) (*[]string, error)
-	RemoveIpBlock(ipAddress string) error
+	GetIpBlockIps(ipBlock *ionoscloud.IpBlock) (*[]string, error)
+	GetIpBlocks() (*ionoscloud.IpBlocks, error)
+	RemoveIpBlock(ipBlocks *ionoscloud.IpBlocks, ipAddress string) error
 	CreateDatacenter(name, location string) (*ionoscloud.Datacenter, error)
 	GetDatacenter(datacenterId string) (*ionoscloud.Datacenter, error)
 	RemoveDatacenter(datacenterId string) error
