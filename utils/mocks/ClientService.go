@@ -155,19 +155,34 @@ func (mr *MockClientServiceMockRecorder) GetImages() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetImages", reflect.TypeOf((*MockClientService)(nil).GetImages))
 }
 
-// GetIpBlock mocks base method.
-func (m *MockClientService) GetIpBlock(ipBlock *ionoscloud.IpBlock) (*[]string, error) {
+// GetIpBlockIps mocks base method.
+func (m *MockClientService) GetIpBlockIps(ipBlock *ionoscloud.IpBlock) (*[]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetIpBlock", ipBlock)
+	ret := m.ctrl.Call(m, "GetIpBlockIps", ipBlock)
 	ret0, _ := ret[0].(*[]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetIpBlock indicates an expected call of GetIpBlock.
-func (mr *MockClientServiceMockRecorder) GetIpBlock(ipBlock interface{}) *gomock.Call {
+// GetIpBlockIps indicates an expected call of GetIpBlockIps.
+func (mr *MockClientServiceMockRecorder) GetIpBlockIps(ipBlock interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIpBlock", reflect.TypeOf((*MockClientService)(nil).GetIpBlock), ipBlock)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIpBlockIps", reflect.TypeOf((*MockClientService)(nil).GetIpBlockIps), ipBlock)
+}
+
+// GetIpBlocks mocks base method.
+func (m *MockClientService) GetIpBlocks() (*ionoscloud.IpBlocks, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIpBlocks")
+	ret0, _ := ret[0].(*ionoscloud.IpBlocks)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIpBlocks indicates an expected call of GetIpBlocks.
+func (mr *MockClientServiceMockRecorder) GetIpBlocks() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIpBlocks", reflect.TypeOf((*MockClientService)(nil).GetIpBlocks))
 }
 
 // GetLocationById mocks base method.
@@ -215,17 +230,17 @@ func (mr *MockClientServiceMockRecorder) RemoveDatacenter(datacenterId interface
 }
 
 // RemoveIpBlock mocks base method.
-func (m *MockClientService) RemoveIpBlock(ipAddress string) error {
+func (m *MockClientService) RemoveIpBlock(ipBlocks *ionoscloud.IpBlocks, ipAddress string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveIpBlock", ipAddress)
+	ret := m.ctrl.Call(m, "RemoveIpBlock", ipBlocks, ipAddress)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RemoveIpBlock indicates an expected call of RemoveIpBlock.
-func (mr *MockClientServiceMockRecorder) RemoveIpBlock(ipAddress interface{}) *gomock.Call {
+func (mr *MockClientServiceMockRecorder) RemoveIpBlock(ipBlocks, ipAddress interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveIpBlock", reflect.TypeOf((*MockClientService)(nil).RemoveIpBlock), ipAddress)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveIpBlock", reflect.TypeOf((*MockClientService)(nil).RemoveIpBlock), ipBlocks, ipAddress)
 }
 
 // RemoveLan mocks base method.

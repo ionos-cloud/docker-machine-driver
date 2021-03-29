@@ -57,35 +57,38 @@ func (c *Client) CreateIpBlock(size int32, location string) (*sdkgo.IpBlock, err
 	}
 	err = c.waitTillProvisioned(ipBlockResp.Header.Get("location"))
 	if err != nil {
-		return &ipBlock, fmt.Errorf("error waiting untill provisioned: %v", err)
+		return &ipBlock, fmt.Errorf("error waiting until ip block is created: %v", err)
 	}
 	return &ipBlock, nil
 }
 
-func (c *Client) GetIpBlock(ipBlock *sdkgo.IpBlock) (*[]string, error) {
-	if ipblockprop, ok := ipBlock.GetPropertiesOk(); ok && ipblockprop != nil {
-		if ips, ok := ipblockprop.GetIpsOk(); ok && ips != nil {
+func (c *Client) GetIpBlockIps(ipBlock *sdkgo.IpBlock) (*[]string, error) {
+	if ipBlockProp, ok := ipBlock.GetPropertiesOk(); ok && ipBlockProp != nil {
+		if ips, ok := ipBlockProp.GetIpsOk(); ok && ips != nil {
 			return ips, nil
 		}
 	}
 	return nil, fmt.Errorf("error getting ip block ips")
 }
 
-func (c *Client) RemoveIpBlock(ipAddress string) error {
+func (c *Client) GetIpBlocks() (*sdkgo.IpBlocks, error) {
 	ipBlocks, _, err := c.IPBlocksApi.IpblocksGet(c.ctx).Execute()
 	if err != nil {
-		return err
-	} else {
-		for _, i := range *ipBlocks.Items {
-			for _, v := range *i.Properties.Ips {
-				if ipAddress == v {
-					_, resp, err := c.IPBlocksApi.IpblocksDelete(c.ctx, *i.Id).Execute()
-					if err != nil {
-						return fmt.Errorf("error deleting ipblock: %v", err)
-					}
-					if resp.StatusCode > 299 {
-						return fmt.Errorf("error deleting ipblock, API Response status: %s", resp.Status)
-					}
+		return nil, fmt.Errorf("error getting ip blocks: %v", err)
+	}
+	return &ipBlocks, nil
+}
+
+func (c *Client) RemoveIpBlock(ipBlocks *sdkgo.IpBlocks, ipAddress string) error {
+	for _, i := range *ipBlocks.Items {
+		for _, v := range *i.Properties.Ips {
+			if ipAddress == v {
+				_, resp, err := c.IPBlocksApi.IpblocksDelete(c.ctx, *i.Id).Execute()
+				if err != nil {
+					return fmt.Errorf("error deleting ipblock: %v", err)
+				}
+				if resp.StatusCode > 299 {
+					return fmt.Errorf("error deleting ipblock, API Response status: %s", resp.Status)
 				}
 			}
 		}
@@ -110,7 +113,7 @@ func (c *Client) CreateDatacenter(name, location string) (*sdkgo.Datacenter, err
 	}
 	err = c.waitTillProvisioned(dcResp.Header.Get("location"))
 	if err != nil {
-		return &dc, fmt.Errorf("error waiting untill provisioned: %v", err)
+		return &dc, fmt.Errorf("error waiting until data center is created: %v", err)
 	}
 	return &dc, nil
 }
@@ -163,7 +166,7 @@ func (c *Client) CreateLan(datacenterId, name string, public bool) (*sdkgo.LanPo
 	}
 	err = c.waitTillProvisioned(lanResp.Header.Get("location"))
 	if err != nil {
-		return &lan, fmt.Errorf("error waiting untill provisioned: %v", err)
+		return &lan, fmt.Errorf("error waiting until lan is created: %v", err)
 	}
 	return &lan, nil
 }
@@ -206,7 +209,7 @@ func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone stri
 	}
 	err = c.waitTillProvisioned(serverResp.Header.Get("location"))
 	if err != nil {
-		return &svr, fmt.Errorf("error waiting untill provisioned: %v", err)
+		return &svr, fmt.Errorf("error waiting until server is created: %v", err)
 	}
 	return &svr, nil
 }
@@ -290,7 +293,7 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 	}
 	err = c.waitTillProvisioned(volumeResp.Header.Get("location"))
 	if err != nil {
-		return &volume, fmt.Errorf("error waiting till provisioned: %s", err.Error())
+		return &volume, fmt.Errorf("error waiting until volume is created and attached: %s", err.Error())
 	}
 	return &volume, nil
 }
@@ -331,7 +334,7 @@ func (c *Client) CreateAttachNIC(datacenterId, serverId, name string, dhcp bool,
 	}
 	err = c.waitTillProvisioned(nicResp.Header.Get("location"))
 	if err != nil {
-		return &nic, fmt.Errorf("error waiting till provisioned: %s", err.Error())
+		return &nic, fmt.Errorf("error waiting until nic is created and attached: %s", err.Error())
 	}
 	return &nic, nil
 }
