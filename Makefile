@@ -37,7 +37,7 @@ test: test_unit
 .PHONY: test_unit
 test_unit:
 	@echo "Run unit tests"
-	@go test -cover .
+	@go test -cover ./...
 	@echo "DONE"
 
 .PHONY: gofmt_check

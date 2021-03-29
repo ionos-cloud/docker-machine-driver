@@ -80,18 +80,28 @@ func (c *Client) GetIpBlocks() (*sdkgo.IpBlocks, error) {
 }
 
 func (c *Client) RemoveIpBlock(ipBlocks *sdkgo.IpBlocks, ipAddress string) error {
-	for _, i := range *ipBlocks.Items {
-		for _, v := range *i.Properties.Ips {
-			if ipAddress == v {
-				_, resp, err := c.IPBlocksApi.IpblocksDelete(c.ctx, *i.Id).Execute()
-				if err != nil {
-					return fmt.Errorf("error deleting ipblock: %v", err)
-				}
-				if resp.StatusCode > 299 {
-					return fmt.Errorf("error deleting ipblock, API Response status: %s", resp.Status)
+	if items, ok := ipBlocks.GetItemsOk(); ok && items != nil {
+		for _, i := range *items {
+			if prop, ok := i.GetPropertiesOk(); ok && prop != nil {
+				for _, v := range *prop.Ips {
+					if ipAddress == v {
+						err := c.DeleteIpBlock(*i.Id)
+						return err
+					}
 				}
 			}
 		}
+	}
+	return fmt.Errorf("error deleting ipblock, no ip blocks items found")
+}
+
+func (c *Client) DeleteIpBlock(ipBlockId string) error {
+	_, resp, err := c.IPBlocksApi.IpblocksDelete(c.ctx, ipBlockId).Execute()
+	if err != nil {
+		return fmt.Errorf("error deleting ipblock: %v", err)
+	}
+	if resp.StatusCode > 299 {
+		return fmt.Errorf("error deleting ipblock, API Response status: %s", resp.Status)
 	}
 	log.Info("IPBlock Deleted")
 	return nil
