@@ -19,10 +19,13 @@ const (
 
 var (
 	// Common variables used
-	testRegion = "us/ewr"
-	testVar    = "test"
-	locationId = "las"
-	dcVersion  = int32(1)
+	testRegion    = "us/ewr"
+	testVar       = "test"
+	locationId    = "las"
+	imageType     = "HDD"
+	imageName     = "ubuntu:latest"
+	imageLocation = "us/las"
+	dcVersion     = int32(1)
 )
 
 var (
@@ -45,8 +48,11 @@ var (
 	images = sdkgo.Images{
 		Items: &[]sdkgo.Image{
 			{
+				Id: &testVar,
 				Properties: &sdkgo.ImageProperties{
-					Name: &testVar,
+					Name:      &imageName,
+					ImageType: &imageType,
+					Location:  &imageLocation,
 				},
 			},
 		},
@@ -577,13 +583,13 @@ func TestGetURLErr(t *testing.T) {
 }
 
 func TestGetURL(t *testing.T) {
-	s := serverWithState(testVar, "AVAILABLE")
+	s := serverWithNicAttached(testVar, "AVAILABLE", testVar)
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.DatacenterId = testVar
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId).Return(s, nil).Times(2)
 	_, err := driver.GetURL()
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 func TestGetIPErr(t *testing.T) {
@@ -633,6 +639,32 @@ func TestGetStateCrashed(t *testing.T) {
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId).Return(s, nil)
 	_, err := driver.GetState()
+	assert.NoError(t, err)
+}
+
+func TestPublicSSHKeyPath(t *testing.T) {
+	driver, _ := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.publicSSHKeyPath()
+}
+
+func TestIsSwarmMaster(t *testing.T) {
+	driver, _ := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.isSwarmMaster()
+}
+
+func TestGetRegionIdAndLocationId(t *testing.T) {
+	driver, _ := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.Location = "test/test/test/test"
+	driver.getRegionIdAndLocationId()
+}
+
+func TestGetImageId(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
+	clientMock.EXPECT().GetImages().Return(images, nil)
+	driver.Location = "us/las"
+	driver.DiskType = "SSD"
+	_, err := driver.getImageId(imageName)
 	assert.NoError(t, err)
 }
 

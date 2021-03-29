@@ -29,7 +29,7 @@ var (
 )
 
 func TestClientNew(t *testing.T) {
-	New(context.Background(), "test", "test", "test")
+	New(context.Background(), testName, testName, testName)
 }
 
 func TestClientCreateIpBlockErr(t *testing.T) {
@@ -45,6 +45,11 @@ func TestClientGetIpBlocksErr(t *testing.T) {
 func TestClientGetIpBlockIpsErr(t *testing.T) {
 	_, err := getTestClient().GetIpBlockIps(&sdkgo.IpBlock{})
 	assert.Error(t, err)
+}
+
+func TestClientGetIpBlockIps(t *testing.T) {
+	_, err := getTestClient().GetIpBlockIps(ipBlock)
+	assert.NoError(t, err)
 }
 
 func TestClientRemoveIpBlockErr(t *testing.T) {

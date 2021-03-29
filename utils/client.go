@@ -142,14 +142,12 @@ func (c *Client) GetDatacenter(datacenterId string) (*sdkgo.Datacenter, error) {
 func (c *Client) RemoveDatacenter(datacenterId string) error {
 	_, resp, err := c.DataCenterApi.DatacentersDelete(c.ctx, datacenterId).Execute()
 	if err != nil {
-		if resp != nil {
-			if resp.StatusCode == 405 {
-				return fmt.Errorf("error deleting datacenter: %v. Please consider to delete it manually", err)
-			}
-		}
 		return fmt.Errorf("error deleting datacenter: %v", err)
 	}
 	if resp.StatusCode > 299 {
+		if resp.StatusCode == 405 {
+			return fmt.Errorf("error deleting datacenter: %v. Please consider to delete it manually", err)
+		}
 		return fmt.Errorf("error deleting datacenter, API Response status: %s", resp.Status)
 	}
 	err = c.waitTillProvisioned(resp.Header.Get("location"))
