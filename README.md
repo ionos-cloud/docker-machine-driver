@@ -83,17 +83,25 @@ Note that the development version is a work-in-progress of a future stable relea
 
 ### Usage
 
-Before you start creating a Docker Machine with the Ionos Cloud Docker Machine Driver, you need to authenticate in your Ionos Cloud account. Check the steps in the [Authentication](docs/usage/authentication.md) section.
-
-For information about how to create a Docker Machine with Ionos Cloud Docker Machine Driver, check the [Create Machine](docs/usage/create-machine.md) section.
-
-For information about how to create a Docker Machine with Ionos Cloud Docker Machine Driver with [Swarm Mode](https://docs.docker.com/engine/swarm/), check the [Create Swarm](docs/usage/create-swarm.md) section.
+Before you start using the Ionos Cloud Docker Machine Driver, you need to authenticate in your Ionos Cloud account. Check the steps in the [Authentication](docs/usage/authentication.md) section.
 
 In order to see the available options and flags, check the [Options](docs/usage/options.md) section.
 
-For more information about Docker Machine commands on how to manage a machine, including examples, check the [Commands](docs/usage/commands.md) section.
+For more information about Docker/Rancher Machine commands on how to manage a machine, including examples, check the [Commands](docs/usage/commands.md) section.
 
-For more details about possible issues, check the [Troubleshooting](docs/usage/troubleshooting.md) section.
+### Docker Support
+
+For information on how to create a Docker Machine with Ionos Cloud Docker Machine Driver, check the [Docker Machine](docs/docker/docker-machine.md) section.
+
+For information on how to create a Docker Machine with Ionos Cloud Docker Machine Driver with [Swarm Mode](https://docs.docker.com/engine/swarm/), check the [Docker Swarm](docs/docker/docker-swarm.md) section.
+
+For more details about possible issues, check the [Troubleshooting](docs/docker/troubleshooting.md) section.
+
+### Rancher Support
+
+For information on how to create a Rancher Machine with Ionos Cloud Docker Machine Driver, check the [Rancher Machine](docs/rancher/rancher-machine.md) section.
+
+For information on how to create a Rancher Cluster via Rancher UI, using Ionos Cloud Docker Machine Driver, check the [Rancher Cluster](docs/rancher/rancher-cluster.md) section.
 
 ## Feature Reference
 
