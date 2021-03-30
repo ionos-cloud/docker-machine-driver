@@ -18,6 +18,6 @@
 
 ## Rancher
 
-* [Rancher Machine](rancher/rancher-cluster.md)
+* [Rancher Machine](rancher/rancher-machine.md)
 * [Rancher Cluster](rancher/rancher-cluster.md)
 
