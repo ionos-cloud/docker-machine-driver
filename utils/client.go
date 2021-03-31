@@ -71,31 +71,7 @@ func (c *Client) GetIpBlockIps(ipBlock *sdkgo.IpBlock) (*[]string, error) {
 	return nil, fmt.Errorf("error getting ip block ips")
 }
 
-func (c *Client) GetIpBlocks() (*sdkgo.IpBlocks, error) {
-	ipBlocks, _, err := c.IPBlocksApi.IpblocksGet(c.ctx).Execute()
-	if err != nil {
-		return nil, fmt.Errorf("error getting ip blocks: %v", err)
-	}
-	return &ipBlocks, nil
-}
-
-func (c *Client) RemoveIpBlock(ipBlocks *sdkgo.IpBlocks, ipAddress string) error {
-	if items, ok := ipBlocks.GetItemsOk(); ok && items != nil {
-		for _, i := range *items {
-			if prop, ok := i.GetPropertiesOk(); ok && prop != nil {
-				for _, v := range *prop.Ips {
-					if ipAddress == v {
-						err := c.DeleteIpBlock(*i.Id)
-						return err
-					}
-				}
-			}
-		}
-	}
-	return fmt.Errorf("error deleting ipblock, no ip blocks items found")
-}
-
-func (c *Client) DeleteIpBlock(ipBlockId string) error {
+func (c *Client) RemoveIpBlock(ipBlockId string) error {
 	_, resp, err := c.IPBlocksApi.IpblocksDelete(c.ctx, ipBlockId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting ipblock: %v", err)

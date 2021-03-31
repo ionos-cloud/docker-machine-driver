@@ -37,11 +37,6 @@ func TestClientCreateIpBlockErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestClientGetIpBlocksErr(t *testing.T) {
-	_, err := getTestClient().GetIpBlocks()
-	assert.Error(t, err)
-}
-
 func TestClientGetIpBlockIpsErr(t *testing.T) {
 	_, err := getTestClient().GetIpBlockIps(&sdkgo.IpBlock{})
 	assert.Error(t, err)
@@ -53,17 +48,7 @@ func TestClientGetIpBlockIps(t *testing.T) {
 }
 
 func TestClientRemoveIpBlockErr(t *testing.T) {
-	err := getTestClient().RemoveIpBlock(&sdkgo.IpBlocks{}, testIpAddr)
-	assert.Error(t, err)
-}
-
-func TestClientRemoveIpBlocksErr(t *testing.T) {
-	err := getTestClient().RemoveIpBlock(ipBlocks, testIpAddr)
-	assert.Error(t, err)
-}
-
-func TestClientDeleteIpBlockErr(t *testing.T) {
-	err := getTestClient().DeleteIpBlock(testName)
+	err := getTestClient().RemoveIpBlock(testName)
 	assert.Error(t, err)
 }
 
