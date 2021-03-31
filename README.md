@@ -9,6 +9,9 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=security_rating)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
 
+![Alt text](.github/IONOS.CLOUD.BLU.svg?raw=true "Title")
+
+
 ## Overview
 
 Docker Machine Driver is the official driver for Docker Machine to use with IONOS Cloud. It adds support for creating Docker Machines hosted on the IONOS Cloud. 
