@@ -52,7 +52,9 @@ func (c *Client) CreateIpBlock(size int32, location string) (*sdkgo.IpBlock, err
 	if err != nil {
 		return nil, fmt.Errorf("error creating ipblock: %v", err)
 	}
-	if ipBlockResp.StatusCode > 299 {
+	if ipBlockResp.StatusCode == 202 {
+		log.Info("IPBlock Reserved")
+	} else {
 		return nil, fmt.Errorf("error reserving an ipblock: %s", ipBlockResp.Response.Status)
 	}
 	err = c.waitTillProvisioned(ipBlockResp.Header.Get("location"))
