@@ -46,6 +46,10 @@ const (
 	driverName              = "ionoscloud"
 )
 
+const (
+	rollingBackNotice = "WARNING: Error creating machine. Rolling back..."
+)
+
 type Driver struct {
 	*drivers.BaseDriver
 	client func() utils.ClientService
@@ -225,6 +229,7 @@ func (d *Driver) PreCreateCheck() error {
 		return fmt.Errorf("please provide password as parameter --ionoscloud-password or as environment variable $IONOSCLOUD_PASSWORD")
 	}
 	if d.DatacenterId != "" {
+		d.DCExists = true
 		dc, err := d.client().GetDatacenter(d.DatacenterId)
 		if err != nil {
 			return err
@@ -239,6 +244,8 @@ func (d *Driver) PreCreateCheck() error {
 				d.Location = *dcLocation
 			}
 		}
+	} else {
+		d.DCExists = false
 	}
 	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %v", d.Image, err)
@@ -301,6 +308,8 @@ func (d *Driver) Create() error {
 
 	server, err := d.client().CreateServer(d.DatacenterId, d.Location, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
 	if err != nil {
+		log.Warn(rollingBackNotice)
+		d.Remove()
 		return err
 	}
 	if serverId, ok := server.GetIdOk(); ok && serverId != nil {
@@ -318,6 +327,8 @@ func (d *Driver) Create() error {
 	}
 	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, properties)
 	if err != nil {
+		log.Warn(rollingBackNotice)
+		d.Remove()
 		return err
 	}
 	if volumeId, ok := volume.GetIdOk(); ok && volumeId != nil {
@@ -332,6 +343,8 @@ func (d *Driver) Create() error {
 
 	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(l), ips)
 	if err != nil {
+		log.Warn(rollingBackNotice)
+		d.Remove()
 		return err
 	}
 	if nicId, ok := nic.GetIdOk(); ok && nicId != nil {
@@ -355,6 +368,7 @@ func (d *Driver) Remove() error {
 	//   - if a resource is already gone or errors occur while deleting it, we
 	//     continue removing other resources instead of failing
 
+	log.Warn("NOTICE: Please check IONOS Cloud UI/CLI to make sure you have no leftover resources")
 	log.Info("Starting deleting resources...")
 
 	err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
