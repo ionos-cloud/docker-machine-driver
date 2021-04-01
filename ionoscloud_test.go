@@ -26,6 +26,7 @@ var (
 	imageName     = "ubuntu:latest"
 	imageLocation = "us/las"
 	dcVersion     = int32(1)
+	testErr       = fmt.Errorf("error")
 )
 
 var (
@@ -265,10 +266,12 @@ func TestCreate(t *testing.T) {
 func TestCreateIpBlockErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
+	driver.DatacenterId = testVar
 	driver.UseAlias = true
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImages().Return(images, nil)
-	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, fmt.Errorf("error"))
+	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
+	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, testErr)
 	err := driver.Create()
 	assert.Error(t, err)
 }
@@ -276,11 +279,11 @@ func TestCreateIpBlockErr(t *testing.T) {
 func TestCreateGetImageErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	clientMock.EXPECT().GetLocationById("us", "las").Return(location, fmt.Errorf("error"))
+	clientMock.EXPECT().GetLocationById("us", "las").Return(location, testErr)
 	err := driver.Create()
 	assert.Error(t, err)
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImages().Return(images, fmt.Errorf("error"))
+	clientMock.EXPECT().GetImages().Return(images, testErr)
 	err = driver.Create()
 	assert.Error(t, err)
 }
@@ -292,7 +295,7 @@ func TestCreateGetDatacenterErr(t *testing.T) {
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImages().Return(images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
-	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, fmt.Errorf("error"))
+	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, testErr)
 	err := driver.Create()
 	assert.Error(t, err)
 }
@@ -304,7 +307,7 @@ func TestCreateDatacenterErr(t *testing.T) {
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImages().Return(images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
-	clientMock.EXPECT().CreateDatacenter(driver.MachineName, driver.Location).Return(dc, fmt.Errorf("error"))
+	clientMock.EXPECT().CreateDatacenter(driver.MachineName, driver.Location).Return(dc, testErr)
 	err := driver.Create()
 	assert.Error(t, err)
 }
@@ -314,11 +317,17 @@ func TestCreateLanErr(t *testing.T) {
 	driver.SSHKey = testVar
 	driver.DatacenterId = testVar
 	driver.LanId = testVar
+	driver.IpBlockId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImages().Return(images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
-	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, fmt.Errorf("error"))
+	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, testErr)
+	clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(testErr)
+	clientMock.EXPECT().RemoveVolume(driver.DatacenterId, driver.VolumeId).Return(testErr)
+	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(testErr)
+	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(testErr)
+	clientMock.EXPECT().RemoveIpBlock(driver.IpBlockId).Return(testErr)
 	err := driver.Create()
 	assert.Error(t, err)
 }
@@ -330,12 +339,41 @@ func TestCreateServerErr(t *testing.T) {
 	driver.ServerId = testVar
 	driver.LanId = testVar
 	driver.IPAddress = testVar
+	driver.IpBlockId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImages().Return(images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
-	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, fmt.Errorf("error"))
+	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, testErr)
+	clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(testErr)
+	clientMock.EXPECT().RemoveVolume(driver.DatacenterId, driver.VolumeId).Return(testErr)
+	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(testErr)
+	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(testErr)
+	clientMock.EXPECT().RemoveIpBlock(driver.IpBlockId).Return(testErr)
+	err := driver.Create()
+	assert.Error(t, err)
+}
+
+func TestCreateServerRemove(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.SSHKey = testVar
+	driver.DatacenterId = testVar
+	driver.ServerId = testVar
+	driver.LanId = testVar
+	driver.IPAddress = testVar
+	driver.IpBlockId = testVar
+	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
+	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
+	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
+	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
+	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, testErr)
+	clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(nil)
+	clientMock.EXPECT().RemoveVolume(driver.DatacenterId, driver.VolumeId).Return(nil)
+	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(nil)
+	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(nil)
+	clientMock.EXPECT().RemoveIpBlock(driver.IpBlockId).Return(nil)
 	err := driver.Create()
 	assert.Error(t, err)
 }
@@ -348,13 +386,44 @@ func TestCreateAttachVolumeErr(t *testing.T) {
 	driver.VolumeId = testVar
 	driver.LanId = testVar
 	driver.IPAddress = testVar
+	driver.IpBlockId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImages().Return(images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
-	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, fmt.Errorf("error"))
+	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, testErr)
+	clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(testErr)
+	clientMock.EXPECT().RemoveVolume(driver.DatacenterId, driver.VolumeId).Return(testErr)
+	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(testErr)
+	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(testErr)
+	clientMock.EXPECT().RemoveIpBlock(driver.IpBlockId).Return(testErr)
+	err := driver.Create()
+	assert.Error(t, err)
+}
+
+func TestCreateAttachVolumeRemove(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.SSHKey = testVar
+	driver.DatacenterId = testVar
+	driver.ServerId = testVar
+	driver.VolumeId = testVar
+	driver.LanId = testVar
+	driver.IPAddress = testVar
+	driver.IpBlockId = testVar
+	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
+	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
+	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
+	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
+	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
+	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, testErr)
+	clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(nil)
+	clientMock.EXPECT().RemoveVolume(driver.DatacenterId, driver.VolumeId).Return(nil)
+	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(nil)
+	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(nil)
+	clientMock.EXPECT().RemoveIpBlock(driver.IpBlockId).Return(nil)
 	err := driver.Create()
 	assert.Error(t, err)
 }
@@ -370,12 +439,12 @@ func TestCreateGetIpBlockErr(t *testing.T) {
 	driver.IPAddress = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImages().Return(images, nil)
-	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
+	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
 	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, nil)
-	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, fmt.Errorf("error"))
+	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, testErr)
 	err := driver.Create()
 	assert.Error(t, err)
 }
@@ -389,6 +458,7 @@ func TestCreateAttachNicErr(t *testing.T) {
 	driver.VolumeId = testVar
 	driver.LanId = testVar
 	driver.IPAddress = testVar
+	driver.IpBlockId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImages().Return(images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
@@ -397,7 +467,12 @@ func TestCreateAttachNicErr(t *testing.T) {
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
 	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, properties).Return(volume, nil)
 	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
-	clientMock.EXPECT().CreateAttachNIC(driver.DatacenterId, driver.ServerId, driver.MachineName, true, int32(0), &ips).Return(nic, fmt.Errorf("error"))
+	clientMock.EXPECT().CreateAttachNIC(driver.DatacenterId, driver.ServerId, driver.MachineName, true, int32(0), &ips).Return(nic, testErr)
+	clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(testErr)
+	clientMock.EXPECT().RemoveVolume(driver.DatacenterId, driver.VolumeId).Return(testErr)
+	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(testErr)
+	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(testErr)
+	clientMock.EXPECT().RemoveIpBlock(driver.IpBlockId).Return(testErr)
 	err := driver.Create()
 	assert.Error(t, err)
 }
@@ -416,8 +491,7 @@ func TestRemove(t *testing.T) {
 	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(nil)
 	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(nil)
 	clientMock.EXPECT().RemoveDatacenter(driver.DatacenterId).Return(nil)
-	clientMock.EXPECT().GetIpBlocks().Return(ipblocks, nil)
-	clientMock.EXPECT().RemoveIpBlock(ipblocks, driver.IPAddress).Return(nil)
+	clientMock.EXPECT().RemoveIpBlock(driver.IpBlockId).Return(nil)
 	err := driver.Remove()
 	assert.NoError(t, err)
 }
@@ -431,14 +505,12 @@ func TestRemoveErr(t *testing.T) {
 	driver.LanId = testVar
 	driver.IPAddress = testVar
 	driver.DCExists = false
-	errOccured := fmt.Errorf("error occured")
-	clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(errOccured)
-	clientMock.EXPECT().RemoveVolume(driver.DatacenterId, driver.VolumeId).Return(errOccured)
-	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(errOccured)
-	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(errOccured)
-	clientMock.EXPECT().RemoveDatacenter(driver.DatacenterId).Return(errOccured)
-	clientMock.EXPECT().GetIpBlocks().Return(ipblocks, errOccured)
-	clientMock.EXPECT().RemoveIpBlock(ipblocks, driver.IPAddress).Return(errOccured)
+	clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(testErr)
+	clientMock.EXPECT().RemoveVolume(driver.DatacenterId, driver.VolumeId).Return(testErr)
+	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(testErr)
+	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(testErr)
+	clientMock.EXPECT().RemoveDatacenter(driver.DatacenterId).Return(testErr)
+	clientMock.EXPECT().RemoveIpBlock(driver.IpBlockId).Return(testErr)
 	err := driver.Remove()
 	assert.Error(t, err)
 }
@@ -597,7 +669,7 @@ func TestGetIPErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.DatacenterId = testVar
 	driver.ServerId = testVar
-	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId).Return(s, fmt.Errorf("error"))
+	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId).Return(s, testErr)
 	_, err := driver.GetIP()
 	assert.Error(t, err)
 }
@@ -617,7 +689,7 @@ func TestGetStateErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.DatacenterId = testVar
 	driver.ServerId = testVar
-	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId).Return(s, fmt.Errorf("error"))
+	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId).Return(s, testErr)
 	_, err := driver.GetState()
 	assert.Error(t, err)
 }

@@ -170,21 +170,6 @@ func (mr *MockClientServiceMockRecorder) GetIpBlockIps(ipBlock interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIpBlockIps", reflect.TypeOf((*MockClientService)(nil).GetIpBlockIps), ipBlock)
 }
 
-// GetIpBlocks mocks base method.
-func (m *MockClientService) GetIpBlocks() (*ionoscloud.IpBlocks, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetIpBlocks")
-	ret0, _ := ret[0].(*ionoscloud.IpBlocks)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetIpBlocks indicates an expected call of GetIpBlocks.
-func (mr *MockClientServiceMockRecorder) GetIpBlocks() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIpBlocks", reflect.TypeOf((*MockClientService)(nil).GetIpBlocks))
-}
-
 // GetLocationById mocks base method.
 func (m *MockClientService) GetLocationById(regionId, locationId string) (*ionoscloud.Location, error) {
 	m.ctrl.T.Helper()
@@ -230,17 +215,17 @@ func (mr *MockClientServiceMockRecorder) RemoveDatacenter(datacenterId interface
 }
 
 // RemoveIpBlock mocks base method.
-func (m *MockClientService) RemoveIpBlock(ipBlocks *ionoscloud.IpBlocks, ipAddress string) error {
+func (m *MockClientService) RemoveIpBlock(ipBlockId string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveIpBlock", ipBlocks, ipAddress)
+	ret := m.ctrl.Call(m, "RemoveIpBlock", ipBlockId)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RemoveIpBlock indicates an expected call of RemoveIpBlock.
-func (mr *MockClientServiceMockRecorder) RemoveIpBlock(ipBlocks, ipAddress interface{}) *gomock.Call {
+func (mr *MockClientServiceMockRecorder) RemoveIpBlock(ipBlockId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveIpBlock", reflect.TypeOf((*MockClientService)(nil).RemoveIpBlock), ipBlocks, ipAddress)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveIpBlock", reflect.TypeOf((*MockClientService)(nil).RemoveIpBlock), ipBlockId)
 }
 
 // RemoveLan mocks base method.

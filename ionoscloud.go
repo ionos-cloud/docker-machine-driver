@@ -46,6 +46,10 @@ const (
 	driverName              = "ionoscloud"
 )
 
+const (
+	rollingBackNotice = "WARNING: Error creating machine. Rolling back..."
+)
+
 type Driver struct {
 	*drivers.BaseDriver
 	client func() utils.ClientService
@@ -73,6 +77,7 @@ type Driver struct {
 	VolumeId               string
 	NicId                  string
 	ServerId               string
+	IpBlockId              string
 }
 
 // NewDriver returns a new driver instance.
@@ -225,6 +230,7 @@ func (d *Driver) PreCreateCheck() error {
 		return fmt.Errorf("please provide password as parameter --ionoscloud-password or as environment variable $IONOSCLOUD_PASSWORD")
 	}
 	if d.DatacenterId != "" {
+		d.DCExists = true
 		dc, err := d.client().GetDatacenter(d.DatacenterId)
 		if err != nil {
 			return err
@@ -239,6 +245,8 @@ func (d *Driver) PreCreateCheck() error {
 				d.Location = *dcLocation
 			}
 		}
+	} else {
+		d.DCExists = false
 	}
 	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %v", d.Image, err)
@@ -267,11 +275,6 @@ func (d *Driver) Create() error {
 		alias = result
 	}
 
-	ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
-	if err != nil {
-		return err
-	}
-
 	var dc *sdkgo.Datacenter
 	if d.DatacenterId == "" {
 		d.DCExists = false
@@ -291,8 +294,20 @@ func (d *Driver) Create() error {
 		d.DatacenterId = *dcId
 	}
 
+	ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
+	if err != nil {
+		return err
+	}
+	if ipBlockId, ok := ipBlock.GetIdOk(); ok && ipBlockId != nil {
+		d.IpBlockId = *ipBlockId
+	}
+
 	lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, true)
 	if err != nil {
+		log.Warn(rollingBackNotice)
+		if removeErr := d.Remove(); removeErr != nil {
+			return fmt.Errorf("failed to create machine due to error: %v. Removing created resources: %v", err, removeErr)
+		}
 		return err
 	}
 	if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
@@ -301,6 +316,10 @@ func (d *Driver) Create() error {
 
 	server, err := d.client().CreateServer(d.DatacenterId, d.Location, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
 	if err != nil {
+		log.Warn(rollingBackNotice)
+		if removeErr := d.Remove(); removeErr != nil {
+			return fmt.Errorf("failed to create machine due to error: %v. Removing created resources: %v", err, removeErr)
+		}
 		return err
 	}
 	if serverId, ok := server.GetIdOk(); ok && serverId != nil {
@@ -318,6 +337,10 @@ func (d *Driver) Create() error {
 	}
 	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, properties)
 	if err != nil {
+		log.Warn(rollingBackNotice)
+		if removeErr := d.Remove(); removeErr != nil {
+			return fmt.Errorf("failed to create machine due to error: %v. Removing created resources: %v", err, removeErr)
+		}
 		return err
 	}
 	if volumeId, ok := volume.GetIdOk(); ok && volumeId != nil {
@@ -332,6 +355,10 @@ func (d *Driver) Create() error {
 
 	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(l), ips)
 	if err != nil {
+		log.Warn(rollingBackNotice)
+		if removeErr := d.Remove(); removeErr != nil {
+			return fmt.Errorf("failed to create machine due to error: %v. Removing created resources: %v", err, removeErr)
+		}
 		return err
 	}
 	if nicId, ok := nic.GetIdOk(); ok && nicId != nil {
@@ -355,6 +382,7 @@ func (d *Driver) Remove() error {
 	//   - if a resource is already gone or errors occur while deleting it, we
 	//     continue removing other resources instead of failing
 
+	log.Warn("NOTICE: Please check IONOS Cloud Console/CLI to ensure there are no leftover resources.")
 	log.Info("Starting deleting resources...")
 
 	err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
@@ -380,11 +408,7 @@ func (d *Driver) Remove() error {
 			result = multierror.Append(result, err)
 		}
 	}
-	ipsBlock, err := d.client().GetIpBlocks()
-	if err != nil {
-		result = multierror.Append(result, err)
-	}
-	err = d.client().RemoveIpBlock(ipsBlock, d.IPAddress)
+	err = d.client().RemoveIpBlock(d.IpBlockId)
 	if err != nil {
 		result = multierror.Append(result, err)
 	}
