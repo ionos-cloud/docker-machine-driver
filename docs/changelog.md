@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.0.3]
+
+* Fixed Data Center deletion when not expected [6](https://github.com/ionos-cloud/docker-machine-driver/issues/6)
+* Remove IpBlock based on ID
+* Improve code quality in alignment with Sonar Cloud requirements
+
 ## [5.0.2]
 
 * Fixed Bug: [ionos-cloud/docker-machine-driver/issues/6](https://github.com/ionos-cloud/docker-machine-driver/issues/6) for Docker Machine Driver
