@@ -6,7 +6,7 @@ Before you create a Docker Machine with Ionos Cloud Docker Machine Driver, make 
 
 ## Docker Machine Create Swarm Command
 
-You can use Docker Machine to provision Swarm clusters. 
+You can use Docker Machine to provision Swarm clusters.
 
 Before you create a swarm of Ionos Cloud machines, run this command:
 
@@ -59,7 +59,7 @@ When running `docker-machine ls`, it should produce results similar to this:
 ```text
 NAME                ACTIVE   DRIVER       STATE     URL                          SWARM                        DOCKER     ERRORS
 swarm-child-test    -        ionoscloud   Running   tcp://158.222.102.154:2376   swarm-master-test            v20.10.5   
-swarm-master-test   *        ionoscloud   Running   tcp://158.222.102.158:2376   swarm-master-test (master)   v20.10.5   
+swarm-master-test   *        ionoscloud   Running   tcp://158.222.102.158:2376   swarm-master-test (master)   v20.10.5
 ```
 
 For more details about possible issues, check the [Troubleshooting](troubleshooting.md) guide.

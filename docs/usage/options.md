@@ -6,7 +6,7 @@ To get more detailed information about the options and the environment variables
 docker-machine create --help --driver ionoscloud
 ```
 
-or 
+or
 
 ```text
 rancher-machine create --help --driver ionoscloud
@@ -14,7 +14,7 @@ rancher-machine create --help --driver ionoscloud
 
 ## Options
 
-Available Options for the IONOS Cloud Docker Machine Driver: 
+Available Options for the IONOS Cloud Docker Machine Driver:
 
 | Option | Description |
 | :--- | :--- |
@@ -23,7 +23,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-disk-size` | Ionos Cloud Volume Disk-Size \(10, 50, 100, 200, 400\) |
 | `--ionoscloud-disk-type` | Ionos Cloud Volume Disk-Type \(HDD, SSD\) |
 | `--ionoscloud-endpoint` | Ionos Cloud API Endpoint |
-| `--ionoscloud-image` | Ionos Cloud Image Alias (ubuntu:latest, ubuntu:20.04) |
+| `--ionoscloud-image` | Ionos Cloud Image Alias \(ubuntu:latest, ubuntu:20.04\) |
 | `--ionoscloud-image-password` | Ionos Cloud Image Password to be able to access the server from DCD platform |
 | `--ionoscloud-location` | Ionos Cloud Location |
 | `--ionoscloud-password` | Ionos Cloud Password |

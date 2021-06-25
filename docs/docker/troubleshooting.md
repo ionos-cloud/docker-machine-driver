@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Here is a quick troubleshooting guide which may help you to resolve issues you may be facing. We all know that sometimes things do not go according to the plan. 
+Here is a quick troubleshooting guide which may help you to resolve issues you may be facing. We all know that sometimes things do not go according to the plan.
 
 ## Unable to verify the Docker daemon is listening...
 
@@ -48,7 +48,7 @@ test-machine   -        ionoscloud   Running   tcp://158.222.102.183:2376       
 
 The problem is incompatibilities between Docker version 20.10.0+ and Docker Machine version 0.16. This is the [official issue](https://github.com/docker/machine/issues/4858) on [GitHub Repository](https://github.com/docker/machine) of Docker Machine.
 
-To install an older version of Docker when using Docker Machine, please run the following command: 
+To install an older version of Docker when using Docker Machine, please run the following command:
 
 ```text
 docker-machine create --driver ionoscloud --engine-install-url "https://releases.rancher.com/install-docker/19.03.9.sh" test-machine
@@ -86,7 +86,7 @@ When running `docker-machine ls`, the output should be similar to this:
 
 ```text
 NAME           ACTIVE   DRIVER       STATE     URL                          SWARM   DOCKER     ERRORS
-test-machine   -        ionoscloud   Running   tcp://158.222.102.185:2376           v19.03.9  
+test-machine   -        ionoscloud   Running   tcp://158.222.102.185:2376           v19.03.9
 ```
 
 ## Debug Option
@@ -96,3 +96,4 @@ Docker Machine has a `--debug` or `-D` option in order to get detailed output ab
 ```text
 docker-machine -D create --driver ionoscloud test-machine
 ```
+

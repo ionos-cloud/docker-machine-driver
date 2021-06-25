@@ -12,7 +12,7 @@ In order to create Docker Machine with Ionos Cloud Docker Machine Driver, run:
 docker-machine create --driver ionoscloud test-machine
 ```
 
-For Windows users: 
+For Windows users:
 
 ```text
 docker-machine create --driver ionoscloud.exe test-machine

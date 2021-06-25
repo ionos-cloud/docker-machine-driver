@@ -1,4 +1,4 @@
-# Introduction
+# Docker Machine Driver
 
 ## Overview
 
@@ -9,7 +9,7 @@ Docker Machine Driver is the official driver for Docker Machine to use with IONO
 ## Getting started
 
 ### Prerequisites
- 
+
 #### Installing Docker Machine
 
 This Ionos Cloud plugin works with Docker Machine and with Rancher Machine as well. Before we continue, you will need to install [Docker Machine](https://docs.docker.com/machine/install-machine/) or [Rancher Machine](https://github.com/rancher/machine/releases/).
@@ -45,9 +45,9 @@ sudo mv ~/docker-machine-driver-ionoscloud /usr/local/bin
 docker-machine create --help --driver ionoscloud
 ```
 
-For Windows users, you can download the latest release available on [Release Page](https://github.com/ionos-cloud/docker-machine-driver/releases), unzip it and copy the binary in your `PATH`. You can follow this [official guide](https://msdn.microsoft.com/en-us/library/office/ee537574(v=office.14).aspx) that explains how to add tools to your `PATH`. 
+For Windows users, you can download the latest release available on [Release Page](https://github.com/ionos-cloud/docker-machine-driver/releases), unzip it and copy the binary in your `PATH`. You can follow this \[official guide\]\([https://msdn.microsoft.com/en-us/library/office/ee537574\(v=office.14\).aspx](https://msdn.microsoft.com/en-us/library/office/ee537574%28v=office.14%29.aspx)\) that explains how to add tools to your `PATH`.
 
-#### Local Version 
+#### Local Version
 
 With the prerequisites taken care of, will need to run the following commands to install the Ionos Cloud Docker Machine Driver:
 
@@ -62,9 +62,9 @@ cd $DIRECTORY_PATH/docker-machine-driver
 make install
 ```
 
-When successful, we will end up with a newly created `docker-machine-driver-ionoscloud` binary in `docker-machine-driver/bin/` and in `$GOPATH/bin/`. 
+When successful, we will end up with a newly created `docker-machine-driver-ionoscloud` binary in `docker-machine-driver/bin/` and in `$GOPATH/bin/`.
 
-Depending on how your `$PATH` is being set, you may need to copy the binary to `$PATH` in order to use the Docker Machine Driver. 
+Depending on how your `$PATH` is being set, you may need to copy the binary to `$PATH` in order to use the Docker Machine Driver.
 
 ```text
 sudo cp $DIRECTORY_PATH/docker-machine-driver/bin/docker-machine-driver-ionoscloud /usr/local/bin/docker-machine-driver-ionoscloud
@@ -78,7 +78,7 @@ Before you start using the Ionos Cloud Docker Machine Driver, you need to authen
 
 In order to see the available options and flags, check the [Options](usage/options.md) section.
 
-For more information about Docker/Rancher Machine commands on how to manage a machine, including examples, check the [Commands](usage/commands.md) section. 
+For more information about Docker/Rancher Machine commands on how to manage a machine, including examples, check the [Commands](usage/commands.md) section.
 
 ### Docker Support
 
@@ -90,13 +90,13 @@ For more details about possible issues, check the [Troubleshooting](docker/troub
 
 ### Rancher Support
 
-For information on how to create a Rancher Machine with Ionos Cloud Docker Machine Driver, check the [Rancher Machine](rancher/rancher-machine.md) section.
+For information on how to create a Rancher Machine with Ionos Cloud Docker Machine Driver, check the [Rancher Machine](https://github.com/ionos-cloud/docker-machine-driver/tree/634b60ff47c8a3294d5955ea0eb19bd3c18ac454/docs/rancher/rancher-machine.md) section.
 
-For information on how to create a Rancher Cluster via Rancher UI, using Ionos Cloud Docker Machine Driver, check the [Rancher Cluster](rancher/rancher-cluster.md) section.
+For information on how to create a Rancher Cluster via Rancher UI, using Ionos Cloud Docker Machine Driver, check the [Rancher Cluster]() section.
 
-## Feature Reference 
+## Feature Reference
 
-The IONOS Cloud Docker Machine Driver aims to offer access to all resources in the IONOS Cloud API and also offers some additional features that make the integration easier: 
+The IONOS Cloud Docker Machine Driver aims to offer access to all resources in the IONOS Cloud API and also offers some additional features that make the integration easier:
 
 * authentication for API calls
 * handling of asynchronous requests 

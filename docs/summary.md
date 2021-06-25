@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Introduction](readme.md)
+* [Docker Machine Driver](readme.md)
 * [Changelog](changelog.md)
 
 ## Usage
