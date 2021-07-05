@@ -50,6 +50,11 @@ const (
 	rollingBackNotice = "WARNING: Error creating machine. Rolling back..."
 )
 
+// Version will be set at every new release
+// For working locally with the Docker-Machine-Driver,
+// it will be set to `DEV`.
+var Version string
+
 type Driver struct {
 	*drivers.BaseDriver
 	client func() utils.ClientService
@@ -78,6 +83,9 @@ type Driver struct {
 	NicId                  string
 	ServerId               string
 	IpBlockId              string
+
+	// Driver Version
+	Version string
 }
 
 // NewDriver returns a new driver instance.
@@ -93,6 +101,7 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 			MachineName: hostName,
 			StorePath:   storePath,
 		},
+		Version: getDriverVersion(Version),
 	}
 	driver.client = func() utils.ClientService {
 		return utils.New(context.TODO(), driver.Username, driver.Password, driver.URL)
@@ -223,6 +232,8 @@ func (d *Driver) DriverName() string {
 
 // PreCreateCheck validates if driver values are valid to create the machine.
 func (d *Driver) PreCreateCheck() error {
+	log.Infof("IONOS Cloud Driver Version: %s", d.Version)
+	log.Infof("SDK-GO Version: %s", sdkgo.Version)
 	if d.Username == "" {
 		return fmt.Errorf("please provide username as parameter --ionoscloud-username or as environment variable $IONOSCLOUD_USERNAME")
 	}
@@ -306,7 +317,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %v. Removing created resources: %v", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
 		}
 		return err
 	}
@@ -318,7 +329,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %v. Removing created resources: %v", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
 		}
 		return err
 	}
@@ -339,7 +350,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %v. Removing created resources: %v", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
 		}
 		return err
 	}
@@ -357,7 +368,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %v. Removing created resources: %v", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
 		}
 		return err
 	}
@@ -413,7 +424,10 @@ func (d *Driver) Remove() error {
 		result = multierror.Append(result, err)
 	}
 
-	return result.ErrorOrNil()
+	if result != nil {
+		return result.ErrorOrNil()
+	}
+	return nil
 }
 
 // Start issues a power on for the machine instance.
@@ -622,4 +636,12 @@ func (d *Driver) getRegionIdAndLocationId() (regionId, locationId string) {
 		return "", ""
 	}
 	return ids[0], ids[1]
+}
+
+func getDriverVersion(v string) string {
+	if v == "" {
+		return "DEV"
+	} else {
+		return v
+	}
 }

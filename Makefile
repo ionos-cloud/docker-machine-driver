@@ -18,6 +18,7 @@ ifeq ($(OS),Windows_NT)
 	cp bin/${BIN_NAME} $(GOPATH)/bin/
 else
 	cp ./bin/${BIN_NAME}${BIN_SUFFIX} ${GOPATH}/bin/
+	@echo "NOTE: Please copy the binary somewhere in your PATH"
 endif
 
 .PHONY: compile
