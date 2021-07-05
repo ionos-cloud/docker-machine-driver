@@ -232,8 +232,8 @@ func (d *Driver) DriverName() string {
 
 // PreCreateCheck validates if driver values are valid to create the machine.
 func (d *Driver) PreCreateCheck() error {
-	log.Infof("IONOS Cloud Driver Version: %s", d.Version)
-	log.Infof("SDK-GO Version: %s", sdkgo.Version)
+	log.Debugf("IONOS Cloud Driver Version: %s", d.Version)
+	log.Debugf("SDK-GO Version: %s", sdkgo.Version)
 	if d.Username == "" {
 		return fmt.Errorf("please provide username as parameter --ionoscloud-username or as environment variable $IONOSCLOUD_USERNAME")
 	}
