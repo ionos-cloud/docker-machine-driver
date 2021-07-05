@@ -8,6 +8,9 @@
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=security_rating)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
+[![Release](https://img.shields.io/github/v/release/ionos-cloud/docker-machine-driver.svg)](https://github.com/ionos-cloud/docker-machine-driver/releases/latest)
+[![Release Date](https://img.shields.io/github/release-date/ionos-cloud/docker-machine-driver.svg)](https://github.com/ionos-cloud/docker-machine-driver/releases/latest)
+[![Go](https://img.shields.io/github/go-mod/go-version/ionos-cloud/docker-machine-driver.svg)](https://github.com/ionos-cloud/docker-machine-driver)
 
 ![Alt text](.github/IONOS.CLOUD.BLU.svg?raw=true "Title")
 

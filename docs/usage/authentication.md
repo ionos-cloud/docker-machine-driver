@@ -23,5 +23,5 @@ or
 rancher-machine create --driver=ionoscloud --ionoscloud-username="ionoscloud_username" --ionoscloud-password="ionoscloud_password" test-machine
 ```
 
-* on [Rancher UI](), when creating a new Node Template.
+* on Rancher UI, when creating a new Node Template.
 
