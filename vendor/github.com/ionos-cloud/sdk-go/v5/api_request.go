@@ -12,6 +12,7 @@ package ionoscloud
 
 import (
 	_context "context"
+	"fmt"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
@@ -160,8 +161,9 @@ func (a *RequestApiService) RequestsFindByIdExecute(r ApiRequestsFindByIdRequest
 
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
+			statusCode: localVarHTTPResponse.StatusCode,
 			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
+			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
 		}
 			var v Error
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
@@ -176,6 +178,7 @@ func (a *RequestApiService) RequestsFindByIdExecute(r ApiRequestsFindByIdRequest
 	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 	if err != nil {
 		newErr := GenericOpenAPIError{
+			statusCode: localVarHTTPResponse.StatusCode,
 			body:  localVarBody,
 			error: err.Error(),
 		}
@@ -194,6 +197,14 @@ type ApiRequestsGetRequest struct {
 	filterStatus *string
 	filterCreatedAfter *string
 	filterCreatedBefore *string
+	filterCreatedDate *string
+	filterCreatedBy *string
+	filterEtag *string
+	filterRequestStatus *string
+	filterMethod *string
+	filterHeaders *string
+	filterBody *string
+	filterUrl *string
 	offset *int32
 	limit *int32
 }
@@ -220,6 +231,38 @@ func (r ApiRequestsGetRequest) FilterCreatedAfter(filterCreatedAfter string) Api
 }
 func (r ApiRequestsGetRequest) FilterCreatedBefore(filterCreatedBefore string) ApiRequestsGetRequest {
 	r.filterCreatedBefore = &filterCreatedBefore
+	return r
+}
+func (r ApiRequestsGetRequest) FilterCreatedDate(filterCreatedDate string) ApiRequestsGetRequest {
+	r.filterCreatedDate = &filterCreatedDate
+	return r
+}
+func (r ApiRequestsGetRequest) FilterCreatedBy(filterCreatedBy string) ApiRequestsGetRequest {
+	r.filterCreatedBy = &filterCreatedBy
+	return r
+}
+func (r ApiRequestsGetRequest) FilterEtag(filterEtag string) ApiRequestsGetRequest {
+	r.filterEtag = &filterEtag
+	return r
+}
+func (r ApiRequestsGetRequest) FilterRequestStatus(filterRequestStatus string) ApiRequestsGetRequest {
+	r.filterRequestStatus = &filterRequestStatus
+	return r
+}
+func (r ApiRequestsGetRequest) FilterMethod(filterMethod string) ApiRequestsGetRequest {
+	r.filterMethod = &filterMethod
+	return r
+}
+func (r ApiRequestsGetRequest) FilterHeaders(filterHeaders string) ApiRequestsGetRequest {
+	r.filterHeaders = &filterHeaders
+	return r
+}
+func (r ApiRequestsGetRequest) FilterBody(filterBody string) ApiRequestsGetRequest {
+	r.filterBody = &filterBody
+	return r
+}
+func (r ApiRequestsGetRequest) FilterUrl(filterUrl string) ApiRequestsGetRequest {
+	r.filterUrl = &filterUrl
 	return r
 }
 func (r ApiRequestsGetRequest) Offset(offset int32) ApiRequestsGetRequest {
@@ -288,6 +331,30 @@ func (a *RequestApiService) RequestsGetExecute(r ApiRequestsGetRequest) (Request
 	if r.filterCreatedBefore != nil {
 		localVarQueryParams.Add("filter.createdBefore", parameterToString(*r.filterCreatedBefore, ""))
 	}
+	if r.filterCreatedDate != nil {
+		localVarQueryParams.Add("filter.createdDate", parameterToString(*r.filterCreatedDate, ""))
+	}
+	if r.filterCreatedBy != nil {
+		localVarQueryParams.Add("filter.createdBy", parameterToString(*r.filterCreatedBy, ""))
+	}
+	if r.filterEtag != nil {
+		localVarQueryParams.Add("filter.etag", parameterToString(*r.filterEtag, ""))
+	}
+	if r.filterRequestStatus != nil {
+		localVarQueryParams.Add("filter.requestStatus", parameterToString(*r.filterRequestStatus, ""))
+	}
+	if r.filterMethod != nil {
+		localVarQueryParams.Add("filter.method", parameterToString(*r.filterMethod, ""))
+	}
+	if r.filterHeaders != nil {
+		localVarQueryParams.Add("filter.headers", parameterToString(*r.filterHeaders, ""))
+	}
+	if r.filterBody != nil {
+		localVarQueryParams.Add("filter.body", parameterToString(*r.filterBody, ""))
+	}
+	if r.filterUrl != nil {
+		localVarQueryParams.Add("filter.url", parameterToString(*r.filterUrl, ""))
+	}
 	if r.offset != nil {
 		localVarQueryParams.Add("offset", parameterToString(*r.offset, ""))
 	}
@@ -355,8 +422,9 @@ func (a *RequestApiService) RequestsGetExecute(r ApiRequestsGetRequest) (Request
 
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
+			statusCode: localVarHTTPResponse.StatusCode,
 			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
+			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
 		}
 			var v Error
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
@@ -371,6 +439,7 @@ func (a *RequestApiService) RequestsGetExecute(r ApiRequestsGetRequest) (Request
 	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 	if err != nil {
 		newErr := GenericOpenAPIError{
+			statusCode: localVarHTTPResponse.StatusCode,
 			body:  localVarBody,
 			error: err.Error(),
 		}
@@ -514,8 +583,9 @@ func (a *RequestApiService) RequestsStatusGetExecute(r ApiRequestsStatusGetReque
 
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
+			statusCode: localVarHTTPResponse.StatusCode,
 			body:  localVarBody,
-			error: localVarHTTPResponse.Status,
+			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
 		}
 			var v Error
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
@@ -530,6 +600,7 @@ func (a *RequestApiService) RequestsStatusGetExecute(r ApiRequestsStatusGetReque
 	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 	if err != nil {
 		newErr := GenericOpenAPIError{
+			statusCode: localVarHTTPResponse.StatusCode,
 			body:  localVarBody,
 			error: err.Error(),
 		}
