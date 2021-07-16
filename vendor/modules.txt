@@ -30,7 +30,7 @@ github.com/hashicorp/errwrap
 # github.com/hashicorp/go-multierror v1.1.1
 ## explicit
 github.com/hashicorp/go-multierror
-# github.com/ionos-cloud/sdk-go/v5 v5.1.3
+# github.com/ionos-cloud/sdk-go/v5 v5.1.4
 ## explicit
 github.com/ionos-cloud/sdk-go/v5
 # github.com/kr/pretty v0.1.0
