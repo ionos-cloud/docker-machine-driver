@@ -50,10 +50,10 @@ const (
 	rollingBackNotice = "WARNING: Error creating machine. Rolling back..."
 )
 
-// Version will be set at every new release
+// DriverVersion will be set at every new release
 // For working locally with the Docker-Machine-Driver,
 // it will be set to `DEV`.
-var Version string
+var DriverVersion string
 
 type Driver struct {
 	*drivers.BaseDriver
@@ -94,6 +94,7 @@ func NewDriver(hostName, storePath string) drivers.Driver {
 }
 
 func NewDerivedDriver(hostName, storePath string) *Driver {
+	v := getDriverVersion(DriverVersion)
 	driver := &Driver{
 		Size:     defaultSize,
 		Location: defaultRegion,
@@ -101,7 +102,7 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 			MachineName: hostName,
 			StorePath:   storePath,
 		},
-		Version: getDriverVersion(Version),
+		Version: v,
 	}
 	driver.client = func() utils.ClientService {
 		return utils.New(context.TODO(), driver.Username, driver.Password, driver.URL)
@@ -232,8 +233,8 @@ func (d *Driver) DriverName() string {
 
 // PreCreateCheck validates if driver values are valid to create the machine.
 func (d *Driver) PreCreateCheck() error {
-	log.Debugf("IONOS Cloud Driver Version: %s", d.Version)
-	log.Debugf("SDK-GO Version: %s", sdkgo.Version)
+	log.Infof("IONOS Cloud Driver Version: %s", d.Version)
+	log.Infof("SDK-GO Version: %s", sdkgo.Version)
 	if d.Username == "" {
 		return fmt.Errorf("please provide username as parameter --ionoscloud-username or as environment variable $IONOSCLOUD_USERNAME")
 	}

@@ -13,7 +13,7 @@ builds:
       - -trimpath
       - -mod=vendor
     ldflags:
-      - "-X github.com/ionos-cloud/docker-machine-driver.Version={{ .Version }}"
+      - "-X github.com/ionos-cloud/docker-machine-driver.DriverVersion={{ .Version }}"
     goos:
       - windows
       - linux

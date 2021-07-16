@@ -54,6 +54,8 @@ func (c *Client) CreateIpBlock(size int32, location string) (*sdkgo.IpBlock, err
 	}
 	if ipBlockResp.StatusCode == 202 {
 		log.Info("IPBlock Reserved")
+	} else {
+		return nil, fmt.Errorf("error reserving an ipblock: %s", ipBlockResp.Response.Status)
 	}
 	err = c.waitTillProvisioned(ipBlockResp.Header.Get("location"))
 	if err != nil {
@@ -72,9 +74,12 @@ func (c *Client) GetIpBlockIps(ipBlock *sdkgo.IpBlock) (*[]string, error) {
 }
 
 func (c *Client) RemoveIpBlock(ipBlockId string) error {
-	_, _, err := c.IPBlocksApi.IpblocksDelete(c.ctx, ipBlockId).Execute()
+	_, resp, err := c.IPBlocksApi.IpblocksDelete(c.ctx, ipBlockId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting ipblock: %v", err)
+	}
+	if resp.StatusCode > 299 {
+		return fmt.Errorf("error deleting ipblock, API Response status: %s", resp.Status)
 	}
 	log.Info("IPBlock Deleted")
 	return nil
@@ -91,6 +96,8 @@ func (c *Client) CreateDatacenter(name, location string) (*sdkgo.Datacenter, err
 	}
 	if dcResp.StatusCode == 202 {
 		log.Info("DataCenter Created")
+	} else {
+		return nil, fmt.Errorf("error creating DC: %s", dcResp.Response.Status)
 	}
 	err = c.waitTillProvisioned(dcResp.Header.Get("location"))
 	if err != nil {
@@ -115,6 +122,12 @@ func (c *Client) RemoveDatacenter(datacenterId string) error {
 	if err != nil {
 		return fmt.Errorf("error deleting datacenter: %v", err)
 	}
+	if resp.StatusCode > 299 {
+		if resp.StatusCode == 405 {
+			return fmt.Errorf("error deleting datacenter: %v. Please consider to delete it manually", err)
+		}
+		return fmt.Errorf("error deleting datacenter, API Response status: %s", resp.Status)
+	}
 	err = c.waitTillProvisioned(resp.Header.Get("location"))
 	if err != nil {
 		return fmt.Errorf("error waiting for datacenter to be deleted: %v", err)
@@ -134,6 +147,8 @@ func (c *Client) CreateLan(datacenterId, name string, public bool) (*sdkgo.LanPo
 	}
 	if lanResp.StatusCode == 202 {
 		log.Info("LAN Created")
+	} else {
+		return nil, fmt.Errorf("error creating a LAN: %s", lanResp.Response.Status)
 	}
 	err = c.waitTillProvisioned(lanResp.Header.Get("location"))
 	if err != nil {
@@ -146,6 +161,9 @@ func (c *Client) RemoveLan(datacenterId, lanId string) error {
 	_, resp, err := c.LanApi.DatacentersLansDelete(c.ctx, datacenterId, lanId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting LAN: %v", err)
+	}
+	if resp.StatusCode > 299 {
+		return fmt.Errorf(resp.Status)
 	}
 	err = c.waitTillProvisioned(resp.Header.Get("location"))
 	if err != nil {
@@ -168,10 +186,12 @@ func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone stri
 
 	svr, serverResp, err := c.ServerApi.DatacentersServersPost(c.ctx, datacenterId).Server(server).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error creating server in location %s, err: %v", location, err)
+		return nil, fmt.Errorf("error creating server in location %s err: %v", location, err)
 	}
 	if serverResp.StatusCode == 202 {
 		log.Info("Server Created")
+	} else {
+		return nil, fmt.Errorf("error creating a server: %s", serverResp.Status)
 	}
 	err = c.waitTillProvisioned(serverResp.Header.Get("location"))
 	if err != nil {
@@ -181,9 +201,17 @@ func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone stri
 }
 
 func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error) {
-	server, _, err := c.ServerApi.DatacentersServersFindById(c.ctx, datacenterId, serverId).Execute()
+	server, resp, err := c.ServerApi.DatacentersServersFindById(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting server: %v", err)
+	}
+	if resp.StatusCode > 299 {
+		if resp.StatusCode == 401 {
+			return nil, fmt.Errorf("unauthorized: either user name or password are incorrect")
+
+		} else {
+			return nil, fmt.Errorf("error occurred fetching a server: %s", resp.Status)
+		}
 	}
 	return &server, nil
 }
@@ -217,6 +245,9 @@ func (c *Client) RemoveServer(datacenterId, serverId string) error {
 	if err != nil {
 		return fmt.Errorf("error deleting server: %v", err)
 	}
+	if resp.StatusCode > 299 {
+		return fmt.Errorf(resp.Status)
+	}
 	err = c.waitTillProvisioned(resp.Header.Get("location"))
 	if err != nil {
 		return err
@@ -243,6 +274,8 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 	}
 	if volumeResp.StatusCode == 202 {
 		log.Info("Volume Attached to Server")
+	} else {
+		return nil, fmt.Errorf("error attaching a volume to a server: %s", volumeResp.Status)
 	}
 	err = c.waitTillProvisioned(volumeResp.Header.Get("location"))
 	if err != nil {
@@ -255,6 +288,9 @@ func (c *Client) RemoveVolume(datacenterId, volumeId string) error {
 	_, resp, err := c.VolumeApi.DatacentersVolumesDelete(c.ctx, datacenterId, volumeId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting volume: %v", err)
+	}
+	if resp.StatusCode > 299 {
+		return fmt.Errorf(resp.Status)
 	}
 	err = c.waitTillProvisioned(resp.Header.Get("location"))
 	if err != nil {
@@ -279,6 +315,8 @@ func (c *Client) CreateAttachNIC(datacenterId, serverId, name string, dhcp bool,
 	}
 	if nicResp.StatusCode == 202 {
 		log.Info("NIC Attached to Server")
+	} else {
+		return nil, fmt.Errorf("error creating a NIC: %s", nicResp.Status)
 	}
 	err = c.waitTillProvisioned(nicResp.Header.Get("location"))
 	if err != nil {
@@ -291,6 +329,9 @@ func (c *Client) RemoveNic(datacenterId, serverId, nicId string) error {
 	_, resp, err := c.NicApi.DatacentersServersNicsDelete(c.ctx, datacenterId, serverId, nicId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting NIC: %v", err)
+	}
+	if resp.StatusCode > 299 {
+		return fmt.Errorf(resp.Status)
 	}
 	err = c.waitTillProvisioned(resp.Header.Get("location"))
 	if err != nil {
