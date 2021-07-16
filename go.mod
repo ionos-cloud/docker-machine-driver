@@ -8,7 +8,7 @@ require (
 	github.com/golang/mock v1.4.0
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/ionos-cloud/sdk-go/v5 v5.0.2
+	github.com/ionos-cloud/sdk-go/v5 v5.1.3
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/stretchr/testify v1.7.0

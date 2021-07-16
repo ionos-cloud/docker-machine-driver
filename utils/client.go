@@ -186,7 +186,7 @@ func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone stri
 
 	svr, serverResp, err := c.ServerApi.DatacentersServersPost(c.ctx, datacenterId).Server(server).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error creating server in location %s with cpu-family %s, err: %v. Please consider some regions may offer different features for Server CPU_ARHITECTURE", location, cpufamily, err)
+		return nil, fmt.Errorf("error creating server in location %s err: %v", location, err)
 	}
 	if serverResp.StatusCode == 202 {
 		log.Info("Server Created")
