@@ -1,10 +1,15 @@
 # Changelog
 
+## \[5.0.4\]
+
+* Updated `sdk-go` to latest version 5.1.4
+* Added print for Docker Machine Driver version and SDK-GO version at the beginning of creating a docker-machine
+
 ## \[5.0.3\]
 
 * Fixed Data Center deletion when not expected [6](https://github.com/ionos-cloud/docker-machine-driver/issues/6)
-* Remove IpBlock based on ID
-* Improve code quality in alignment with Sonar Cloud requirements
+* Removed IpBlock based on ID
+* Improved code quality in alignment with Sonar Cloud requirements
 
 ## \[5.0.2\]
 
