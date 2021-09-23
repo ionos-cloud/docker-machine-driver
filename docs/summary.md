@@ -21,3 +21,10 @@
 * [Rancher Machine](rancher/rancher-machine.md)
 * [Rancher Cluster](rancher/rancher-cluster.md)
 
+## Legal
+
+---
+
+* [Privacy policy](https://www.ionos.com/terms-gtc/terms-privacy/)
+* [Imprint](https://www.ionos.de/impressum)
+
