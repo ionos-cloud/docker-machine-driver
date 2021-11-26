@@ -16,11 +16,9 @@ import (
 
 // IPFailover struct for IPFailover
 type IPFailover struct {
-	Ip *string `json:"ip,omitempty"`
+	Ip      *string `json:"ip,omitempty"`
 	NicUuid *string `json:"nicUuid,omitempty"`
 }
-
-
 
 // GetIp returns the Ip field value
 // If the value is explicit nil, the zero value for string will be returned
@@ -28,7 +26,6 @@ func (o *IPFailover) GetIp() *string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Ip
 
@@ -42,13 +39,11 @@ func (o *IPFailover) GetIpOk() (*string, bool) {
 		return nil, false
 	}
 
-
 	return o.Ip, true
 }
 
 // SetIp sets field value
 func (o *IPFailover) SetIp(v string) {
-
 
 	o.Ip = &v
 
@@ -63,15 +58,12 @@ func (o *IPFailover) HasIp() bool {
 	return false
 }
 
-
-
 // GetNicUuid returns the NicUuid field value
 // If the value is explicit nil, the zero value for string will be returned
 func (o *IPFailover) GetNicUuid() *string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.NicUuid
 
@@ -85,13 +77,11 @@ func (o *IPFailover) GetNicUuidOk() (*string, bool) {
 		return nil, false
 	}
 
-
 	return o.NicUuid, true
 }
 
 // SetNicUuid sets field value
 func (o *IPFailover) SetNicUuid(v string) {
-
 
 	o.NicUuid = &v
 
@@ -106,19 +96,16 @@ func (o *IPFailover) HasNicUuid() bool {
 	return false
 }
 
-
 func (o IPFailover) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
 
 	if o.Ip != nil {
 		toSerialize["ip"] = o.Ip
 	}
-	
 
 	if o.NicUuid != nil {
 		toSerialize["nicUuid"] = o.NicUuid
 	}
-	
 	return json.Marshal(toSerialize)
 }
 
@@ -157,5 +144,3 @@ func (v *NullableIPFailover) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

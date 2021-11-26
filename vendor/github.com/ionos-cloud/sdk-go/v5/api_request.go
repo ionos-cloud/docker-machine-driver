@@ -28,11 +28,11 @@ var (
 type RequestApiService service
 
 type ApiRequestsFindByIdRequest struct {
-	ctx _context.Context
-	ApiService *RequestApiService
-	requestId string
-	pretty *bool
-	depth *int32
+	ctx             _context.Context
+	ApiService      *RequestApiService
+	requestId       string
+	pretty          *bool
+	depth           *int32
 	xContractNumber *int32
 }
 
@@ -63,8 +63,8 @@ func (r ApiRequestsFindByIdRequest) Execute() (Request, *APIResponse, error) {
 func (a *RequestApiService) RequestsFindById(ctx _context.Context, requestId string) ApiRequestsFindByIdRequest {
 	return ApiRequestsFindByIdRequest{
 		ApiService: a,
-		ctx: ctx,
-		requestId: requestId,
+		ctx:        ctx,
+		requestId:  requestId,
 	}
 }
 
@@ -100,6 +100,7 @@ func (a *RequestApiService) RequestsFindByIdExecute(r ApiRequestsFindByIdRequest
 	if r.depth != nil {
 		localVarQueryParams.Add("depth", parameterToString(*r.depth, ""))
 	}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -139,13 +140,14 @@ func (a *RequestApiService) RequestsFindByIdExecute(r ApiRequestsFindByIdRequest
 		return localVarReturnValue, nil, err
 	}
 
-	localVarHTTPResponse, err := a.client.callAPI(req)
+	localVarHTTPResponse, httpRequestTime, err := a.client.callAPI(req)
 
-	localVarAPIResponse := &APIResponse {
-		Response: localVarHTTPResponse,
-		Method: localVarHTTPMethod,
-		RequestURL: localVarPath,
-		Operation: "RequestsFindById",
+	localVarAPIResponse := &APIResponse{
+		Response:    localVarHTTPResponse,
+		Method:      localVarHTTPMethod,
+		RequestURL:  localVarPath,
+		RequestTime: httpRequestTime,
+		Operation:   "RequestsFindById",
 	}
 
 	if err != nil || localVarHTTPResponse == nil {
@@ -162,16 +164,16 @@ func (a *RequestApiService) RequestsFindByIdExecute(r ApiRequestsFindByIdRequest
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
+			body:       localVarBody,
+			error:      fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, string(localVarBody)),
 		}
-			var v Error
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarAPIResponse, newErr
-			}
-			newErr.model = v
+		var v Error
+		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+		if err != nil {
+			newErr.error = err.Error()
+			return localVarReturnValue, localVarAPIResponse, newErr
+		}
+		newErr.model = v
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
 
@@ -179,8 +181,8 @@ func (a *RequestApiService) RequestsFindByIdExecute(r ApiRequestsFindByIdRequest
 	if err != nil {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: err.Error(),
+			body:       localVarBody,
+			error:      err.Error(),
 		}
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
@@ -189,24 +191,27 @@ func (a *RequestApiService) RequestsFindByIdExecute(r ApiRequestsFindByIdRequest
 }
 
 type ApiRequestsGetRequest struct {
-	ctx _context.Context
-	ApiService *RequestApiService
-	pretty *bool
-	depth *int32
-	xContractNumber *int32
-	filterStatus *string
-	filterCreatedAfter *string
+	ctx                 _context.Context
+	ApiService          *RequestApiService
+	filters             _neturl.Values
+	orderBy             *string
+	maxResults          *int32
+	pretty              *bool
+	depth               *int32
+	xContractNumber     *int32
+	filterStatus        *string
+	filterCreatedAfter  *string
 	filterCreatedBefore *string
-	filterCreatedDate *string
-	filterCreatedBy *string
-	filterEtag *string
+	filterCreatedDate   *string
+	filterCreatedBy     *string
+	filterEtag          *string
 	filterRequestStatus *string
-	filterMethod *string
-	filterHeaders *string
-	filterBody *string
-	filterUrl *string
-	offset *int32
-	limit *int32
+	filterMethod        *string
+	filterHeaders       *string
+	filterBody          *string
+	filterUrl           *string
+	offset              *int32
+	limit               *int32
 }
 
 func (r ApiRequestsGetRequest) Pretty(pretty bool) ApiRequestsGetRequest {
@@ -274,6 +279,25 @@ func (r ApiRequestsGetRequest) Limit(limit int32) ApiRequestsGetRequest {
 	return r
 }
 
+// Filters query parameters limit results to those containing a matching value for a specific property.
+func (r ApiRequestsGetRequest) Filter(key string, value string) ApiRequestsGetRequest {
+	filterKey := fmt.Sprintf(FilterQueryParam, key)
+	r.filters[filterKey] = []string{value}
+	return r
+}
+
+// OrderBy query param sorts the results alphanumerically in ascending order based on the specified property.
+func (r ApiRequestsGetRequest) OrderBy(orderBy string) ApiRequestsGetRequest {
+	r.orderBy = &orderBy
+	return r
+}
+
+// MaxResults query param limits the number of results returned.
+func (r ApiRequestsGetRequest) MaxResults(maxResults int32) ApiRequestsGetRequest {
+	r.maxResults = &maxResults
+	return r
+}
+
 func (r ApiRequestsGetRequest) Execute() (Requests, *APIResponse, error) {
 	return r.ApiService.RequestsGetExecute(r)
 }
@@ -287,7 +311,8 @@ func (r ApiRequestsGetRequest) Execute() (Requests, *APIResponse, error) {
 func (a *RequestApiService) RequestsGet(ctx _context.Context) ApiRequestsGetRequest {
 	return ApiRequestsGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
+		filters:    _neturl.Values{},
 	}
 }
 
@@ -361,6 +386,20 @@ func (a *RequestApiService) RequestsGetExecute(r ApiRequestsGetRequest) (Request
 	if r.limit != nil {
 		localVarQueryParams.Add("limit", parameterToString(*r.limit, ""))
 	}
+	if r.orderBy != nil {
+		localVarQueryParams.Add("orderBy", parameterToString(*r.orderBy, ""))
+	}
+	if r.maxResults != nil {
+		localVarQueryParams.Add("maxResults", parameterToString(*r.maxResults, ""))
+	}
+	if len(r.filters) > 0 {
+		for k, v := range r.filters {
+			for _, iv := range v {
+				localVarQueryParams.Add(k, iv)
+			}
+		}
+	}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -400,13 +439,14 @@ func (a *RequestApiService) RequestsGetExecute(r ApiRequestsGetRequest) (Request
 		return localVarReturnValue, nil, err
 	}
 
-	localVarHTTPResponse, err := a.client.callAPI(req)
+	localVarHTTPResponse, httpRequestTime, err := a.client.callAPI(req)
 
-	localVarAPIResponse := &APIResponse {
-		Response: localVarHTTPResponse,
-		Method: localVarHTTPMethod,
-		RequestURL: localVarPath,
-		Operation: "RequestsGet",
+	localVarAPIResponse := &APIResponse{
+		Response:    localVarHTTPResponse,
+		Method:      localVarHTTPMethod,
+		RequestURL:  localVarPath,
+		RequestTime: httpRequestTime,
+		Operation:   "RequestsGet",
 	}
 
 	if err != nil || localVarHTTPResponse == nil {
@@ -423,16 +463,16 @@ func (a *RequestApiService) RequestsGetExecute(r ApiRequestsGetRequest) (Request
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
+			body:       localVarBody,
+			error:      fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, string(localVarBody)),
 		}
-			var v Error
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarAPIResponse, newErr
-			}
-			newErr.model = v
+		var v Error
+		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+		if err != nil {
+			newErr.error = err.Error()
+			return localVarReturnValue, localVarAPIResponse, newErr
+		}
+		newErr.model = v
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
 
@@ -440,8 +480,8 @@ func (a *RequestApiService) RequestsGetExecute(r ApiRequestsGetRequest) (Request
 	if err != nil {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: err.Error(),
+			body:       localVarBody,
+			error:      err.Error(),
 		}
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
@@ -450,11 +490,14 @@ func (a *RequestApiService) RequestsGetExecute(r ApiRequestsGetRequest) (Request
 }
 
 type ApiRequestsStatusGetRequest struct {
-	ctx _context.Context
-	ApiService *RequestApiService
-	requestId string
-	pretty *bool
-	depth *int32
+	ctx             _context.Context
+	ApiService      *RequestApiService
+	filters         _neturl.Values
+	orderBy         *string
+	maxResults      *int32
+	requestId       string
+	pretty          *bool
+	depth           *int32
 	xContractNumber *int32
 }
 
@@ -468,6 +511,25 @@ func (r ApiRequestsStatusGetRequest) Depth(depth int32) ApiRequestsStatusGetRequ
 }
 func (r ApiRequestsStatusGetRequest) XContractNumber(xContractNumber int32) ApiRequestsStatusGetRequest {
 	r.xContractNumber = &xContractNumber
+	return r
+}
+
+// Filters query parameters limit results to those containing a matching value for a specific property.
+func (r ApiRequestsStatusGetRequest) Filter(key string, value string) ApiRequestsStatusGetRequest {
+	filterKey := fmt.Sprintf(FilterQueryParam, key)
+	r.filters[filterKey] = []string{value}
+	return r
+}
+
+// OrderBy query param sorts the results alphanumerically in ascending order based on the specified property.
+func (r ApiRequestsStatusGetRequest) OrderBy(orderBy string) ApiRequestsStatusGetRequest {
+	r.orderBy = &orderBy
+	return r
+}
+
+// MaxResults query param limits the number of results returned.
+func (r ApiRequestsStatusGetRequest) MaxResults(maxResults int32) ApiRequestsStatusGetRequest {
+	r.maxResults = &maxResults
 	return r
 }
 
@@ -485,8 +547,9 @@ func (r ApiRequestsStatusGetRequest) Execute() (RequestStatus, *APIResponse, err
 func (a *RequestApiService) RequestsStatusGet(ctx _context.Context, requestId string) ApiRequestsStatusGetRequest {
 	return ApiRequestsStatusGetRequest{
 		ApiService: a,
-		ctx: ctx,
-		requestId: requestId,
+		ctx:        ctx,
+		requestId:  requestId,
+		filters:    _neturl.Values{},
 	}
 }
 
@@ -522,6 +585,20 @@ func (a *RequestApiService) RequestsStatusGetExecute(r ApiRequestsStatusGetReque
 	if r.depth != nil {
 		localVarQueryParams.Add("depth", parameterToString(*r.depth, ""))
 	}
+	if r.orderBy != nil {
+		localVarQueryParams.Add("orderBy", parameterToString(*r.orderBy, ""))
+	}
+	if r.maxResults != nil {
+		localVarQueryParams.Add("maxResults", parameterToString(*r.maxResults, ""))
+	}
+	if len(r.filters) > 0 {
+		for k, v := range r.filters {
+			for _, iv := range v {
+				localVarQueryParams.Add(k, iv)
+			}
+		}
+	}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -561,13 +638,14 @@ func (a *RequestApiService) RequestsStatusGetExecute(r ApiRequestsStatusGetReque
 		return localVarReturnValue, nil, err
 	}
 
-	localVarHTTPResponse, err := a.client.callAPI(req)
+	localVarHTTPResponse, httpRequestTime, err := a.client.callAPI(req)
 
-	localVarAPIResponse := &APIResponse {
-		Response: localVarHTTPResponse,
-		Method: localVarHTTPMethod,
-		RequestURL: localVarPath,
-		Operation: "RequestsStatusGet",
+	localVarAPIResponse := &APIResponse{
+		Response:    localVarHTTPResponse,
+		Method:      localVarHTTPMethod,
+		RequestURL:  localVarPath,
+		RequestTime: httpRequestTime,
+		Operation:   "RequestsStatusGet",
 	}
 
 	if err != nil || localVarHTTPResponse == nil {
@@ -584,16 +662,16 @@ func (a *RequestApiService) RequestsStatusGetExecute(r ApiRequestsStatusGetReque
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
+			body:       localVarBody,
+			error:      fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, string(localVarBody)),
 		}
-			var v Error
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarAPIResponse, newErr
-			}
-			newErr.model = v
+		var v Error
+		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+		if err != nil {
+			newErr.error = err.Error()
+			return localVarReturnValue, localVarAPIResponse, newErr
+		}
+		newErr.model = v
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
 
@@ -601,8 +679,8 @@ func (a *RequestApiService) RequestsStatusGetExecute(r ApiRequestsStatusGetReque
 	if err != nil {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: err.Error(),
+			body:       localVarBody,
+			error:      err.Error(),
 		}
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
