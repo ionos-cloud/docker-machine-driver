@@ -21,6 +21,7 @@ const (
 	flagEndpoint               = "ionoscloud-endpoint"
 	flagUsername               = "ionoscloud-username"
 	flagPassword               = "ionoscloud-password"
+	flagToken                  = "ionoscloud-token"
 	flagServerCores            = "ionoscloud-cores"
 	flagServerRam              = "ionoscloud-ram"
 	flagServerCpuFamily        = "ionoscloud-cpu-family"
@@ -62,6 +63,7 @@ type Driver struct {
 	URL      string
 	Username string
 	Password string
+	Token    string
 
 	Ram                    int
 	Cores                  int
@@ -105,7 +107,7 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 		Version: v,
 	}
 	driver.client = func() utils.ClientService {
-		return utils.New(context.TODO(), driver.Username, driver.Password, driver.URL)
+		return utils.New(context.TODO(), driver.Username, driver.Password, driver.Token, driver.URL)
 	}
 	return driver
 }
@@ -128,6 +130,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			EnvVar: "IONOSCLOUD_PASSWORD",
 			Name:   flagPassword,
 			Usage:  "Ionos Cloud Password",
+		},
+		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_TOKEN",
+			Name:   flagToken,
+			Usage:  "Ionos Cloud Token",
 		},
 		mcnflag.IntFlag{
 			EnvVar: "IONOSCLOUD_CORES",
@@ -202,6 +209,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.URL = opts.String(flagEndpoint)
 	d.Username = opts.String(flagUsername)
 	d.Password = opts.String(flagPassword)
+	d.Token = opts.String(flagToken)
 	d.DiskSize = opts.Int(flagDiskSize)
 	d.Image = opts.String(flagImage)
 	d.ImagePassword = opts.String(flagImagePassword)
@@ -235,11 +243,16 @@ func (d *Driver) DriverName() string {
 func (d *Driver) PreCreateCheck() error {
 	log.Infof("IONOS Cloud Driver Version: %s", d.Version)
 	log.Infof("SDK-GO Version: %s", sdkgo.Version)
-	if d.Username == "" {
-		return fmt.Errorf("please provide username as parameter --ionoscloud-username or as environment variable $IONOSCLOUD_USERNAME")
-	}
-	if d.Password == "" {
-		return fmt.Errorf("please provide password as parameter --ionoscloud-password or as environment variable $IONOSCLOUD_PASSWORD")
+	if d.Token == "" {
+		if d.Username == "" && d.Password == "" {
+			return fmt.Errorf("please provide username($IONOSCLOUD_USERNAME) and password($IONOSCLOUD_PASSWORD) or token($IONOSCLOUD_TOKEN) to authenticate")
+		}
+		if d.Username == "" {
+			return fmt.Errorf("please provide username as parameter --ionoscloud-username or as environment variable $IONOSCLOUD_USERNAME")
+		}
+		if d.Password == "" {
+			return fmt.Errorf("please provide password as parameter --ionoscloud-password or as environment variable $IONOSCLOUD_PASSWORD")
+		}
 	}
 	if d.DatacenterId != "" {
 		d.DCExists = true

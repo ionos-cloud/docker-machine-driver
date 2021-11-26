@@ -138,6 +138,7 @@ func TestSetConfigFromDefaultFlags(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "", driver.Username)
 	assert.Equal(t, "", driver.Password)
+	assert.Equal(t, "", driver.Token)
 	assert.Equal(t, defaultApiEndpoint, driver.URL)
 	assert.Equal(t, 4, driver.Cores)
 	assert.Equal(t, 2048, driver.Ram)
@@ -176,8 +177,17 @@ func TestDriverName(t *testing.T) {
 	assert.Equal(t, driverName, driver.DriverName())
 }
 
-func TestPreCreateCheckUserNameErr(t *testing.T) {
+func TestPreCreateCheckAuthErr(t *testing.T) {
 	driver, _ := NewTestDriverFlagsSet(t, map[string]interface{}{})
+	err := driver.PreCreateCheck()
+	assert.Error(t, err)
+	assert.Equal(t, err.Error(), "please provide username($IONOSCLOUD_USERNAME) and password($IONOSCLOUD_PASSWORD) or token($IONOSCLOUD_TOKEN) to authenticate")
+}
+
+func TestPreCreateCheckUserNameErr(t *testing.T) {
+	driver, _ := NewTestDriverFlagsSet(t, map[string]interface{}{
+		flagPassword: "IONOSCLOUD_PASSWORD",
+	})
 	err := driver.PreCreateCheck()
 	assert.Error(t, err)
 	assert.Equal(t, err.Error(), "please provide username as parameter --ionoscloud-username or as environment variable $IONOSCLOUD_USERNAME")

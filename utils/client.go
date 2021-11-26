@@ -27,16 +27,8 @@ type ClientVolumeProperties struct {
 	DiskSize      float32
 }
 
-func New(ctx context.Context, name, password, url string) ClientService {
-	clientConfig := &sdkgo.Configuration{
-		Username: name,
-		Password: password,
-		Servers: sdkgo.ServerConfigurations{
-			sdkgo.ServerConfiguration{
-				URL: url,
-			},
-		},
-	}
+func New(ctx context.Context, name, password, token, url string) ClientService {
+	clientConfig := sdkgo.NewConfiguration(name, password, token, url)
 	return &Client{
 		APIClient: sdkgo.NewAPIClient(clientConfig),
 		ctx:       ctx,
