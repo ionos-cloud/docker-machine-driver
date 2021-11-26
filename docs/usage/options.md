@@ -27,6 +27,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-image-password` | Ionos Cloud Image Password to be able to access the server from DCD platform |
 | `--ionoscloud-location` | Ionos Cloud Location |
 | `--ionoscloud-password` | Ionos Cloud Password |
+| `--ionoscloud-token` | Ionos Cloud Token |
 | `--ionoscloud-server-availability-zone` | Ionos Cloud Server Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\) |
 | `--ionoscloud-cores` | Ionos Cloud Server Cores \(2, 3, 4, 5, 6, etc.\) |
 | `--ionoscloud-cpu-family` | Ionos Cloud Server CPU families \(AMD\_OPTERON,INTEL\_XEON, INTEL\_SKYLAKE\) |
@@ -65,11 +66,12 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-image` | `IONOSCLOUD_IMAGE` |
 | `--ionoscloud-image-password` | `IONOSCLOUD_IMAGE_PASSWORD` |
 | `--ionoscloud-location` | `IONOSCLOUD_LOCATION` |
-| `--ionoscloud-password` | `IONOSCLOUD_PASSWORD` |
 | `--ionoscloud-server-availability-zone` | `IONOSCLOUD_SERVER_ZONE` |
 | `--ionoscloud-cores` | `IONOSCLOUD_CORES` |
 | `--ionoscloud-cpu-family` | `IONOSCLOUD_CPU_FAMILY` |
 | `--ionoscloud-ram` | `IONOSCLOUD_RAM` |
 | `--ionoscloud-username` | `IONOSCLOUD_USERNAME` |
+| `--ionoscloud-password` | `IONOSCLOUD_PASSWORD` |
+| `--ionoscloud-token` | `IONOSCLOUD_TOKEN` |
 | `--ionoscloud-volume-availability-zone` | `IONOSCLOUD_VOLUME_ZONE` |
 
