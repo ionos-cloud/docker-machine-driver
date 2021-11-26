@@ -24,15 +24,12 @@ type PaginationLinks struct {
 	Next *string `json:"next,omitempty"`
 }
 
-
-
 // GetPrev returns the Prev field value
 // If the value is explicit nil, the zero value for string will be returned
 func (o *PaginationLinks) GetPrev() *string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Prev
 
@@ -46,13 +43,11 @@ func (o *PaginationLinks) GetPrevOk() (*string, bool) {
 		return nil, false
 	}
 
-
 	return o.Prev, true
 }
 
 // SetPrev sets field value
 func (o *PaginationLinks) SetPrev(v string) {
-
 
 	o.Prev = &v
 
@@ -67,15 +62,12 @@ func (o *PaginationLinks) HasPrev() bool {
 	return false
 }
 
-
-
 // GetSelf returns the Self field value
 // If the value is explicit nil, the zero value for string will be returned
 func (o *PaginationLinks) GetSelf() *string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Self
 
@@ -89,13 +81,11 @@ func (o *PaginationLinks) GetSelfOk() (*string, bool) {
 		return nil, false
 	}
 
-
 	return o.Self, true
 }
 
 // SetSelf sets field value
 func (o *PaginationLinks) SetSelf(v string) {
-
 
 	o.Self = &v
 
@@ -110,15 +100,12 @@ func (o *PaginationLinks) HasSelf() bool {
 	return false
 }
 
-
-
 // GetNext returns the Next field value
 // If the value is explicit nil, the zero value for string will be returned
 func (o *PaginationLinks) GetNext() *string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Next
 
@@ -132,13 +119,11 @@ func (o *PaginationLinks) GetNextOk() (*string, bool) {
 		return nil, false
 	}
 
-
 	return o.Next, true
 }
 
 // SetNext sets field value
 func (o *PaginationLinks) SetNext(v string) {
-
 
 	o.Next = &v
 
@@ -153,24 +138,20 @@ func (o *PaginationLinks) HasNext() bool {
 	return false
 }
 
-
 func (o PaginationLinks) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
 
 	if o.Prev != nil {
 		toSerialize["prev"] = o.Prev
 	}
-	
 
 	if o.Self != nil {
 		toSerialize["self"] = o.Self
 	}
-	
 
 	if o.Next != nil {
 		toSerialize["next"] = o.Next
 	}
-	
 	return json.Marshal(toSerialize)
 }
 
@@ -209,5 +190,3 @@ func (v *NullablePaginationLinks) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -28,17 +28,17 @@ var (
 type VolumeApiService service
 
 type ApiDatacentersVolumesCreateSnapshotPostRequest struct {
-	ctx _context.Context
-	ApiService *VolumeApiService
-	datacenterId string
-	volumeId string
-	pretty *bool
-	depth *int32
-	xContractNumber *int32
-	name *string
-	description *string
+	ctx               _context.Context
+	ApiService        *VolumeApiService
+	datacenterId      string
+	volumeId          string
+	pretty            *bool
+	depth             *int32
+	xContractNumber   *int32
+	name              *string
+	description       *string
 	secAuthProtection *bool
-	licenceType *string
+	licenceType       *string
 }
 
 func (r ApiDatacentersVolumesCreateSnapshotPostRequest) Pretty(pretty bool) ApiDatacentersVolumesCreateSnapshotPostRequest {
@@ -84,10 +84,10 @@ func (r ApiDatacentersVolumesCreateSnapshotPostRequest) Execute() (Snapshot, *AP
  */
 func (a *VolumeApiService) DatacentersVolumesCreateSnapshotPost(ctx _context.Context, datacenterId string, volumeId string) ApiDatacentersVolumesCreateSnapshotPostRequest {
 	return ApiDatacentersVolumesCreateSnapshotPostRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:   a,
+		ctx:          ctx,
 		datacenterId: datacenterId,
-		volumeId: volumeId,
+		volumeId:     volumeId,
 	}
 }
 
@@ -124,6 +124,7 @@ func (a *VolumeApiService) DatacentersVolumesCreateSnapshotPostExecute(r ApiData
 	if r.depth != nil {
 		localVarQueryParams.Add("depth", parameterToString(*r.depth, ""))
 	}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{"application/x-www-form-urlencoded"}
 
@@ -175,13 +176,14 @@ func (a *VolumeApiService) DatacentersVolumesCreateSnapshotPostExecute(r ApiData
 		return localVarReturnValue, nil, err
 	}
 
-	localVarHTTPResponse, err := a.client.callAPI(req)
+	localVarHTTPResponse, httpRequestTime, err := a.client.callAPI(req)
 
-	localVarAPIResponse := &APIResponse {
-		Response: localVarHTTPResponse,
-		Method: localVarHTTPMethod,
-		RequestURL: localVarPath,
-		Operation: "DatacentersVolumesCreateSnapshotPost",
+	localVarAPIResponse := &APIResponse{
+		Response:    localVarHTTPResponse,
+		Method:      localVarHTTPMethod,
+		RequestURL:  localVarPath,
+		RequestTime: httpRequestTime,
+		Operation:   "DatacentersVolumesCreateSnapshotPost",
 	}
 
 	if err != nil || localVarHTTPResponse == nil {
@@ -198,16 +200,16 @@ func (a *VolumeApiService) DatacentersVolumesCreateSnapshotPostExecute(r ApiData
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
+			body:       localVarBody,
+			error:      fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, string(localVarBody)),
 		}
-			var v Error
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarAPIResponse, newErr
-			}
-			newErr.model = v
+		var v Error
+		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+		if err != nil {
+			newErr.error = err.Error()
+			return localVarReturnValue, localVarAPIResponse, newErr
+		}
+		newErr.model = v
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
 
@@ -215,8 +217,8 @@ func (a *VolumeApiService) DatacentersVolumesCreateSnapshotPostExecute(r ApiData
 	if err != nil {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: err.Error(),
+			body:       localVarBody,
+			error:      err.Error(),
 		}
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
@@ -225,12 +227,12 @@ func (a *VolumeApiService) DatacentersVolumesCreateSnapshotPostExecute(r ApiData
 }
 
 type ApiDatacentersVolumesDeleteRequest struct {
-	ctx _context.Context
-	ApiService *VolumeApiService
-	datacenterId string
-	volumeId string
-	pretty *bool
-	depth *int32
+	ctx             _context.Context
+	ApiService      *VolumeApiService
+	datacenterId    string
+	volumeId        string
+	pretty          *bool
+	depth           *int32
 	xContractNumber *int32
 }
 
@@ -261,10 +263,10 @@ func (r ApiDatacentersVolumesDeleteRequest) Execute() (map[string]interface{}, *
  */
 func (a *VolumeApiService) DatacentersVolumesDelete(ctx _context.Context, datacenterId string, volumeId string) ApiDatacentersVolumesDeleteRequest {
 	return ApiDatacentersVolumesDeleteRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:   a,
+		ctx:          ctx,
 		datacenterId: datacenterId,
-		volumeId: volumeId,
+		volumeId:     volumeId,
 	}
 }
 
@@ -301,6 +303,7 @@ func (a *VolumeApiService) DatacentersVolumesDeleteExecute(r ApiDatacentersVolum
 	if r.depth != nil {
 		localVarQueryParams.Add("depth", parameterToString(*r.depth, ""))
 	}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -340,13 +343,14 @@ func (a *VolumeApiService) DatacentersVolumesDeleteExecute(r ApiDatacentersVolum
 		return localVarReturnValue, nil, err
 	}
 
-	localVarHTTPResponse, err := a.client.callAPI(req)
+	localVarHTTPResponse, httpRequestTime, err := a.client.callAPI(req)
 
-	localVarAPIResponse := &APIResponse {
-		Response: localVarHTTPResponse,
-		Method: localVarHTTPMethod,
-		RequestURL: localVarPath,
-		Operation: "DatacentersVolumesDelete",
+	localVarAPIResponse := &APIResponse{
+		Response:    localVarHTTPResponse,
+		Method:      localVarHTTPMethod,
+		RequestURL:  localVarPath,
+		RequestTime: httpRequestTime,
+		Operation:   "DatacentersVolumesDelete",
 	}
 
 	if err != nil || localVarHTTPResponse == nil {
@@ -363,16 +367,16 @@ func (a *VolumeApiService) DatacentersVolumesDeleteExecute(r ApiDatacentersVolum
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
+			body:       localVarBody,
+			error:      fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, string(localVarBody)),
 		}
-			var v Error
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarAPIResponse, newErr
-			}
-			newErr.model = v
+		var v Error
+		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+		if err != nil {
+			newErr.error = err.Error()
+			return localVarReturnValue, localVarAPIResponse, newErr
+		}
+		newErr.model = v
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
 
@@ -380,8 +384,8 @@ func (a *VolumeApiService) DatacentersVolumesDeleteExecute(r ApiDatacentersVolum
 	if err != nil {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: err.Error(),
+			body:       localVarBody,
+			error:      err.Error(),
 		}
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
@@ -390,12 +394,12 @@ func (a *VolumeApiService) DatacentersVolumesDeleteExecute(r ApiDatacentersVolum
 }
 
 type ApiDatacentersVolumesFindByIdRequest struct {
-	ctx _context.Context
-	ApiService *VolumeApiService
-	datacenterId string
-	volumeId string
-	pretty *bool
-	depth *int32
+	ctx             _context.Context
+	ApiService      *VolumeApiService
+	datacenterId    string
+	volumeId        string
+	pretty          *bool
+	depth           *int32
 	xContractNumber *int32
 }
 
@@ -426,10 +430,10 @@ func (r ApiDatacentersVolumesFindByIdRequest) Execute() (Volume, *APIResponse, e
  */
 func (a *VolumeApiService) DatacentersVolumesFindById(ctx _context.Context, datacenterId string, volumeId string) ApiDatacentersVolumesFindByIdRequest {
 	return ApiDatacentersVolumesFindByIdRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:   a,
+		ctx:          ctx,
 		datacenterId: datacenterId,
-		volumeId: volumeId,
+		volumeId:     volumeId,
 	}
 }
 
@@ -466,6 +470,7 @@ func (a *VolumeApiService) DatacentersVolumesFindByIdExecute(r ApiDatacentersVol
 	if r.depth != nil {
 		localVarQueryParams.Add("depth", parameterToString(*r.depth, ""))
 	}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -505,13 +510,14 @@ func (a *VolumeApiService) DatacentersVolumesFindByIdExecute(r ApiDatacentersVol
 		return localVarReturnValue, nil, err
 	}
 
-	localVarHTTPResponse, err := a.client.callAPI(req)
+	localVarHTTPResponse, httpRequestTime, err := a.client.callAPI(req)
 
-	localVarAPIResponse := &APIResponse {
-		Response: localVarHTTPResponse,
-		Method: localVarHTTPMethod,
-		RequestURL: localVarPath,
-		Operation: "DatacentersVolumesFindById",
+	localVarAPIResponse := &APIResponse{
+		Response:    localVarHTTPResponse,
+		Method:      localVarHTTPMethod,
+		RequestURL:  localVarPath,
+		RequestTime: httpRequestTime,
+		Operation:   "DatacentersVolumesFindById",
 	}
 
 	if err != nil || localVarHTTPResponse == nil {
@@ -528,16 +534,16 @@ func (a *VolumeApiService) DatacentersVolumesFindByIdExecute(r ApiDatacentersVol
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
+			body:       localVarBody,
+			error:      fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, string(localVarBody)),
 		}
-			var v Error
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarAPIResponse, newErr
-			}
-			newErr.model = v
+		var v Error
+		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+		if err != nil {
+			newErr.error = err.Error()
+			return localVarReturnValue, localVarAPIResponse, newErr
+		}
+		newErr.model = v
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
 
@@ -545,8 +551,8 @@ func (a *VolumeApiService) DatacentersVolumesFindByIdExecute(r ApiDatacentersVol
 	if err != nil {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: err.Error(),
+			body:       localVarBody,
+			error:      err.Error(),
 		}
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
@@ -555,14 +561,17 @@ func (a *VolumeApiService) DatacentersVolumesFindByIdExecute(r ApiDatacentersVol
 }
 
 type ApiDatacentersVolumesGetRequest struct {
-	ctx _context.Context
-	ApiService *VolumeApiService
-	datacenterId string
-	pretty *bool
-	depth *int32
+	ctx             _context.Context
+	ApiService      *VolumeApiService
+	filters         _neturl.Values
+	orderBy         *string
+	maxResults      *int32
+	datacenterId    string
+	pretty          *bool
+	depth           *int32
 	xContractNumber *int32
-	offset *int32
-	limit *int32
+	offset          *int32
+	limit           *int32
 }
 
 func (r ApiDatacentersVolumesGetRequest) Pretty(pretty bool) ApiDatacentersVolumesGetRequest {
@@ -586,12 +595,31 @@ func (r ApiDatacentersVolumesGetRequest) Limit(limit int32) ApiDatacentersVolume
 	return r
 }
 
+// Filters query parameters limit results to those containing a matching value for a specific property.
+func (r ApiDatacentersVolumesGetRequest) Filter(key string, value string) ApiDatacentersVolumesGetRequest {
+	filterKey := fmt.Sprintf(FilterQueryParam, key)
+	r.filters[filterKey] = []string{value}
+	return r
+}
+
+// OrderBy query param sorts the results alphanumerically in ascending order based on the specified property.
+func (r ApiDatacentersVolumesGetRequest) OrderBy(orderBy string) ApiDatacentersVolumesGetRequest {
+	r.orderBy = &orderBy
+	return r
+}
+
+// MaxResults query param limits the number of results returned.
+func (r ApiDatacentersVolumesGetRequest) MaxResults(maxResults int32) ApiDatacentersVolumesGetRequest {
+	r.maxResults = &maxResults
+	return r
+}
+
 func (r ApiDatacentersVolumesGetRequest) Execute() (Volumes, *APIResponse, error) {
 	return r.ApiService.DatacentersVolumesGetExecute(r)
 }
 
 /*
- * DatacentersVolumesGet List Volumes 
+ * DatacentersVolumesGet List Volumes
  * Retrieves a list of Volumes.
  * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  * @param datacenterId The unique ID of the datacenter
@@ -599,9 +627,10 @@ func (r ApiDatacentersVolumesGetRequest) Execute() (Volumes, *APIResponse, error
  */
 func (a *VolumeApiService) DatacentersVolumesGet(ctx _context.Context, datacenterId string) ApiDatacentersVolumesGetRequest {
 	return ApiDatacentersVolumesGetRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:   a,
+		ctx:          ctx,
 		datacenterId: datacenterId,
+		filters:      _neturl.Values{},
 	}
 }
 
@@ -643,6 +672,20 @@ func (a *VolumeApiService) DatacentersVolumesGetExecute(r ApiDatacentersVolumesG
 	if r.limit != nil {
 		localVarQueryParams.Add("limit", parameterToString(*r.limit, ""))
 	}
+	if r.orderBy != nil {
+		localVarQueryParams.Add("orderBy", parameterToString(*r.orderBy, ""))
+	}
+	if r.maxResults != nil {
+		localVarQueryParams.Add("maxResults", parameterToString(*r.maxResults, ""))
+	}
+	if len(r.filters) > 0 {
+		for k, v := range r.filters {
+			for _, iv := range v {
+				localVarQueryParams.Add(k, iv)
+			}
+		}
+	}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{}
 
@@ -682,13 +725,14 @@ func (a *VolumeApiService) DatacentersVolumesGetExecute(r ApiDatacentersVolumesG
 		return localVarReturnValue, nil, err
 	}
 
-	localVarHTTPResponse, err := a.client.callAPI(req)
+	localVarHTTPResponse, httpRequestTime, err := a.client.callAPI(req)
 
-	localVarAPIResponse := &APIResponse {
-		Response: localVarHTTPResponse,
-		Method: localVarHTTPMethod,
-		RequestURL: localVarPath,
-		Operation: "DatacentersVolumesGet",
+	localVarAPIResponse := &APIResponse{
+		Response:    localVarHTTPResponse,
+		Method:      localVarHTTPMethod,
+		RequestURL:  localVarPath,
+		RequestTime: httpRequestTime,
+		Operation:   "DatacentersVolumesGet",
 	}
 
 	if err != nil || localVarHTTPResponse == nil {
@@ -705,16 +749,16 @@ func (a *VolumeApiService) DatacentersVolumesGetExecute(r ApiDatacentersVolumesG
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
+			body:       localVarBody,
+			error:      fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, string(localVarBody)),
 		}
-			var v Error
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarAPIResponse, newErr
-			}
-			newErr.model = v
+		var v Error
+		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+		if err != nil {
+			newErr.error = err.Error()
+			return localVarReturnValue, localVarAPIResponse, newErr
+		}
+		newErr.model = v
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
 
@@ -722,8 +766,8 @@ func (a *VolumeApiService) DatacentersVolumesGetExecute(r ApiDatacentersVolumesG
 	if err != nil {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: err.Error(),
+			body:       localVarBody,
+			error:      err.Error(),
 		}
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
@@ -732,13 +776,13 @@ func (a *VolumeApiService) DatacentersVolumesGetExecute(r ApiDatacentersVolumesG
 }
 
 type ApiDatacentersVolumesPatchRequest struct {
-	ctx _context.Context
-	ApiService *VolumeApiService
-	datacenterId string
-	volumeId string
-	volume *VolumeProperties
-	pretty *bool
-	depth *int32
+	ctx             _context.Context
+	ApiService      *VolumeApiService
+	datacenterId    string
+	volumeId        string
+	volume          *VolumeProperties
+	pretty          *bool
+	depth           *int32
 	xContractNumber *int32
 }
 
@@ -773,10 +817,10 @@ func (r ApiDatacentersVolumesPatchRequest) Execute() (Volume, *APIResponse, erro
  */
 func (a *VolumeApiService) DatacentersVolumesPatch(ctx _context.Context, datacenterId string, volumeId string) ApiDatacentersVolumesPatchRequest {
 	return ApiDatacentersVolumesPatchRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:   a,
+		ctx:          ctx,
 		datacenterId: datacenterId,
-		volumeId: volumeId,
+		volumeId:     volumeId,
 	}
 }
 
@@ -816,6 +860,7 @@ func (a *VolumeApiService) DatacentersVolumesPatchExecute(r ApiDatacentersVolume
 	if r.depth != nil {
 		localVarQueryParams.Add("depth", parameterToString(*r.depth, ""))
 	}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{"application/json"}
 
@@ -857,13 +902,14 @@ func (a *VolumeApiService) DatacentersVolumesPatchExecute(r ApiDatacentersVolume
 		return localVarReturnValue, nil, err
 	}
 
-	localVarHTTPResponse, err := a.client.callAPI(req)
+	localVarHTTPResponse, httpRequestTime, err := a.client.callAPI(req)
 
-	localVarAPIResponse := &APIResponse {
-		Response: localVarHTTPResponse,
-		Method: localVarHTTPMethod,
-		RequestURL: localVarPath,
-		Operation: "DatacentersVolumesPatch",
+	localVarAPIResponse := &APIResponse{
+		Response:    localVarHTTPResponse,
+		Method:      localVarHTTPMethod,
+		RequestURL:  localVarPath,
+		RequestTime: httpRequestTime,
+		Operation:   "DatacentersVolumesPatch",
 	}
 
 	if err != nil || localVarHTTPResponse == nil {
@@ -880,16 +926,16 @@ func (a *VolumeApiService) DatacentersVolumesPatchExecute(r ApiDatacentersVolume
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
+			body:       localVarBody,
+			error:      fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, string(localVarBody)),
 		}
-			var v Error
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarAPIResponse, newErr
-			}
-			newErr.model = v
+		var v Error
+		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+		if err != nil {
+			newErr.error = err.Error()
+			return localVarReturnValue, localVarAPIResponse, newErr
+		}
+		newErr.model = v
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
 
@@ -897,8 +943,8 @@ func (a *VolumeApiService) DatacentersVolumesPatchExecute(r ApiDatacentersVolume
 	if err != nil {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: err.Error(),
+			body:       localVarBody,
+			error:      err.Error(),
 		}
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
@@ -907,12 +953,12 @@ func (a *VolumeApiService) DatacentersVolumesPatchExecute(r ApiDatacentersVolume
 }
 
 type ApiDatacentersVolumesPostRequest struct {
-	ctx _context.Context
-	ApiService *VolumeApiService
-	datacenterId string
-	volume *Volume
-	pretty *bool
-	depth *int32
+	ctx             _context.Context
+	ApiService      *VolumeApiService
+	datacenterId    string
+	volume          *Volume
+	pretty          *bool
+	depth           *int32
 	xContractNumber *int32
 }
 
@@ -946,8 +992,8 @@ func (r ApiDatacentersVolumesPostRequest) Execute() (Volume, *APIResponse, error
  */
 func (a *VolumeApiService) DatacentersVolumesPost(ctx _context.Context, datacenterId string) ApiDatacentersVolumesPostRequest {
 	return ApiDatacentersVolumesPostRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:   a,
+		ctx:          ctx,
 		datacenterId: datacenterId,
 	}
 }
@@ -987,6 +1033,7 @@ func (a *VolumeApiService) DatacentersVolumesPostExecute(r ApiDatacentersVolumes
 	if r.depth != nil {
 		localVarQueryParams.Add("depth", parameterToString(*r.depth, ""))
 	}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{"application/json"}
 
@@ -1028,13 +1075,14 @@ func (a *VolumeApiService) DatacentersVolumesPostExecute(r ApiDatacentersVolumes
 		return localVarReturnValue, nil, err
 	}
 
-	localVarHTTPResponse, err := a.client.callAPI(req)
+	localVarHTTPResponse, httpRequestTime, err := a.client.callAPI(req)
 
-	localVarAPIResponse := &APIResponse {
-		Response: localVarHTTPResponse,
-		Method: localVarHTTPMethod,
-		RequestURL: localVarPath,
-		Operation: "DatacentersVolumesPost",
+	localVarAPIResponse := &APIResponse{
+		Response:    localVarHTTPResponse,
+		Method:      localVarHTTPMethod,
+		RequestURL:  localVarPath,
+		RequestTime: httpRequestTime,
+		Operation:   "DatacentersVolumesPost",
 	}
 
 	if err != nil || localVarHTTPResponse == nil {
@@ -1051,16 +1099,16 @@ func (a *VolumeApiService) DatacentersVolumesPostExecute(r ApiDatacentersVolumes
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
+			body:       localVarBody,
+			error:      fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, string(localVarBody)),
 		}
-			var v Error
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarAPIResponse, newErr
-			}
-			newErr.model = v
+		var v Error
+		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+		if err != nil {
+			newErr.error = err.Error()
+			return localVarReturnValue, localVarAPIResponse, newErr
+		}
+		newErr.model = v
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
 
@@ -1068,8 +1116,8 @@ func (a *VolumeApiService) DatacentersVolumesPostExecute(r ApiDatacentersVolumes
 	if err != nil {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: err.Error(),
+			body:       localVarBody,
+			error:      err.Error(),
 		}
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
@@ -1078,13 +1126,13 @@ func (a *VolumeApiService) DatacentersVolumesPostExecute(r ApiDatacentersVolumes
 }
 
 type ApiDatacentersVolumesPutRequest struct {
-	ctx _context.Context
-	ApiService *VolumeApiService
-	datacenterId string
-	volumeId string
-	volume *Volume
-	pretty *bool
-	depth *int32
+	ctx             _context.Context
+	ApiService      *VolumeApiService
+	datacenterId    string
+	volumeId        string
+	volume          *Volume
+	pretty          *bool
+	depth           *int32
 	xContractNumber *int32
 }
 
@@ -1119,10 +1167,10 @@ func (r ApiDatacentersVolumesPutRequest) Execute() (Volume, *APIResponse, error)
  */
 func (a *VolumeApiService) DatacentersVolumesPut(ctx _context.Context, datacenterId string, volumeId string) ApiDatacentersVolumesPutRequest {
 	return ApiDatacentersVolumesPutRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:   a,
+		ctx:          ctx,
 		datacenterId: datacenterId,
-		volumeId: volumeId,
+		volumeId:     volumeId,
 	}
 }
 
@@ -1162,6 +1210,7 @@ func (a *VolumeApiService) DatacentersVolumesPutExecute(r ApiDatacentersVolumesP
 	if r.depth != nil {
 		localVarQueryParams.Add("depth", parameterToString(*r.depth, ""))
 	}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{"application/json"}
 
@@ -1203,13 +1252,14 @@ func (a *VolumeApiService) DatacentersVolumesPutExecute(r ApiDatacentersVolumesP
 		return localVarReturnValue, nil, err
 	}
 
-	localVarHTTPResponse, err := a.client.callAPI(req)
+	localVarHTTPResponse, httpRequestTime, err := a.client.callAPI(req)
 
-	localVarAPIResponse := &APIResponse {
-		Response: localVarHTTPResponse,
-		Method: localVarHTTPMethod,
-		RequestURL: localVarPath,
-		Operation: "DatacentersVolumesPut",
+	localVarAPIResponse := &APIResponse{
+		Response:    localVarHTTPResponse,
+		Method:      localVarHTTPMethod,
+		RequestURL:  localVarPath,
+		RequestTime: httpRequestTime,
+		Operation:   "DatacentersVolumesPut",
 	}
 
 	if err != nil || localVarHTTPResponse == nil {
@@ -1226,16 +1276,16 @@ func (a *VolumeApiService) DatacentersVolumesPutExecute(r ApiDatacentersVolumesP
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
+			body:       localVarBody,
+			error:      fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, string(localVarBody)),
 		}
-			var v Error
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarAPIResponse, newErr
-			}
-			newErr.model = v
+		var v Error
+		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+		if err != nil {
+			newErr.error = err.Error()
+			return localVarReturnValue, localVarAPIResponse, newErr
+		}
+		newErr.model = v
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
 
@@ -1243,8 +1293,8 @@ func (a *VolumeApiService) DatacentersVolumesPutExecute(r ApiDatacentersVolumesP
 	if err != nil {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: err.Error(),
+			body:       localVarBody,
+			error:      err.Error(),
 		}
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
@@ -1253,14 +1303,14 @@ func (a *VolumeApiService) DatacentersVolumesPutExecute(r ApiDatacentersVolumesP
 }
 
 type ApiDatacentersVolumesRestoreSnapshotPostRequest struct {
-	ctx _context.Context
-	ApiService *VolumeApiService
-	datacenterId string
-	volumeId string
-	pretty *bool
-	depth *int32
+	ctx             _context.Context
+	ApiService      *VolumeApiService
+	datacenterId    string
+	volumeId        string
+	pretty          *bool
+	depth           *int32
 	xContractNumber *int32
-	snapshotId *string
+	snapshotId      *string
 }
 
 func (r ApiDatacentersVolumesRestoreSnapshotPostRequest) Pretty(pretty bool) ApiDatacentersVolumesRestoreSnapshotPostRequest {
@@ -1294,10 +1344,10 @@ func (r ApiDatacentersVolumesRestoreSnapshotPostRequest) Execute() (map[string]i
  */
 func (a *VolumeApiService) DatacentersVolumesRestoreSnapshotPost(ctx _context.Context, datacenterId string, volumeId string) ApiDatacentersVolumesRestoreSnapshotPostRequest {
 	return ApiDatacentersVolumesRestoreSnapshotPostRequest{
-		ApiService: a,
-		ctx: ctx,
+		ApiService:   a,
+		ctx:          ctx,
 		datacenterId: datacenterId,
-		volumeId: volumeId,
+		volumeId:     volumeId,
 	}
 }
 
@@ -1334,6 +1384,7 @@ func (a *VolumeApiService) DatacentersVolumesRestoreSnapshotPostExecute(r ApiDat
 	if r.depth != nil {
 		localVarQueryParams.Add("depth", parameterToString(*r.depth, ""))
 	}
+
 	// to determine the Content-Type header
 	localVarHTTPContentTypes := []string{"application/x-www-form-urlencoded"}
 
@@ -1376,13 +1427,14 @@ func (a *VolumeApiService) DatacentersVolumesRestoreSnapshotPostExecute(r ApiDat
 		return localVarReturnValue, nil, err
 	}
 
-	localVarHTTPResponse, err := a.client.callAPI(req)
+	localVarHTTPResponse, httpRequestTime, err := a.client.callAPI(req)
 
-	localVarAPIResponse := &APIResponse {
-		Response: localVarHTTPResponse,
-		Method: localVarHTTPMethod,
-		RequestURL: localVarPath,
-		Operation: "DatacentersVolumesRestoreSnapshotPost",
+	localVarAPIResponse := &APIResponse{
+		Response:    localVarHTTPResponse,
+		Method:      localVarHTTPMethod,
+		RequestURL:  localVarPath,
+		RequestTime: httpRequestTime,
+		Operation:   "DatacentersVolumesRestoreSnapshotPost",
 	}
 
 	if err != nil || localVarHTTPResponse == nil {
@@ -1399,16 +1451,16 @@ func (a *VolumeApiService) DatacentersVolumesRestoreSnapshotPostExecute(r ApiDat
 	if localVarHTTPResponse.StatusCode >= 300 {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: fmt.Sprintf("%s: %s", localVarHTTPResponse.Status, string(localVarBody)),
+			body:       localVarBody,
+			error:      fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, string(localVarBody)),
 		}
-			var v Error
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarAPIResponse, newErr
-			}
-			newErr.model = v
+		var v Error
+		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+		if err != nil {
+			newErr.error = err.Error()
+			return localVarReturnValue, localVarAPIResponse, newErr
+		}
+		newErr.model = v
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}
 
@@ -1416,8 +1468,8 @@ func (a *VolumeApiService) DatacentersVolumesRestoreSnapshotPostExecute(r ApiDat
 	if err != nil {
 		newErr := GenericOpenAPIError{
 			statusCode: localVarHTTPResponse.StatusCode,
-			body:  localVarBody,
-			error: err.Error(),
+			body:       localVarBody,
+			error:      err.Error(),
 		}
 		return localVarReturnValue, localVarAPIResponse, newErr
 	}

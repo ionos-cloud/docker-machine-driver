@@ -28,7 +28,7 @@ type ClientVolumeProperties struct {
 }
 
 func New(ctx context.Context, name, password, url, httpUserAgent string) ClientService {
-	clientConfig := sdkgo.NewConfiguration(name, password, url)
+	clientConfig := sdkgo.NewConfiguration(name, password, "", url)
 	clientConfig.UserAgent = fmt.Sprintf("%v_%v", httpUserAgent, sdkgo.Version)
 	return &Client{
 		APIClient: sdkgo.NewAPIClient(clientConfig),

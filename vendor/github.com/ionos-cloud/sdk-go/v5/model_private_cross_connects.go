@@ -26,15 +26,12 @@ type PrivateCrossConnects struct {
 	Items *[]PrivateCrossConnect `json:"items,omitempty"`
 }
 
-
-
 // GetId returns the Id field value
 // If the value is explicit nil, the zero value for string will be returned
 func (o *PrivateCrossConnects) GetId() *string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Id
 
@@ -48,13 +45,11 @@ func (o *PrivateCrossConnects) GetIdOk() (*string, bool) {
 		return nil, false
 	}
 
-
 	return o.Id, true
 }
 
 // SetId sets field value
 func (o *PrivateCrossConnects) SetId(v string) {
-
 
 	o.Id = &v
 
@@ -69,15 +64,12 @@ func (o *PrivateCrossConnects) HasId() bool {
 	return false
 }
 
-
-
 // GetType returns the Type field value
 // If the value is explicit nil, the zero value for Type will be returned
 func (o *PrivateCrossConnects) GetType() *Type {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Type
 
@@ -91,13 +83,11 @@ func (o *PrivateCrossConnects) GetTypeOk() (*Type, bool) {
 		return nil, false
 	}
 
-
 	return o.Type, true
 }
 
 // SetType sets field value
 func (o *PrivateCrossConnects) SetType(v Type) {
-
 
 	o.Type = &v
 
@@ -112,15 +102,12 @@ func (o *PrivateCrossConnects) HasType() bool {
 	return false
 }
 
-
-
 // GetHref returns the Href field value
 // If the value is explicit nil, the zero value for string will be returned
 func (o *PrivateCrossConnects) GetHref() *string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Href
 
@@ -134,13 +121,11 @@ func (o *PrivateCrossConnects) GetHrefOk() (*string, bool) {
 		return nil, false
 	}
 
-
 	return o.Href, true
 }
 
 // SetHref sets field value
 func (o *PrivateCrossConnects) SetHref(v string) {
-
 
 	o.Href = &v
 
@@ -155,15 +140,12 @@ func (o *PrivateCrossConnects) HasHref() bool {
 	return false
 }
 
-
-
 // GetItems returns the Items field value
 // If the value is explicit nil, the zero value for []PrivateCrossConnect will be returned
 func (o *PrivateCrossConnects) GetItems() *[]PrivateCrossConnect {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Items
 
@@ -177,13 +159,11 @@ func (o *PrivateCrossConnects) GetItemsOk() (*[]PrivateCrossConnect, bool) {
 		return nil, false
 	}
 
-
 	return o.Items, true
 }
 
 // SetItems sets field value
 func (o *PrivateCrossConnects) SetItems(v []PrivateCrossConnect) {
-
 
 	o.Items = &v
 
@@ -198,29 +178,24 @@ func (o *PrivateCrossConnects) HasItems() bool {
 	return false
 }
 
-
 func (o PrivateCrossConnects) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
 
 	if o.Id != nil {
 		toSerialize["id"] = o.Id
 	}
-	
 
 	if o.Type != nil {
 		toSerialize["type"] = o.Type
 	}
-	
 
 	if o.Href != nil {
 		toSerialize["href"] = o.Href
 	}
-	
 
 	if o.Items != nil {
 		toSerialize["items"] = o.Items
 	}
-	
 	return json.Marshal(toSerialize)
 }
 
@@ -259,5 +234,3 @@ func (v *NullablePrivateCrossConnects) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

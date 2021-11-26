@@ -21,12 +21,10 @@ type PrivateCrossConnect struct {
 	// The type of object that has been created
 	Type *Type `json:"type,omitempty"`
 	// URL to the object representation (absolute path)
-	Href *string `json:"href,omitempty"`
-	Metadata *DatacenterElementMetadata `json:"metadata,omitempty"`
+	Href       *string                        `json:"href,omitempty"`
+	Metadata   *DatacenterElementMetadata     `json:"metadata,omitempty"`
 	Properties *PrivateCrossConnectProperties `json:"properties"`
 }
-
-
 
 // GetId returns the Id field value
 // If the value is explicit nil, the zero value for string will be returned
@@ -34,7 +32,6 @@ func (o *PrivateCrossConnect) GetId() *string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Id
 
@@ -48,13 +45,11 @@ func (o *PrivateCrossConnect) GetIdOk() (*string, bool) {
 		return nil, false
 	}
 
-
 	return o.Id, true
 }
 
 // SetId sets field value
 func (o *PrivateCrossConnect) SetId(v string) {
-
 
 	o.Id = &v
 
@@ -69,15 +64,12 @@ func (o *PrivateCrossConnect) HasId() bool {
 	return false
 }
 
-
-
 // GetType returns the Type field value
 // If the value is explicit nil, the zero value for Type will be returned
 func (o *PrivateCrossConnect) GetType() *Type {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Type
 
@@ -91,13 +83,11 @@ func (o *PrivateCrossConnect) GetTypeOk() (*Type, bool) {
 		return nil, false
 	}
 
-
 	return o.Type, true
 }
 
 // SetType sets field value
 func (o *PrivateCrossConnect) SetType(v Type) {
-
 
 	o.Type = &v
 
@@ -112,15 +102,12 @@ func (o *PrivateCrossConnect) HasType() bool {
 	return false
 }
 
-
-
 // GetHref returns the Href field value
 // If the value is explicit nil, the zero value for string will be returned
 func (o *PrivateCrossConnect) GetHref() *string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Href
 
@@ -134,13 +121,11 @@ func (o *PrivateCrossConnect) GetHrefOk() (*string, bool) {
 		return nil, false
 	}
 
-
 	return o.Href, true
 }
 
 // SetHref sets field value
 func (o *PrivateCrossConnect) SetHref(v string) {
-
 
 	o.Href = &v
 
@@ -155,15 +140,12 @@ func (o *PrivateCrossConnect) HasHref() bool {
 	return false
 }
 
-
-
 // GetMetadata returns the Metadata field value
 // If the value is explicit nil, the zero value for DatacenterElementMetadata will be returned
 func (o *PrivateCrossConnect) GetMetadata() *DatacenterElementMetadata {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Metadata
 
@@ -177,13 +159,11 @@ func (o *PrivateCrossConnect) GetMetadataOk() (*DatacenterElementMetadata, bool)
 		return nil, false
 	}
 
-
 	return o.Metadata, true
 }
 
 // SetMetadata sets field value
 func (o *PrivateCrossConnect) SetMetadata(v DatacenterElementMetadata) {
-
 
 	o.Metadata = &v
 
@@ -198,15 +178,12 @@ func (o *PrivateCrossConnect) HasMetadata() bool {
 	return false
 }
 
-
-
 // GetProperties returns the Properties field value
 // If the value is explicit nil, the zero value for PrivateCrossConnectProperties will be returned
 func (o *PrivateCrossConnect) GetProperties() *PrivateCrossConnectProperties {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Properties
 
@@ -220,13 +197,11 @@ func (o *PrivateCrossConnect) GetPropertiesOk() (*PrivateCrossConnectProperties,
 		return nil, false
 	}
 
-
 	return o.Properties, true
 }
 
 // SetProperties sets field value
 func (o *PrivateCrossConnect) SetProperties(v PrivateCrossConnectProperties) {
-
 
 	o.Properties = &v
 
@@ -241,34 +216,28 @@ func (o *PrivateCrossConnect) HasProperties() bool {
 	return false
 }
 
-
 func (o PrivateCrossConnect) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
 
 	if o.Id != nil {
 		toSerialize["id"] = o.Id
 	}
-	
 
 	if o.Type != nil {
 		toSerialize["type"] = o.Type
 	}
-	
 
 	if o.Href != nil {
 		toSerialize["href"] = o.Href
 	}
-	
 
 	if o.Metadata != nil {
 		toSerialize["metadata"] = o.Metadata
 	}
-	
 
 	if o.Properties != nil {
 		toSerialize["properties"] = o.Properties
 	}
-	
 	return json.Marshal(toSerialize)
 }
 
@@ -307,5 +276,3 @@ func (v *NullablePrivateCrossConnect) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-
