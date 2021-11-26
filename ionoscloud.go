@@ -48,6 +48,7 @@ const (
 
 const (
 	rollingBackNotice = "WARNING: Error creating machine. Rolling back..."
+	driverVersionDev  = "DEV"
 )
 
 // DriverVersion will be set at every new release
@@ -105,7 +106,8 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 		Version: v,
 	}
 	driver.client = func() utils.ClientService {
-		return utils.New(context.TODO(), driver.Username, driver.Password, driver.URL)
+		return utils.New(context.TODO(), driver.Username, driver.Password, driver.URL,
+			fmt.Sprintf("docker-machine-driver/%v", driver.Version))
 	}
 	return driver
 }
@@ -641,8 +643,8 @@ func (d *Driver) getRegionIdAndLocationId() (regionId, locationId string) {
 
 func getDriverVersion(v string) string {
 	if v == "" {
-		return "DEV"
+		return driverVersionDev
 	} else {
-		return v
+		return fmt.Sprintf("v%v", v)
 	}
 }
