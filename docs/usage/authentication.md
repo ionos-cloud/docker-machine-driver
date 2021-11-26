@@ -1,5 +1,7 @@
 # Authentication
 
+## Credentials
+
 Before you use Ionos Cloud Docker Machine Driver, you need to authenticate with your Ionos Cloud credentials. These would be the same username and password that you use to log into the [Ionos Cloud DCD](https://dcd.ionos.com/latest/).
 
 It is possible to pass your credentials:
@@ -25,3 +27,20 @@ rancher-machine create --driver=ionoscloud --ionoscloud-username="ionoscloud_use
 
 * on Rancher UI, when creating a new Node Template.
 
+## API Endpoint
+
+If you want to authenticate against a different API endpoint, you can set that:
+
+* on command-line using `--ionoscloud-endpoint`
+
+* using environment variable:
+
+```text
+export IONOSCLOUD_ENDPOINT="ionoscloud_endpoint"
+```
+
+* on Rancher UI, when creating a new Node Template.
+
+It is recommended to use `api.ionos.com` as `IONOSCLOUD_ENDPOINT`, for flexibility across versions.
+
+_Note_: SDK Go will check if the `/cloudapi/v5` suffix is set at the end of the API endpoint, and if not set, it will set it automatically.
