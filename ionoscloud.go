@@ -105,7 +105,8 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 		Version: v,
 	}
 	driver.client = func() utils.ClientService {
-		return utils.New(context.TODO(), driver.Username, driver.Password, driver.URL)
+		return utils.New(context.TODO(), driver.Username, driver.Password, driver.URL,
+			fmt.Sprintf("docker-machine-driver/v%v", driver.Version))
 	}
 	return driver
 }
