@@ -24,15 +24,12 @@ type LocationProperties struct {
 	ImageAliases *[]string `json:"imageAliases,omitempty"`
 }
 
-
-
 // GetName returns the Name field value
 // If the value is explicit nil, the zero value for string will be returned
 func (o *LocationProperties) GetName() *string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Name
 
@@ -46,13 +43,11 @@ func (o *LocationProperties) GetNameOk() (*string, bool) {
 		return nil, false
 	}
 
-
 	return o.Name, true
 }
 
 // SetName sets field value
 func (o *LocationProperties) SetName(v string) {
-
 
 	o.Name = &v
 
@@ -67,15 +62,12 @@ func (o *LocationProperties) HasName() bool {
 	return false
 }
 
-
-
 // GetFeatures returns the Features field value
 // If the value is explicit nil, the zero value for []string will be returned
 func (o *LocationProperties) GetFeatures() *[]string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Features
 
@@ -89,13 +81,11 @@ func (o *LocationProperties) GetFeaturesOk() (*[]string, bool) {
 		return nil, false
 	}
 
-
 	return o.Features, true
 }
 
 // SetFeatures sets field value
 func (o *LocationProperties) SetFeatures(v []string) {
-
 
 	o.Features = &v
 
@@ -110,15 +100,12 @@ func (o *LocationProperties) HasFeatures() bool {
 	return false
 }
 
-
-
 // GetImageAliases returns the ImageAliases field value
 // If the value is explicit nil, the zero value for []string will be returned
 func (o *LocationProperties) GetImageAliases() *[]string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.ImageAliases
 
@@ -132,13 +119,11 @@ func (o *LocationProperties) GetImageAliasesOk() (*[]string, bool) {
 		return nil, false
 	}
 
-
 	return o.ImageAliases, true
 }
 
 // SetImageAliases sets field value
 func (o *LocationProperties) SetImageAliases(v []string) {
-
 
 	o.ImageAliases = &v
 
@@ -153,24 +138,20 @@ func (o *LocationProperties) HasImageAliases() bool {
 	return false
 }
 
-
 func (o LocationProperties) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
 
 	if o.Name != nil {
 		toSerialize["name"] = o.Name
 	}
-	
 
 	if o.Features != nil {
 		toSerialize["features"] = o.Features
 	}
-	
 
 	if o.ImageAliases != nil {
 		toSerialize["imageAliases"] = o.ImageAliases
 	}
-	
 	return json.Marshal(toSerialize)
 }
 
@@ -209,5 +190,3 @@ func (v *NullableLocationProperties) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

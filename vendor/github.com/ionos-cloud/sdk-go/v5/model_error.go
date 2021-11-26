@@ -17,11 +17,9 @@ import (
 // Error struct for Error
 type Error struct {
 	// HTTP status code of the operation
-	HttpStatus *int32 `json:"httpStatus,omitempty"`
-	Messages *[]ErrorMessage `json:"messages,omitempty"`
+	HttpStatus *int32          `json:"httpStatus,omitempty"`
+	Messages   *[]ErrorMessage `json:"messages,omitempty"`
 }
-
-
 
 // GetHttpStatus returns the HttpStatus field value
 // If the value is explicit nil, the zero value for int32 will be returned
@@ -29,7 +27,6 @@ func (o *Error) GetHttpStatus() *int32 {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.HttpStatus
 
@@ -43,13 +40,11 @@ func (o *Error) GetHttpStatusOk() (*int32, bool) {
 		return nil, false
 	}
 
-
 	return o.HttpStatus, true
 }
 
 // SetHttpStatus sets field value
 func (o *Error) SetHttpStatus(v int32) {
-
 
 	o.HttpStatus = &v
 
@@ -64,15 +59,12 @@ func (o *Error) HasHttpStatus() bool {
 	return false
 }
 
-
-
 // GetMessages returns the Messages field value
 // If the value is explicit nil, the zero value for []ErrorMessage will be returned
 func (o *Error) GetMessages() *[]ErrorMessage {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Messages
 
@@ -86,13 +78,11 @@ func (o *Error) GetMessagesOk() (*[]ErrorMessage, bool) {
 		return nil, false
 	}
 
-
 	return o.Messages, true
 }
 
 // SetMessages sets field value
 func (o *Error) SetMessages(v []ErrorMessage) {
-
 
 	o.Messages = &v
 
@@ -107,19 +97,16 @@ func (o *Error) HasMessages() bool {
 	return false
 }
 
-
 func (o Error) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
 
 	if o.HttpStatus != nil {
 		toSerialize["httpStatus"] = o.HttpStatus
 	}
-	
 
 	if o.Messages != nil {
 		toSerialize["messages"] = o.Messages
 	}
-	
 	return json.Marshal(toSerialize)
 }
 
@@ -158,5 +145,3 @@ func (v *NullableError) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

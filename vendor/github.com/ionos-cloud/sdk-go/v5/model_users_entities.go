@@ -16,11 +16,9 @@ import (
 
 // UsersEntities struct for UsersEntities
 type UsersEntities struct {
-	Owns *ResourcesUsers `json:"owns,omitempty"`
-	Groups *GroupUsers `json:"groups,omitempty"`
+	Owns   *ResourcesUsers `json:"owns,omitempty"`
+	Groups *GroupUsers     `json:"groups,omitempty"`
 }
-
-
 
 // GetOwns returns the Owns field value
 // If the value is explicit nil, the zero value for ResourcesUsers will be returned
@@ -28,7 +26,6 @@ func (o *UsersEntities) GetOwns() *ResourcesUsers {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Owns
 
@@ -42,13 +39,11 @@ func (o *UsersEntities) GetOwnsOk() (*ResourcesUsers, bool) {
 		return nil, false
 	}
 
-
 	return o.Owns, true
 }
 
 // SetOwns sets field value
 func (o *UsersEntities) SetOwns(v ResourcesUsers) {
-
 
 	o.Owns = &v
 
@@ -63,15 +58,12 @@ func (o *UsersEntities) HasOwns() bool {
 	return false
 }
 
-
-
 // GetGroups returns the Groups field value
 // If the value is explicit nil, the zero value for GroupUsers will be returned
 func (o *UsersEntities) GetGroups() *GroupUsers {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Groups
 
@@ -85,13 +77,11 @@ func (o *UsersEntities) GetGroupsOk() (*GroupUsers, bool) {
 		return nil, false
 	}
 
-
 	return o.Groups, true
 }
 
 // SetGroups sets field value
 func (o *UsersEntities) SetGroups(v GroupUsers) {
-
 
 	o.Groups = &v
 
@@ -106,19 +96,16 @@ func (o *UsersEntities) HasGroups() bool {
 	return false
 }
 
-
 func (o UsersEntities) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
 
 	if o.Owns != nil {
 		toSerialize["owns"] = o.Owns
 	}
-	
 
 	if o.Groups != nil {
 		toSerialize["groups"] = o.Groups
 	}
-	
 	return json.Marshal(toSerialize)
 }
 
@@ -157,5 +144,3 @@ func (v *NullableUsersEntities) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

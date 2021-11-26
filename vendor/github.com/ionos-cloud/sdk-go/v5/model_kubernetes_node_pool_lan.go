@@ -20,15 +20,12 @@ type KubernetesNodePoolLan struct {
 	Id *int32 `json:"id"`
 }
 
-
-
 // GetId returns the Id field value
 // If the value is explicit nil, the zero value for int32 will be returned
 func (o *KubernetesNodePoolLan) GetId() *int32 {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Id
 
@@ -42,13 +39,11 @@ func (o *KubernetesNodePoolLan) GetIdOk() (*int32, bool) {
 		return nil, false
 	}
 
-
 	return o.Id, true
 }
 
 // SetId sets field value
 func (o *KubernetesNodePoolLan) SetId(v int32) {
-
 
 	o.Id = &v
 
@@ -63,14 +58,12 @@ func (o *KubernetesNodePoolLan) HasId() bool {
 	return false
 }
 
-
 func (o KubernetesNodePoolLan) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
 
 	if o.Id != nil {
 		toSerialize["id"] = o.Id
 	}
-	
 	return json.Marshal(toSerialize)
 }
 
@@ -109,5 +102,3 @@ func (v *NullableKubernetesNodePoolLan) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

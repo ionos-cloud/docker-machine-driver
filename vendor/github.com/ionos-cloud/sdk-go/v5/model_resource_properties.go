@@ -22,15 +22,12 @@ type ResourceProperties struct {
 	SecAuthProtection *bool `json:"secAuthProtection,omitempty"`
 }
 
-
-
 // GetName returns the Name field value
 // If the value is explicit nil, the zero value for string will be returned
 func (o *ResourceProperties) GetName() *string {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.Name
 
@@ -44,13 +41,11 @@ func (o *ResourceProperties) GetNameOk() (*string, bool) {
 		return nil, false
 	}
 
-
 	return o.Name, true
 }
 
 // SetName sets field value
 func (o *ResourceProperties) SetName(v string) {
-
 
 	o.Name = &v
 
@@ -65,15 +60,12 @@ func (o *ResourceProperties) HasName() bool {
 	return false
 }
 
-
-
 // GetSecAuthProtection returns the SecAuthProtection field value
 // If the value is explicit nil, the zero value for bool will be returned
 func (o *ResourceProperties) GetSecAuthProtection() *bool {
 	if o == nil {
 		return nil
 	}
-
 
 	return o.SecAuthProtection
 
@@ -87,13 +79,11 @@ func (o *ResourceProperties) GetSecAuthProtectionOk() (*bool, bool) {
 		return nil, false
 	}
 
-
 	return o.SecAuthProtection, true
 }
 
 // SetSecAuthProtection sets field value
 func (o *ResourceProperties) SetSecAuthProtection(v bool) {
-
 
 	o.SecAuthProtection = &v
 
@@ -108,19 +98,16 @@ func (o *ResourceProperties) HasSecAuthProtection() bool {
 	return false
 }
 
-
 func (o ResourceProperties) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
 
 	if o.Name != nil {
 		toSerialize["name"] = o.Name
 	}
-	
 
 	if o.SecAuthProtection != nil {
 		toSerialize["secAuthProtection"] = o.SecAuthProtection
 	}
-	
 	return json.Marshal(toSerialize)
 }
 
@@ -159,5 +146,3 @@ func (v *NullableResourceProperties) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-
