@@ -29,7 +29,7 @@ var (
 )
 
 func TestClientNew(t *testing.T) {
-	New(context.Background(), testName, testName, testName, testName)
+	New(context.Background(), testName, testName, testName, testName, testName)
 }
 
 func TestClientCreateIpBlockErr(t *testing.T) {
