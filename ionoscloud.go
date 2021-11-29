@@ -357,16 +357,31 @@ func (d *Driver) Create() error {
 		d.ServerId = *serverId
 	}
 
-	properties := &utils.ClientVolumeProperties{
-		DiskType:      d.DiskType,
-		Name:          d.MachineName,
-		ImageAlias:    alias,
-		ImagePassword: d.ImagePassword,
-		Zone:          d.VolumeAvailabilityZone,
-		SshKey:        d.SSHKey,
-		DiskSize:      float32(d.DiskSize),
+	var properties utils.ClientVolumeProperties
+	if !d.UseAlias {
+		log.Infof("Image Id: %v", result)
+		properties = utils.ClientVolumeProperties{
+			DiskType:      d.DiskType,
+			Name:          d.MachineName,
+			ImageId:       result,
+			ImagePassword: d.ImagePassword,
+			Zone:          d.VolumeAvailabilityZone,
+			SshKey:        d.SSHKey,
+			DiskSize:      float32(d.DiskSize),
+		}
+	} else {
+		log.Infof("Image Alias: %v", alias)
+		properties = utils.ClientVolumeProperties{
+			DiskType:      d.DiskType,
+			Name:          d.MachineName,
+			ImageAlias:    alias,
+			ImagePassword: d.ImagePassword,
+			Zone:          d.VolumeAvailabilityZone,
+			SshKey:        d.SSHKey,
+			DiskSize:      float32(d.DiskSize),
+		}
 	}
-	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, properties)
+	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, &properties)
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
@@ -603,7 +618,7 @@ func (d *Driver) isSwarmMaster() bool {
 
 func (d *Driver) getImageId(imageName string) (string, error) {
 	d.UseAlias = false
-	// first look if the provided parameter matches an alias, if a match is found we return the image alias
+	// First, look if the provided parameter matches an alias, if a match is found we return the image alias
 	regionId, locationId := d.getRegionIdAndLocationId()
 	location, err := d.client().GetLocationById(regionId, locationId)
 	if err != nil {
@@ -619,7 +634,21 @@ func (d *Driver) getImageId(imageName string) (string, error) {
 			}
 		}
 	}
-	// if no alias matches we do extended search and return the image id
+	// Second, check if the imageName provided is actually an imageId.
+	// If an image is found, return the imageId
+	imageFound, err := d.client().GetImageById(imageName)
+	if err != nil {
+		if !strings.Contains(err.Error(), "no image found") {
+			return "", nil
+		}
+	} else {
+		d.UseAlias = false
+		return *imageFound.Id, nil
+	}
+	// If no alias and id match, we do extended search, considering the image parameter
+	// set by the user to be part of the image name and checking the location & image type.
+	// If the extended search is successful, return the imageId.
+	// Example: if the user sets: Ubuntu-20.04, the driver will know which image to use.
 	images, err := d.client().GetImages()
 	if err != nil {
 		return "", err
@@ -641,6 +670,7 @@ func (d *Driver) getImageId(imageName string) (string, error) {
 			}
 			if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(imageName)) &&
 				*image.Properties.ImageType == diskType && *image.Properties.Location == d.Location {
+				d.UseAlias = false
 				return *image.Id, nil
 			}
 		}
