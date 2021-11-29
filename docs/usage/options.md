@@ -19,20 +19,20 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | Option | Description |
 | :--- | :--- |
 | `--driver, -d` | Driver to create machine with |
+| `--ionoscloud-username` | Ionos Cloud Username |
+| `--ionoscloud-password` | Ionos Cloud Password |
+| `--ionoscloud-token` | Ionos Cloud Token |
+| `--ionoscloud-endpoint` | Ionos Cloud API Endpoint. It is recommended to be set to `https://api.ionos.com` or `https://api.ionos.com/cloudapi/v5`. The SDK will automatically put the `/cloudapi/v5` suffix if not set. |
 | `--ionoscloud-datacenter-id` | Ionos Cloud Virtual Data Center Id |
-| `--ionoscloud-disk-size` | Ionos Cloud Volume Disk-Size \(10, 50, 100, 200, 400\) |
+| `--ionoscloud-disk-size` | Ionos Cloud Volume Disk-Size in GB \(10, 50, 100, 200, 400\) |
 | `--ionoscloud-disk-type` | Ionos Cloud Volume Disk-Type \(HDD, SSD\) |
-| `--ionoscloud-endpoint` | Ionos Cloud API Endpoint |
 | `--ionoscloud-image` | Ionos Cloud Image Alias \(ubuntu:latest, ubuntu:20.04\) |
 | `--ionoscloud-image-password` | Ionos Cloud Image Password to be able to access the server from DCD platform |
 | `--ionoscloud-location` | Ionos Cloud Location |
-| `--ionoscloud-password` | Ionos Cloud Password |
-| `--ionoscloud-token` | Ionos Cloud Token |
 | `--ionoscloud-server-availability-zone` | Ionos Cloud Server Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\) |
 | `--ionoscloud-cores` | Ionos Cloud Server Cores \(2, 3, 4, 5, 6, etc.\) |
 | `--ionoscloud-cpu-family` | Ionos Cloud Server CPU families \(AMD\_OPTERON,INTEL\_XEON, INTEL\_SKYLAKE\) |
-| `--ionoscloud-ram` | Ionos Cloud Server Ram \(1024, 2048, 3072, 4096, etc.\) |
-| `--ionoscloud-username` | Ionos Cloud Username |
+| `--ionoscloud-ram` | Ionos Cloud Server Ram in MB \(1024, 2048, 3072, 4096, etc.\) |
 | `--ionoscloud-volume-availability-zone` | Ionos Cloud Volume Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\) |
 | `--swarm` | Configure Machine to join a Swarm cluster |
 | `--swarm-addr` | addr to advertise for Swarm \(default: detect and use the machine IP\) |
@@ -59,10 +59,13 @@ Environment variables are also supported for setting options. This is a list of 
 
 | Option | Environment variable |
 | :--- | :--- |
+| `--ionoscloud-username` | `IONOSCLOUD_USERNAME` |
+| `--ionoscloud-password` | `IONOSCLOUD_PASSWORD` |
+| `--ionoscloud-token` | `IONOSCLOUD_TOKEN` |
+| `--ionoscloud-endpoint` | `IONOSCLOUD_ENDPOINT` |
 | `--ionoscloud-datacenter-id` | `IONOSCLOUD_DATACENTER_ID` |
 | `--ionoscloud-disk-size` | `IONOSCLOUD_DISK_SIZE` |
 | `--ionoscloud-disk-type` | `IONOSCLOUD_DISK_TYPE` |
-| `--ionoscloud-endpoint` | `IONOSCLOUD_ENDPOINT` |
 | `--ionoscloud-image` | `IONOSCLOUD_IMAGE` |
 | `--ionoscloud-image-password` | `IONOSCLOUD_IMAGE_PASSWORD` |
 | `--ionoscloud-location` | `IONOSCLOUD_LOCATION` |
@@ -70,8 +73,5 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-cores` | `IONOSCLOUD_CORES` |
 | `--ionoscloud-cpu-family` | `IONOSCLOUD_CPU_FAMILY` |
 | `--ionoscloud-ram` | `IONOSCLOUD_RAM` |
-| `--ionoscloud-username` | `IONOSCLOUD_USERNAME` |
-| `--ionoscloud-password` | `IONOSCLOUD_PASSWORD` |
-| `--ionoscloud-token` | `IONOSCLOUD_TOKEN` |
 | `--ionoscloud-volume-availability-zone` | `IONOSCLOUD_VOLUME_ZONE` |
 

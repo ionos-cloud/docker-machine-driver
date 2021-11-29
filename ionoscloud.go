@@ -37,7 +37,6 @@ const (
 
 const (
 	defaultRegion           = "us/las"
-	defaultApiEndpoint      = "https://api.ionos.com/cloudapi/v5"
 	defaultImageAlias       = "ubuntu:latest"
 	defaultImagePassword    = "abcde12345" // Must contain both letters and numbers, at least 8 characters
 	defaultCpuFamily        = "AMD_OPTERON"
@@ -97,6 +96,7 @@ func NewDriver(hostName, storePath string) drivers.Driver {
 }
 
 func NewDerivedDriver(hostName, storePath string) *Driver {
+	var httpUserAgent string
 	v := getDriverVersion(DriverVersion)
 	driver := &Driver{
 		Size:     defaultSize,
@@ -107,9 +107,13 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 		},
 		Version: v,
 	}
+	if v != driverVersionDev {
+		httpUserAgent = fmt.Sprintf("docker-machine-driver-ionoscloud/v%v", driver.Version)
+	} else {
+		httpUserAgent = fmt.Sprintf("docker-machine-driver-ionoscloud/%v", driver.Version)
+	}
 	driver.client = func() utils.ClientService {
-		return utils.New(context.TODO(), driver.Username, driver.Password, driver.Token, driver.URL,
-			fmt.Sprintf("docker-machine-driver/%v", driver.Version))
+		return utils.New(context.TODO(), driver.Username, driver.Password, driver.Token, driver.URL, httpUserAgent)
 	}
 	return driver
 }
@@ -120,7 +124,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_ENDPOINT",
 			Name:   flagEndpoint,
-			Value:  defaultApiEndpoint,
+			Value:  sdkgo.DefaultIonosServerUrl,
 			Usage:  "Ionos Cloud API Endpoint",
 		},
 		mcnflag.StringFlag{
@@ -148,13 +152,13 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			EnvVar: "IONOSCLOUD_RAM",
 			Name:   flagServerRam,
 			Value:  2048,
-			Usage:  "Ionos Cloud Server Ram (1024, 2048, 3072, 4096, etc.)",
+			Usage:  "Ionos Cloud Server Ram in MB(1024, 2048, 3072, 4096, etc.)",
 		},
 		mcnflag.IntFlag{
 			EnvVar: "IONOSCLOUD_DISK_SIZE",
 			Name:   flagDiskSize,
 			Value:  50,
-			Usage:  "Ionos Cloud Volume Disk-Size (10, 50, 100, 200, 400)",
+			Usage:  "Ionos Cloud Volume Disk-Size in GB(10, 50, 100, 200, 400)",
 		},
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_IMAGE",
@@ -230,7 +234,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.SetSwarmConfigFromFlags(opts)
 
 	if d.URL == "" {
-		d.URL = defaultApiEndpoint
+		d.URL = sdkgo.DefaultIonosServerUrl
 	}
 
 	return nil
@@ -658,6 +662,6 @@ func getDriverVersion(v string) string {
 	if v == "" {
 		return driverVersionDev
 	} else {
-		return fmt.Sprintf("v%v", v)
+		return v
 	}
 }
