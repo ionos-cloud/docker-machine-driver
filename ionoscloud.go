@@ -425,29 +425,37 @@ func (d *Driver) Remove() error {
 	log.Warn("NOTICE: Please check IONOS Cloud Console/CLI to ensure there are no leftover resources.")
 	log.Info("Starting deleting resources...")
 
+	log.Debugf("Datacenter Id: %v", d.DatacenterId)
+	log.Debugf("Server Id: %v", d.ServerId)
+	log.Debugf("Starting deleting Nic with Id: %v", d.NicId)
 	err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
 	if err != nil {
 		result = multierror.Append(result, err)
 	}
+	log.Debugf("Starting deleting Volume with Id: %v", d.VolumeId)
 	err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)
 	if err != nil {
 		result = multierror.Append(result, err)
 	}
+	log.Debugf("Starting deleting Server with Id: %v", d.ServerId)
 	err = d.client().RemoveServer(d.DatacenterId, d.ServerId)
 	if err != nil {
 		result = multierror.Append(result, err)
 	}
+	log.Debugf("Starting deleting LAN with Id: %v", d.LanId)
 	err = d.client().RemoveLan(d.DatacenterId, d.LanId)
 	if err != nil {
 		result = multierror.Append(result, err)
 	}
 	// If the DataCenter existed before creating the machine, do not delete it at clean-up
 	if !d.DCExists {
+		log.Debugf("Starting deleting Datacenter with Id: %v", d.DatacenterId)
 		err = d.client().RemoveDatacenter(d.DatacenterId)
 		if err != nil {
 			result = multierror.Append(result, err)
 		}
 	}
+	log.Debugf("Starting deleting IpBlock with Id: %v", d.IpBlockId)
 	err = d.client().RemoveIpBlock(d.IpBlockId)
 	if err != nil {
 		result = multierror.Append(result, err)
