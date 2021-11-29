@@ -374,13 +374,13 @@ func (c *Client) GetImages() (sdkgo.Images, error) {
 
 func (c *Client) GetImageById(imageId string) (sdkgo.Image, error) {
 	image, imagesResp, err := c.ImageApi.ImagesFindById(c.ctx, imageId).Execute()
-	if imagesResp.StatusCode == 404 {
+	if imagesResp != nil && imagesResp.StatusCode == 404 {
 		return sdkgo.Image{}, fmt.Errorf("error: no image found with id: %v", imageId)
 	}
 	if err != nil {
 		return sdkgo.Image{}, err
 	}
-	if imagesResp.StatusCode == 401 {
+	if imagesResp != nil && imagesResp.StatusCode == 401 {
 		return sdkgo.Image{}, fmt.Errorf("error: authentication failed")
 	}
 	return image, nil
