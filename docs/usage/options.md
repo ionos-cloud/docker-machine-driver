@@ -21,6 +21,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--driver, -d` | Driver to create machine with |
 | `--ionoscloud-username` | Ionos Cloud Username |
 | `--ionoscloud-password` | Ionos Cloud Password |
+| `--ionoscloud-token` | Ionos Cloud Token |
 | `--ionoscloud-endpoint` | Ionos Cloud API Endpoint. It is recommended to be set to `https://api.ionos.com` or `https://api.ionos.com/cloudapi/v5`. The SDK will automatically put the `/cloudapi/v5` suffix if not set. |
 | `--ionoscloud-datacenter-id` | Ionos Cloud Virtual Data Center Id |
 | `--ionoscloud-disk-size` | Ionos Cloud Volume Disk-Size in GB \(10, 50, 100, 200, 400\) |
@@ -60,6 +61,7 @@ Environment variables are also supported for setting options. This is a list of 
 | :--- | :--- |
 | `--ionoscloud-username` | `IONOSCLOUD_USERNAME` |
 | `--ionoscloud-password` | `IONOSCLOUD_PASSWORD` |
+| `--ionoscloud-token` | `IONOSCLOUD_TOKEN` |
 | `--ionoscloud-endpoint` | `IONOSCLOUD_ENDPOINT` |
 | `--ionoscloud-datacenter-id` | `IONOSCLOUD_DATACENTER_ID` |
 | `--ionoscloud-disk-size` | `IONOSCLOUD_DISK_SIZE` |

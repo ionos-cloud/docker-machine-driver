@@ -13,6 +13,12 @@ export IONOSCLOUD_USERNAME="ionoscloud_username"
 export IONOSCLOUD_PASSWORD="ionoscloud_password"
 ```
 
+or 
+
+```text
+export IONOSCLOUD_TOKEN="ionoscloud_token"
+```
+
 * on command-line using `--ionoscloud-username` and `--ionoscloud-password`:
 
 ```text
@@ -23,6 +29,18 @@ or
 
 ```text
 rancher-machine create --driver=ionoscloud --ionoscloud-username="ionoscloud_username" --ionoscloud-password="ionoscloud_password" test-machine
+```
+
+* on command-line using `--ionoscloud-token`:
+
+```text
+docker-machine create --driver=ionoscloud --ionoscloud-token="ionoscloud_token" test-machine
+```
+
+or
+
+```text
+rancher-machine create --driver=ionoscloud --ionoscloud-token="ionoscloud_token" test-machine
 ```
 
 * on Rancher UI, when creating a new Node Template.
