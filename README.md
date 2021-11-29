@@ -14,9 +14,7 @@
 
 ![Alt text](.github/IONOS.CLOUD.BLU.svg?raw=true "Title")
 
----
-description: This library adds the support for creating Docker Machines hosted on IONOS Cloud.
----
+> This library adds the support for creating Docker Machines hosted on IONOS Cloud.
 
 ## Overview
 
