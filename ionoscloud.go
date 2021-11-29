@@ -164,7 +164,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			EnvVar: "IONOSCLOUD_IMAGE",
 			Name:   flagImage,
 			Value:  defaultImageAlias,
-			Usage:  "Ionos Cloud Image Alias (ubuntu:latest, ubuntu:20.04)",
+			Usage:  "Ionos Cloud Image Id or Alias (ubuntu:latest, ubuntu:20.04)",
 		},
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_IMAGE_PASSWORD",
@@ -639,11 +639,13 @@ func (d *Driver) getImageId(imageName string) (string, error) {
 	imageFound, err := d.client().GetImageById(imageName)
 	if err != nil {
 		if !strings.Contains(err.Error(), "no image found") {
-			return "", nil
+			return "", err
 		}
 	} else {
-		d.UseAlias = false
-		return *imageFound.Id, nil
+		if imageId, ok := imageFound.GetIdOk(); ok && imageId != nil {
+			d.UseAlias = false
+			return *imageId, nil
+		}
 	}
 	// If no alias and id match, we do extended search, considering the image parameter
 	// set by the user to be part of the image name and checking the location & image type.
