@@ -295,6 +295,7 @@ func (d *Driver) Create() error {
 		if err != nil {
 			return fmt.Errorf("error creating SSH keys: %v", err)
 		}
+		log.Debugf("SSH Key generated in file: %v", d.publicSSHKeyPath())
 	}
 
 	result, err := d.getImageId(d.Image)
@@ -310,12 +311,14 @@ func (d *Driver) Create() error {
 	if d.DatacenterId == "" {
 		d.DCExists = false
 		var err error
+		log.Debugf("Creating datacenter...")
 		dc, err = d.client().CreateDatacenter(d.MachineName, d.Location)
 		if err != nil {
 			return err
 		}
 	} else {
 		d.DCExists = true
+		log.Debugf("Getting existing datacenter..")
 		dc, err = d.client().GetDatacenter(d.DatacenterId)
 		if err != nil {
 			return err
@@ -323,6 +326,7 @@ func (d *Driver) Create() error {
 	}
 	if dcId, ok := dc.GetIdOk(); ok && dcId != nil {
 		d.DatacenterId = *dcId
+		log.Debugf("Datacenter ID: %v", d.DatacenterId)
 	}
 
 	ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
@@ -331,6 +335,7 @@ func (d *Driver) Create() error {
 	}
 	if ipBlockId, ok := ipBlock.GetIdOk(); ok && ipBlockId != nil {
 		d.IpBlockId = *ipBlockId
+		log.Debugf("IpBlock ID: %v", d.IpBlockId)
 	}
 
 	lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, true)
@@ -343,6 +348,7 @@ func (d *Driver) Create() error {
 	}
 	if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
 		d.LanId = *lanId
+		log.Debugf("Lan ID: %v", d.LanId)
 	}
 
 	server, err := d.client().CreateServer(d.DatacenterId, d.Location, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
@@ -355,6 +361,7 @@ func (d *Driver) Create() error {
 	}
 	if serverId, ok := server.GetIdOk(); ok && serverId != nil {
 		d.ServerId = *serverId
+		log.Debugf("Server ID: %v", d.ServerId)
 	}
 
 	properties := &utils.ClientVolumeProperties{
@@ -376,6 +383,7 @@ func (d *Driver) Create() error {
 	}
 	if volumeId, ok := volume.GetIdOk(); ok && volumeId != nil {
 		d.VolumeId = *volumeId
+		log.Debugf("Volume ID: %v", d.VolumeId)
 	}
 
 	l, _ := strconv.Atoi(d.LanId)
@@ -394,6 +402,7 @@ func (d *Driver) Create() error {
 	}
 	if nicId, ok := nic.GetIdOk(); ok && nicId != nil {
 		d.NicId = *nic.Id
+		log.Debugf("Nic ID: %v", d.NicId)
 	}
 
 	if len(*ips) > 0 {
