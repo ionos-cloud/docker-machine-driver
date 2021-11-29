@@ -12,6 +12,12 @@ You will create a Docker Container with the following command:
 sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged rancher/rancher
 ```
 
+To output the available containers, use:
+
+```text
+docker ps
+```
+
 To follow the output logs for the running container, use:
 
 ```text
@@ -20,7 +26,7 @@ docker logs -f container-id
 
 ## Prerequisites
 
-* Your IONOS Cloud account credentials: username and password
+* Your IONOS Cloud account credentials: username and password or token
 * A link to download the latest release of docker-machine-driver for your platform. Check the [Release Page](https://github.com/ionos-cloud/docker-machine-driver/releases) for the latest releases available. Find the corresponding one for your operating system and architecture. 
 
 All you need to do is to copy the link location, which should look something like this: `https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<version>/docker-machine-driver-<version>-linux-amd64.tar.gz`
