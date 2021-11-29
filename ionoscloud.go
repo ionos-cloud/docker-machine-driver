@@ -106,9 +106,9 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 		Version: v,
 	}
 	if v != driverVersionDev {
-		httpUserAgent = fmt.Sprintf("docker-machine-driver/v%v", driver.Version)
+		httpUserAgent = fmt.Sprintf("docker-machine-driver-ionoscloud/v%v", driver.Version)
 	} else {
-		httpUserAgent = fmt.Sprintf("docker-machine-driver/%v", driver.Version)
+		httpUserAgent = fmt.Sprintf("docker-machine-driver-ionoscloud/%v", driver.Version)
 	}
 	driver.client = func() utils.ClientService {
 		return utils.New(context.TODO(), driver.Username, driver.Password, driver.URL, httpUserAgent)
