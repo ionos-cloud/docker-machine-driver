@@ -278,7 +278,7 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 }
 
 func (c *Client) RemoveVolume(datacenterId, volumeId string) error {
-	 resp, err := c.VolumesApi.DatacentersVolumesDelete(c.ctx, datacenterId, volumeId).Execute()
+	resp, err := c.VolumesApi.DatacentersVolumesDelete(c.ctx, datacenterId, volumeId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting volume: %v", err)
 	}
