@@ -12,6 +12,18 @@ You will create a Docker Container with the following command:
 sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged rancher/rancher
 ```
 
+To use a specific Rancher version, check the [available docker images](https://hub.docker.com/r/rancher/rancher/tags) and add the corresponding tag to the command: 
+
+```text
+sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged rancher/rancher:v2.5.x
+```
+
+To output the available docker containers, use:
+
+```text
+docker ps
+```
+
 To follow the output logs for the running container, use:
 
 ```text
@@ -20,10 +32,14 @@ docker logs -f container-id
 
 ## Prerequisites
 
-* Your IONOS Cloud account credentials: username and password
+* Your IONOS Cloud account credentials: username and password or token
 * A link to download the latest release of docker-machine-driver for your platform. Check the [Release Page](https://github.com/ionos-cloud/docker-machine-driver/releases) for the latest releases available. Find the corresponding one for your operating system and architecture. 
 
-All you need to do is to copy the link location, which should look something like this: `https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<version>/docker-machine-driver-<version>-linux-amd64.tar.gz`
+All you need to do is to copy the link location, which should look something like this: `
+
+```text
+https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<version>/docker-machine-driver-<version>-linux-amd64.tar.gz
+```
 
 * A web server accessible by your browser
 
@@ -31,13 +47,15 @@ All you need to do is to copy the link location, which should look something lik
 
 After logging into Rancher UI, follow the next steps in order to install a cluster with IONOS Cloud as cloud provider, using IONOS Cloud Docker Machine Driver:
 
+### v2.5.x
+
 * Install Node Driver
   * Go to Tools ➜ Drivers ➜ Node Drivers
   * Click on `Add New Driver` button
   * Enter the URL for the docker-machine-driver in the `Download URL` and click `Create`
   * Wait fot the machine driver to be downloaded and become `Active`
 * Create Node Template
-  * Go to Node Templates, from the drop down menu for `User Settings`
+  * Go to Node Templates, from the drop-down menu for `User Settings`
   * Click on `Add Node Template` button
   * At this point, `Ionoscloud` should be on the list of `Available Hosts`. Select `Ionoscloud`
   * Configure the `IONOSCLOUD OPTIONS` as you prefer and add also your password and username for IONOS Cloud account
@@ -50,7 +68,31 @@ After logging into Rancher UI, follow the next steps in order to install a clust
   * Customize your cluster: Single Node \(by selecting all etcd, Control Plane and Worker\) or Multiple Nodes
   * Click on `Create` button
   * Wait for cluster to become `Active` \(it will take some minutes\).
+  
+### v2.6.x
 
+This version is under development, and it is not currently stable with the use of IONOS Cloud Docker Machine Driver. We recommend v2.5.x versions for the moment.
+
+* Install Node Driver
+  * Go to Cluster Management ➜ Drivers ➜ Node Drivers
+  * Click on `Add Node Driver` button
+  * Enter the URL for the docker-machine-driver in the `Download URL` and click `Create`
+  * Wait fot the machine driver to be downloaded and become `Active`
+* Create Node Template
+  * Go to Cluster Management ➜ RKE1 Configuration ➜ Node Templates
+  * Click on `Add Template` button
+  * At this point, `Ionoscloud` should be on the list of `Available Hosts`. Select `Ionoscloud`
+  * Configure the `IONOSCLOUD OPTIONS` as you prefer and add also your credentials for IONOS Cloud account
+  * Give a name to the new Node Template and press `Create` button
+* Create New Rancher Cluster
+  * Go to Cluster Management ➜ Clusters
+  * Click on `Create` button
+  * In the `Create a new Kubernetes cluster` section, select `Ionoscloud`
+  * Choose the name of the new cluster, the name prefix of the node and make sure you have the Node Template you just created, in the `Template` section
+  * Customize your cluster: Single Node \(by selecting all etcd, Control Plane and Worker\) or Multiple Nodes
+  * Click on `Create` button
+  * Wait for cluster to become `Active` \(it will take some minutes\).
+  
 ## Support
 
 Please submit any bugs, issues or feature requests to [ionos-cloud/docker-machine-driver](https://github.com/ionos-cloud/docker-machine-driver/issues/new/choose).

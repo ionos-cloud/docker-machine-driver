@@ -14,6 +14,7 @@
 
 ![Alt text](.github/IONOS.CLOUD.BLU.svg?raw=true "Title")
 
+> This library adds the support for creating Docker Machines hosted on IONOS Cloud.
 
 ## Overview
 
@@ -124,3 +125,6 @@ Bugs & feature requests can be open on the repository issues: [https://github.co
 
 Sure! Our repository is public, feel free to fork it and file a PR for one of the issues opened in the issues list. We will review it and work together to get it released.
 
+## License
+
+[Apache 2.0](LICENSE)
