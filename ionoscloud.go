@@ -14,7 +14,7 @@ import (
 	"github.com/docker/machine/libmachine/state"
 	"github.com/hashicorp/go-multierror"
 	"github.com/ionos-cloud/docker-machine-driver/utils"
-	sdkgo "github.com/ionos-cloud/sdk-go/v5"
+	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 )
 
 const (

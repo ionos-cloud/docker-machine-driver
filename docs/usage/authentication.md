@@ -61,4 +61,4 @@ export IONOSCLOUD_ENDPOINT="ionoscloud_endpoint"
 
 It is recommended to use `api.ionos.com` as `IONOSCLOUD_ENDPOINT`, for flexibility across versions.
 
-_Note_: SDK Go will check if the `/cloudapi/v5` suffix is set at the end of the API endpoint, and if not set, it will set it automatically.
+_Note_: SDK Go will check if the `/cloudapi/v6` suffix is set at the end of the API endpoint, and if not set, it will set it automatically.

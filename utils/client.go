@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/docker/machine/libmachine/log"
-	sdkgo "github.com/ionos-cloud/sdk-go/v5"
+	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 )
 
 const waitCount = 1000
@@ -67,7 +67,7 @@ func (c *Client) GetIpBlockIps(ipBlock *sdkgo.IpBlock) (*[]string, error) {
 }
 
 func (c *Client) RemoveIpBlock(ipBlockId string) error {
-	_, resp, err := c.IPBlocksApi.IpblocksDelete(c.ctx, ipBlockId).Execute()
+	resp, err := c.IPBlocksApi.IpblocksDelete(c.ctx, ipBlockId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting ipblock: %v", err)
 	}
@@ -79,7 +79,7 @@ func (c *Client) RemoveIpBlock(ipBlockId string) error {
 }
 
 func (c *Client) CreateDatacenter(name, location string) (*sdkgo.Datacenter, error) {
-	dc, dcResp, err := c.DataCenterApi.DatacentersPost(c.ctx).Datacenter(sdkgo.Datacenter{
+	dc, dcResp, err := c.DataCentersApi.DatacentersPost(c.ctx).Datacenter(sdkgo.Datacenter{
 		Properties: &sdkgo.DatacenterProperties{
 			Name:     &name,
 			Location: &location,
@@ -100,7 +100,7 @@ func (c *Client) CreateDatacenter(name, location string) (*sdkgo.Datacenter, err
 }
 
 func (c *Client) GetDatacenter(datacenterId string) (*sdkgo.Datacenter, error) {
-	datacenter, resp, err := c.DataCenterApi.DatacentersFindById(c.ctx, datacenterId).Execute()
+	datacenter, resp, err := c.DataCentersApi.DatacentersFindById(c.ctx, datacenterId).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting datacenter: %v", err)
 	}
@@ -111,7 +111,7 @@ func (c *Client) GetDatacenter(datacenterId string) (*sdkgo.Datacenter, error) {
 }
 
 func (c *Client) RemoveDatacenter(datacenterId string) error {
-	_, resp, err := c.DataCenterApi.DatacentersDelete(c.ctx, datacenterId).Execute()
+	resp, err := c.DataCentersApi.DatacentersDelete(c.ctx, datacenterId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting datacenter: %v", err)
 	}
@@ -130,7 +130,7 @@ func (c *Client) RemoveDatacenter(datacenterId string) error {
 }
 
 func (c *Client) CreateLan(datacenterId, name string, public bool) (*sdkgo.LanPost, error) {
-	lan, lanResp, err := c.LanApi.DatacentersLansPost(c.ctx, datacenterId).Lan(sdkgo.LanPost{
+	lan, lanResp, err := c.LANsApi.DatacentersLansPost(c.ctx, datacenterId).Lan(sdkgo.LanPost{
 		Properties: &sdkgo.LanPropertiesPost{
 			Name:   &name,
 			Public: &public,
@@ -151,7 +151,7 @@ func (c *Client) CreateLan(datacenterId, name string, public bool) (*sdkgo.LanPo
 }
 
 func (c *Client) RemoveLan(datacenterId, lanId string) error {
-	_, resp, err := c.LanApi.DatacentersLansDelete(c.ctx, datacenterId, lanId).Execute()
+	resp, err := c.LANsApi.DatacentersLansDelete(c.ctx, datacenterId, lanId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting LAN: %v", err)
 	}
@@ -177,7 +177,7 @@ func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone stri
 		},
 	}
 
-	svr, serverResp, err := c.ServerApi.DatacentersServersPost(c.ctx, datacenterId).Server(server).Execute()
+	svr, serverResp, err := c.ServersApi.DatacentersServersPost(c.ctx, datacenterId).Server(server).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error creating server in location %s err: %v", location, err)
 	}
@@ -194,7 +194,7 @@ func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone stri
 }
 
 func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error) {
-	server, resp, err := c.ServerApi.DatacentersServersFindById(c.ctx, datacenterId, serverId).Execute()
+	server, resp, err := c.ServersApi.DatacentersServersFindById(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting server: %v", err)
 	}
@@ -210,7 +210,7 @@ func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error)
 }
 
 func (c *Client) StartServer(datacenterId, serverId string) error {
-	_, _, err := c.ServerApi.DatacentersServersStartPost(c.ctx, datacenterId, serverId).Execute()
+	_, err := c.ServersApi.DatacentersServersStartPost(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return fmt.Errorf("error starting server: %v", err)
 	}
@@ -218,7 +218,7 @@ func (c *Client) StartServer(datacenterId, serverId string) error {
 }
 
 func (c *Client) StopServer(datacenterId, serverId string) error {
-	_, _, err := c.ServerApi.DatacentersServersStopPost(c.ctx, datacenterId, serverId).Execute()
+	_, err := c.ServersApi.DatacentersServersStopPost(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return fmt.Errorf("error stoping server: %v", err)
 	}
@@ -226,7 +226,7 @@ func (c *Client) StopServer(datacenterId, serverId string) error {
 }
 
 func (c *Client) RestartServer(datacenterId, serverId string) error {
-	_, _, err := c.ServerApi.DatacentersServersRebootPost(c.ctx, datacenterId, serverId).Execute()
+	_, err := c.ServersApi.DatacentersServersRebootPost(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return fmt.Errorf("error restarting server: %v", err)
 	}
@@ -234,7 +234,7 @@ func (c *Client) RestartServer(datacenterId, serverId string) error {
 }
 
 func (c *Client) RemoveServer(datacenterId, serverId string) error {
-	_, resp, err := c.ServerApi.DatacentersServersDelete(c.ctx, datacenterId, serverId).Execute()
+	resp, err := c.ServersApi.DatacentersServersDelete(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting server: %v", err)
 	}
@@ -261,7 +261,7 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 			AvailabilityZone: &volProperties.Zone,
 		},
 	}
-	volume, volumeResp, err := c.ServerApi.DatacentersServersVolumesPost(c.ctx, datacenterId, serverId).Volume(vol).Execute()
+	volume, volumeResp, err := c.ServersApi.DatacentersServersVolumesPost(c.ctx, datacenterId, serverId).Volume(vol).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error attaching volume to server: %v", err)
 	}
@@ -278,7 +278,7 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 }
 
 func (c *Client) RemoveVolume(datacenterId, volumeId string) error {
-	_, resp, err := c.VolumeApi.DatacentersVolumesDelete(c.ctx, datacenterId, volumeId).Execute()
+	 resp, err := c.VolumesApi.DatacentersVolumesDelete(c.ctx, datacenterId, volumeId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting volume: %v", err)
 	}
@@ -302,7 +302,7 @@ func (c *Client) CreateAttachNIC(datacenterId, serverId, name string, dhcp bool,
 			Dhcp: &dhcp,
 		},
 	}
-	nic, nicResp, err := c.NicApi.DatacentersServersNicsPost(c.ctx, datacenterId, serverId).Nic(n).Execute()
+	nic, nicResp, err := c.NetworkInterfacesApi.DatacentersServersNicsPost(c.ctx, datacenterId, serverId).Nic(n).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error attaching NIC to server: %s", err.Error())
 	}
@@ -319,7 +319,7 @@ func (c *Client) CreateAttachNIC(datacenterId, serverId, name string, dhcp bool,
 }
 
 func (c *Client) RemoveNic(datacenterId, serverId, nicId string) error {
-	_, resp, err := c.NicApi.DatacentersServersNicsDelete(c.ctx, datacenterId, serverId, nicId).Execute()
+	resp, err := c.NetworkInterfacesApi.DatacentersServersNicsDelete(c.ctx, datacenterId, serverId, nicId).Execute()
 	if err != nil {
 		return fmt.Errorf("error deleting NIC: %v", err)
 	}
@@ -335,7 +335,7 @@ func (c *Client) RemoveNic(datacenterId, serverId, nicId string) error {
 }
 
 func (c *Client) GetLocationById(regionId, locationId string) (*sdkgo.Location, error) {
-	location, _, err := c.LocationApi.LocationsFindByRegionIdAndId(c.ctx, regionId, locationId).Execute()
+	location, _, err := c.LocationsApi.LocationsFindByRegionIdAndId(c.ctx, regionId, locationId).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -343,7 +343,7 @@ func (c *Client) GetLocationById(regionId, locationId string) (*sdkgo.Location, 
 }
 
 func (c *Client) GetImages() (sdkgo.Images, error) {
-	images, imagesResp, err := c.ImageApi.ImagesGet(c.ctx).Execute()
+	images, imagesResp, err := c.ImagesApi.ImagesGet(c.ctx).Execute()
 	if err != nil {
 		return sdkgo.Images{}, err
 	}
@@ -355,7 +355,7 @@ func (c *Client) GetImages() (sdkgo.Images, error) {
 
 func (c *Client) waitTillProvisioned(path string) error {
 	for i := 0; i < waitCount; i++ {
-		requestStatus, _, err := c.RequestApi.RequestsStatusGet(c.ctx, getRequestId(path)).Execute()
+		requestStatus, _, err := c.RequestsApi.RequestsStatusGet(c.ctx, getRequestId(path)).Execute()
 		if err != nil {
 			return fmt.Errorf("error getting request status: %s", err.Error())
 		}

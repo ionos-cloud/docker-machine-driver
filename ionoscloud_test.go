@@ -8,7 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/ionos-cloud/docker-machine-driver/utils"
 	mockutils "github.com/ionos-cloud/docker-machine-driver/utils/mocks"
-	sdkgo "github.com/ionos-cloud/sdk-go/v5"
+	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 	"github.com/stretchr/testify/assert"
 )
 

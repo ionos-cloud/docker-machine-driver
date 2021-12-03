@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	sdkgo "github.com/ionos-cloud/sdk-go/v5"
+	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -133,7 +133,7 @@ func TestClientGetLocationByIdErr(t *testing.T) {
 }
 
 func TestClientWaitTillProvisioned(t *testing.T) {
-	err := getTestClient().waitTillProvisioned("https://api.ionos.com/cloudapi/v5/status/requests")
+	err := getTestClient().waitTillProvisioned("https://api.ionos.com/cloudapi/v6/status/requests")
 	assert.Error(t, err)
 }
 
@@ -144,7 +144,7 @@ func getTestClient() *Client {
 			Password: "test@ionos.com",
 			Servers: sdkgo.ServerConfigurations{
 				sdkgo.ServerConfiguration{
-					URL: "https://api.ionos.com/cloudapi/v5",
+					URL: "https://api.ionos.com/cloudapi/v6",
 				},
 			}}),
 		ctx: context.TODO(),
