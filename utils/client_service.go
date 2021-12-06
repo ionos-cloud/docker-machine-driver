@@ -23,4 +23,5 @@ type ClientService interface {
 	RemoveNic(datacenterId, serverId, nicId string) error
 	GetLocationById(regionId, locationId string) (*ionoscloud.Location, error)
 	GetImages() (ionoscloud.Images, error)
+	GetImageById(imageId string) (ionoscloud.Image, error)
 }

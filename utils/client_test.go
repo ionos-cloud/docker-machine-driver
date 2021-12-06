@@ -127,6 +127,11 @@ func TestClientGetImagesErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestClientGetImageByIdErr(t *testing.T) {
+	_, err := getTestClient().GetImageById(testName)
+	assert.Error(t, err)
+}
+
 func TestClientGetLocationByIdErr(t *testing.T) {
 	_, err := getTestClient().GetLocationById("us", "las")
 	assert.Error(t, err)

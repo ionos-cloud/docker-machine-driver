@@ -140,6 +140,21 @@ func (mr *MockClientServiceMockRecorder) GetDatacenter(datacenterId interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDatacenter", reflect.TypeOf((*MockClientService)(nil).GetDatacenter), datacenterId)
 }
 
+// GetImageById mocks base method.
+func (m *MockClientService) GetImageById(imageId string) (ionoscloud.Image, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetImageById", imageId)
+	ret0, _ := ret[0].(ionoscloud.Image)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetImageById indicates an expected call of GetImageById.
+func (mr *MockClientServiceMockRecorder) GetImageById(imageId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetImageById", reflect.TypeOf((*MockClientService)(nil).GetImageById), imageId)
+}
+
 // GetImages mocks base method.
 func (m *MockClientService) GetImages() (ionoscloud.Images, error) {
 	m.ctrl.T.Helper()
