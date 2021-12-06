@@ -8,6 +8,7 @@
 * [Authentication](usage/authentication.md)
 * [Options](usage/options.md)
 * [Commands](usage/commands.md)
+* [Examples](usage/examples.md)
 * [Testing](usage/testing.md)
 
 ## Docker
