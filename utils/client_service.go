@@ -1,6 +1,6 @@
 package utils
 
-import ionoscloud "github.com/ionos-cloud/sdk-go/v5"
+import ionoscloud "github.com/ionos-cloud/sdk-go/v6"
 
 type ClientService interface {
 	CreateIpBlock(size int32, location string) (*ionoscloud.IpBlock, error)
