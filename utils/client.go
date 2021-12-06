@@ -20,6 +20,7 @@ type Client struct {
 type ClientVolumeProperties struct {
 	DiskType      string
 	Name          string
+	ImageId       string
 	ImageAlias    string
 	ImagePassword string
 	Zone          string
@@ -250,18 +251,35 @@ func (c *Client) RemoveServer(datacenterId, serverId string) error {
 }
 
 func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties *ClientVolumeProperties) (*sdkgo.Volume, error) {
-	vol := sdkgo.Volume{
-		Properties: &sdkgo.VolumeProperties{
-			Type:             &volProperties.DiskType,
-			Size:             &volProperties.DiskSize,
-			Name:             &volProperties.Name,
-			ImageAlias:       &volProperties.ImageAlias,
-			ImagePassword:    &volProperties.ImagePassword,
-			SshKeys:          &[]string{volProperties.SshKey},
-			AvailabilityZone: &volProperties.Zone,
-		},
+	var inputVolume sdkgo.Volume
+	if volProperties != nil {
+		if volProperties.ImageId != "" {
+			inputVolume = sdkgo.Volume{
+				Properties: &sdkgo.VolumeProperties{
+					Type:             &volProperties.DiskType,
+					Size:             &volProperties.DiskSize,
+					Name:             &volProperties.Name,
+					Image:            &volProperties.ImageId,
+					ImagePassword:    &volProperties.ImagePassword,
+					SshKeys:          &[]string{volProperties.SshKey},
+					AvailabilityZone: &volProperties.Zone,
+				},
+			}
+		} else {
+			inputVolume = sdkgo.Volume{
+				Properties: &sdkgo.VolumeProperties{
+					Type:             &volProperties.DiskType,
+					Size:             &volProperties.DiskSize,
+					Name:             &volProperties.Name,
+					ImageAlias:       &volProperties.ImageAlias,
+					ImagePassword:    &volProperties.ImagePassword,
+					SshKeys:          &[]string{volProperties.SshKey},
+					AvailabilityZone: &volProperties.Zone,
+				},
+			}
+		}
 	}
-	volume, volumeResp, err := c.ServersApi.DatacentersServersVolumesPost(c.ctx, datacenterId, serverId).Volume(vol).Execute()
+	volume, volumeResp, err := c.ServersApi.DatacentersServersVolumesPost(c.ctx, datacenterId, serverId).Volume(inputVolume).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error attaching volume to server: %v", err)
 	}
@@ -351,6 +369,20 @@ func (c *Client) GetImages() (sdkgo.Images, error) {
 		return sdkgo.Images{}, fmt.Errorf("error: authentication failed")
 	}
 	return images, nil
+}
+
+func (c *Client) GetImageById(imageId string) (sdkgo.Image, error) {
+	image, imagesResp, err := c.ImagesApi.ImagesFindById(c.ctx, imageId).Execute()
+	if imagesResp != nil && imagesResp.StatusCode == 404 {
+		return sdkgo.Image{}, fmt.Errorf("error: no image found with id: %v", imageId)
+	}
+	if err != nil {
+		return sdkgo.Image{}, err
+	}
+	if imagesResp != nil && imagesResp.StatusCode == 401 {
+		return sdkgo.Image{}, fmt.Errorf("error: authentication failed")
+	}
+	return image, nil
 }
 
 func (c *Client) waitTillProvisioned(path string) error {

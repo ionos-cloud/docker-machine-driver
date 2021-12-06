@@ -26,7 +26,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-datacenter-id` | Ionos Cloud Virtual Data Center Id |
 | `--ionoscloud-disk-size` | Ionos Cloud Volume Disk-Size in GB \(10, 50, 100, 200, 400\) |
 | `--ionoscloud-disk-type` | Ionos Cloud Volume Disk-Type \(HDD, SSD\) |
-| `--ionoscloud-image` | Ionos Cloud Image Alias \(ubuntu:latest, ubuntu:20.04\) |
+| `--ionoscloud-image` | Ionos Cloud Image Id or Alias \(ubuntu:latest, ubuntu:20.04\). If Image Id is set, please make sure the disk type supports the image type. |
 | `--ionoscloud-image-password` | Ionos Cloud Image Password to be able to access the server from DCD platform |
 | `--ionoscloud-location` | Ionos Cloud Location |
 | `--ionoscloud-server-availability-zone` | Ionos Cloud Server Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\) |
