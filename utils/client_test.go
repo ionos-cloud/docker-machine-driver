@@ -21,6 +21,15 @@ var (
 			Location: &testLocation,
 		},
 	}
+	testVolumePropertiesImageId = &ClientVolumeProperties{
+		DiskType:      testName,
+		Name:          testName,
+		ImageId:       testName,
+		ImagePassword: testName,
+		Zone:          testName,
+		SshKey:        testName,
+		DiskSize:      0,
+	}
 	ipBlocks = &sdkgo.IpBlocks{
 		Items: &[]sdkgo.IpBlock{
 			*ipBlock,
@@ -104,6 +113,11 @@ func TestClientRemoveServerErr(t *testing.T) {
 
 func TestClientCreateVolumeErr(t *testing.T) {
 	_, err := getTestClient().CreateAttachVolume(testName, testName, &ClientVolumeProperties{})
+	assert.Error(t, err)
+}
+
+func TestClientCreateVolumeImageIdErr(t *testing.T) {
+	_, err := getTestClient().CreateAttachVolume(testName, testName, testVolumePropertiesImageId)
 	assert.Error(t, err)
 }
 
