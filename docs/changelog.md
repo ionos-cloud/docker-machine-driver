@@ -1,5 +1,12 @@
 # Changelog
 
+## \[5.0.5\]
+
+* code-enhancements: added support for token via `--ionoscloud-token` option
+* code-enhancements: added support for image id via `--ionoscloud-image` option
+* dependency-update: Go from version 1.14 to 1.17
+* dependency-update: SDK Go from version 5.1.4 to 5.1.10
+
 ## \[5.0.4\]
 
 * Updated `sdk-go` to latest version 5.1.4
