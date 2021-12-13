@@ -33,7 +33,7 @@ github.com/hashicorp/errwrap
 # github.com/hashicorp/go-multierror v1.1.1
 ## explicit; go 1.13
 github.com/hashicorp/go-multierror
-# github.com/ionos-cloud/sdk-go/v6 v6.0.0-beta.9
+# github.com/ionos-cloud/sdk-go/v6 v6.0.0
 ## explicit; go 1.13
 github.com/ionos-cloud/sdk-go/v6
 # github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
