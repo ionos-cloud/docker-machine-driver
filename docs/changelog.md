@@ -1,6 +1,6 @@
 # Changelog
 
-## \[5.0.6\] (upcoming release)
+## \[5.0.6\]
 
 * dependency-update: SDK Go from version 5.1.10 to [5.1.11](https://github.com/ionos-cloud/sdk-go/releases/tag/v5.1.11)
 
