@@ -6,7 +6,7 @@ require (
 	github.com/docker/machine v0.16.2
 	github.com/golang/mock v1.4.0
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/ionos-cloud/sdk-go/v5 v5.1.10
+	github.com/ionos-cloud/sdk-go/v5 v5.1.11
 	github.com/stretchr/testify v1.7.0
 )
 

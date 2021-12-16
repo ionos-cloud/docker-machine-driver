@@ -20,8 +20,8 @@ github.com/hashicorp/errwrap v1.0.0 h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/U
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-multierror v1.1.1 h1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+lD48awMYo=
 github.com/hashicorp/go-multierror v1.1.1/go.mod h1:iw975J/qwKPdAO1clOe2L8331t/9/fmwbPZ6JB6eMoM=
-github.com/ionos-cloud/sdk-go/v5 v5.1.10 h1:CMXPpVQQsP11Uc4nMVzsjjSFYjPGCZw+W2/wkMiZ9fM=
-github.com/ionos-cloud/sdk-go/v5 v5.1.10/go.mod h1:dU3BVZgiBDAKyo41hFk7D5KWHfqyp4YL4rePIAi2JyM=
+github.com/ionos-cloud/sdk-go/v5 v5.1.11 h1:NXkoEF4/RAdGy3F26upudafwdrsGtkUvCjtaOSmle70=
+github.com/ionos-cloud/sdk-go/v5 v5.1.11/go.mod h1:atXPOBxDKZOaeG50OR+zXxJGdS6lgIzH0ozL+tqc3HE=
 github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 h1:dcztxKSvZ4Id8iPpHERQBbIJfabdt4wUm5qy3wOL2Zc=
 github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6/go.mod h1:E2VnQOmVuvZB6UYnnDB0qG5Nq/1tD9acaOpo6xmt0Kw=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
