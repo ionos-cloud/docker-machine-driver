@@ -1,5 +1,3 @@
-# Introduction
-
 ![CI](https://github.com/ionos-cloud/docker-machine-driver/workflows/CI/badge.svg)
 [![Gitter](https://img.shields.io/gitter/room/ionos-cloud/sdk-general)](https://gitter.im/ionos-cloud/sdk-general)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=docker-machine-driver&metric=alert_status)](https://sonarcloud.io/dashboard?id=docker-machine-driver)
@@ -13,6 +11,11 @@
 [![Go](https://img.shields.io/github/go-mod/go-version/ionos-cloud/docker-machine-driver.svg)](https://github.com/ionos-cloud/docker-machine-driver)
 
 ![Alt text](.github/IONOS.CLOUD.BLU.svg?raw=true "Title")
+
+# Docker Machine Driver
+
+**NOTE:
+_Please consider using Docker Machine Driver v6 releases that are using IONOS Cloud API Version 6, the latest stable API version. New features and improvements will be integrated in IONOS Cloud API Version 6._**
 
 > This library adds the support for creating Docker Machines hosted on IONOS Cloud.
 

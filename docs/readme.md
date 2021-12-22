@@ -4,6 +4,9 @@ description: This library adds the support for creating Docker Machines hosted o
 
 # Docker Machine Driver
 
+**NOTE:
+_Please consider using Docker Machine Driver v6 releases that are using IONOS Cloud API Version 6, the latest stable API version. New features and improvements will be integrated in IONOS Cloud API Version 6._**
+
 ## Overview
 
 Docker Machine Driver is the official driver for Docker Machine to use with IONOS Cloud. It adds support for creating Docker Machines hosted on the IONOS Cloud.
