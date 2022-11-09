@@ -33,6 +33,7 @@ const (
 	flagLocation               = "ionoscloud-location"
 	flagDatacenterId           = "ionoscloud-datacenter-id"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
+	flagUserData               = "ionoscloud-user-data"
 )
 
 const (
@@ -85,6 +86,7 @@ type Driver struct {
 	NicId                  string
 	ServerId               string
 	IpBlockId              string
+	UserData               string
 
 	// Driver Version
 	Version string
@@ -207,6 +209,12 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Value:  defaultAvailabilityZone,
 			Usage:  "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
+		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_USER_DATA",
+			Name:   flagUserData,
+			//Value:  ,
+			Usage: "The cloud-init configuration for the volume as base64 encoded string.'",
+		},
 	}
 }
 
@@ -227,6 +235,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.DatacenterId = opts.String(flagDatacenterId)
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
+	d.UserData = opts.String(flagUserData)
 
 	d.SwarmMaster = opts.Bool("swarm-master")
 	d.SwarmHost = opts.String("swarm-host")
@@ -364,6 +373,7 @@ func (d *Driver) Create() error {
 		log.Debugf("Server ID: %v", d.ServerId)
 	}
 
+	// TODO: export to a func
 	var properties utils.ClientVolumeProperties
 	if !d.UseAlias {
 		log.Infof("Image Id: %v", result)
@@ -375,6 +385,7 @@ func (d *Driver) Create() error {
 			Zone:          d.VolumeAvailabilityZone,
 			SshKey:        d.SSHKey,
 			DiskSize:      float32(d.DiskSize),
+			UserData:      d.UserData,
 		}
 	} else {
 		log.Infof("Image Alias: %v", alias)
@@ -386,6 +397,7 @@ func (d *Driver) Create() error {
 			Zone:          d.VolumeAvailabilityZone,
 			SshKey:        d.SSHKey,
 			DiskSize:      float32(d.DiskSize),
+			UserData:      d.UserData,
 		}
 	}
 	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, &properties)
