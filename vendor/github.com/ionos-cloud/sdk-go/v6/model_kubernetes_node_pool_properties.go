@@ -44,10 +44,38 @@ type KubernetesNodePoolProperties struct {
 	Labels *map[string]string `json:"labels,omitempty"`
 	// map of annotations attached to node pool.
 	Annotations *map[string]string `json:"annotations,omitempty"`
-	// Optional array of reserved public IP addresses to be used by the nodes. IPs must be from same location as the data center used for the node pool. The array must contain one extra IP than maximum number of nodes could be. (nodeCount+1 if fixed node amount or maxNodeCount+1 if auto scaling is used) The extra provided IP Will be used during rebuilding of nodes.
+	// Optional array of reserved public IP addresses to be used by the nodes. IPs must be from same location as the data center used for the node pool. The array must contain one more IP than maximum number possible number of nodes (nodeCount+1 for fixed number of nodes or maxNodeCount+1 when auto scaling is used). The extra IP is used when the nodes are rebuilt.
 	PublicIps *[]string `json:"publicIps,omitempty"`
 	// List of available versions for upgrading the node pool.
 	AvailableUpgradeVersions *[]string `json:"availableUpgradeVersions,omitempty"`
+}
+
+// NewKubernetesNodePoolProperties instantiates a new KubernetesNodePoolProperties object
+// This constructor will assign default values to properties that have it defined,
+// and makes sure properties required by API are set, but the set of arguments
+// will change when the set of required properties is changed
+func NewKubernetesNodePoolProperties(name string, datacenterId string, nodeCount int32, cpuFamily string, coresCount int32, ramSize int32, availabilityZone string, storageType string, storageSize int32) *KubernetesNodePoolProperties {
+	this := KubernetesNodePoolProperties{}
+
+	this.Name = &name
+	this.DatacenterId = &datacenterId
+	this.NodeCount = &nodeCount
+	this.CpuFamily = &cpuFamily
+	this.CoresCount = &coresCount
+	this.RamSize = &ramSize
+	this.AvailabilityZone = &availabilityZone
+	this.StorageType = &storageType
+	this.StorageSize = &storageSize
+
+	return &this
+}
+
+// NewKubernetesNodePoolPropertiesWithDefaults instantiates a new KubernetesNodePoolProperties object
+// This constructor will only assign default values to properties that have it defined,
+// but it doesn't guarantee that properties required by API are set
+func NewKubernetesNodePoolPropertiesWithDefaults() *KubernetesNodePoolProperties {
+	this := KubernetesNodePoolProperties{}
+	return &this
 }
 
 // GetName returns the Name field value
@@ -698,71 +726,54 @@ func (o *KubernetesNodePoolProperties) HasAvailableUpgradeVersions() bool {
 
 func (o KubernetesNodePoolProperties) MarshalJSON() ([]byte, error) {
 	toSerialize := map[string]interface{}{}
-
 	if o.Name != nil {
 		toSerialize["name"] = o.Name
 	}
-
 	if o.DatacenterId != nil {
 		toSerialize["datacenterId"] = o.DatacenterId
 	}
-
 	if o.NodeCount != nil {
 		toSerialize["nodeCount"] = o.NodeCount
 	}
-
 	if o.CpuFamily != nil {
 		toSerialize["cpuFamily"] = o.CpuFamily
 	}
-
 	if o.CoresCount != nil {
 		toSerialize["coresCount"] = o.CoresCount
 	}
-
 	if o.RamSize != nil {
 		toSerialize["ramSize"] = o.RamSize
 	}
-
 	if o.AvailabilityZone != nil {
 		toSerialize["availabilityZone"] = o.AvailabilityZone
 	}
-
 	if o.StorageType != nil {
 		toSerialize["storageType"] = o.StorageType
 	}
-
 	if o.StorageSize != nil {
 		toSerialize["storageSize"] = o.StorageSize
 	}
-
 	if o.K8sVersion != nil {
 		toSerialize["k8sVersion"] = o.K8sVersion
 	}
-
 	if o.MaintenanceWindow != nil {
 		toSerialize["maintenanceWindow"] = o.MaintenanceWindow
 	}
-
 	if o.AutoScaling != nil {
 		toSerialize["autoScaling"] = o.AutoScaling
 	}
-
 	if o.Lans != nil {
 		toSerialize["lans"] = o.Lans
 	}
-
 	if o.Labels != nil {
 		toSerialize["labels"] = o.Labels
 	}
-
 	if o.Annotations != nil {
 		toSerialize["annotations"] = o.Annotations
 	}
-
 	if o.PublicIps != nil {
 		toSerialize["publicIps"] = o.PublicIps
 	}
-
 	if o.AvailableUpgradeVersions != nil {
 		toSerialize["availableUpgradeVersions"] = o.AvailableUpgradeVersions
 	}
