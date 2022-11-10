@@ -212,8 +212,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_USER_DATA",
 			Name:   flagUserData,
-			//Value:  ,
-			Usage: "The cloud-init configuration for the volume as base64 encoded string.'",
+			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
 	}
 }

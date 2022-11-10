@@ -34,6 +34,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-cpu-family` | Ionos Cloud Server CPU families \(AMD\_OPTERON,INTEL\_XEON, INTEL\_SKYLAKE\) |
 | `--ionoscloud-ram` | Ionos Cloud Server Ram in MB \(1024, 2048, 3072, 4096, etc.\) |
 | `--ionoscloud-volume-availability-zone` | Ionos Cloud Volume Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\) |
+| `--ionoscloud-user-data` | The cloud-init configuration for the volume as base64 encoded string |
 | `--swarm` | Configure Machine to join a Swarm cluster |
 | `--swarm-addr` | addr to advertise for Swarm \(default: detect and use the machine IP\) |
 | `--swarm-discovery` | Discovery service to use with Swarm |
@@ -74,4 +75,5 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-cpu-family` | `IONOSCLOUD_CPU_FAMILY` |
 | `--ionoscloud-ram` | `IONOSCLOUD_RAM` |
 | `--ionoscloud-volume-availability-zone` | `IONOSCLOUD_VOLUME_ZONE` |
+| `--ionoscloud-user-data` | `IONOSCLOUD_USER_DATA` |
 
