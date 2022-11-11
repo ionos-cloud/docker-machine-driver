@@ -44,13 +44,13 @@ func (r ApiTemplatesFindByIdRequest) Execute() (Template, *APIResponse, error) {
 }
 
 /*
- * TemplatesFindById Retrieve Cubes Templates
- * Retrieve the properties of the specified Cubes Template.
+  - TemplatesFindById Retrieve Cubes Templates
+  - Retrieve the properties of the specified Cubes Template.
 
 This operation is only supported for the Cubes.
- * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @param templateId The unique Template ID.
- * @return ApiTemplatesFindByIdRequest
+  - @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @param templateId The unique Template ID.
+  - @return ApiTemplatesFindByIdRequest
 */
 func (a *TemplatesApiService) TemplatesFindById(ctx _context.Context, templateId string) ApiTemplatesFindByIdRequest {
 	return ApiTemplatesFindByIdRequest{
@@ -88,6 +88,11 @@ func (a *TemplatesApiService) TemplatesFindByIdExecute(r ApiTemplatesFindByIdReq
 
 	if r.depth != nil {
 		localVarQueryParams.Add("depth", parameterToString(*r.depth, ""))
+	} else {
+		defaultQueryParam := a.client.cfg.DefaultQueryParams.Get("depth")
+		if defaultQueryParam == "" {
+			localVarQueryParams.Add("depth", parameterToString(0, ""))
+		}
 	}
 
 	// to determine the Content-Type header
@@ -156,7 +161,7 @@ func (a *TemplatesApiService) TemplatesFindByIdExecute(r ApiTemplatesFindByIdReq
 		var v Error
 		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 		if err != nil {
-			newErr.error = err.Error()
+			newErr.error = fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, err.Error())
 			return localVarReturnValue, localVarAPIResponse, newErr
 		}
 		newErr.model = v
@@ -214,12 +219,12 @@ func (r ApiTemplatesGetRequest) Execute() (Templates, *APIResponse, error) {
 }
 
 /*
- * TemplatesGet List Cubes Templates
- * List all of the available Cubes Templates.
+  - TemplatesGet List Cubes Templates
+  - List all of the available Cubes Templates.
 
 This operation is only supported for the Cubes.
- * @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- * @return ApiTemplatesGetRequest
+  - @param ctx _context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+  - @return ApiTemplatesGetRequest
 */
 func (a *TemplatesApiService) TemplatesGet(ctx _context.Context) ApiTemplatesGetRequest {
 	return ApiTemplatesGetRequest{
@@ -256,6 +261,11 @@ func (a *TemplatesApiService) TemplatesGetExecute(r ApiTemplatesGetRequest) (Tem
 
 	if r.depth != nil {
 		localVarQueryParams.Add("depth", parameterToString(*r.depth, ""))
+	} else {
+		defaultQueryParam := a.client.cfg.DefaultQueryParams.Get("depth")
+		if defaultQueryParam == "" {
+			localVarQueryParams.Add("depth", parameterToString(0, ""))
+		}
 	}
 	if r.orderBy != nil {
 		localVarQueryParams.Add("orderBy", parameterToString(*r.orderBy, ""))
@@ -337,7 +347,7 @@ func (a *TemplatesApiService) TemplatesGetExecute(r ApiTemplatesGetRequest) (Tem
 		var v Error
 		err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 		if err != nil {
-			newErr.error = err.Error()
+			newErr.error = fmt.Sprintf(FormatStringErr, localVarHTTPResponse.Status, err.Error())
 			return localVarReturnValue, localVarAPIResponse, newErr
 		}
 		newErr.model = v

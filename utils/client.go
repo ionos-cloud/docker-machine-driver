@@ -25,6 +25,7 @@ type ClientVolumeProperties struct {
 	ImagePassword string
 	Zone          string
 	SshKey        string
+	UserData      string
 	DiskSize      float32
 }
 
@@ -252,6 +253,7 @@ func (c *Client) RemoveServer(datacenterId, serverId string) error {
 
 func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties *ClientVolumeProperties) (*sdkgo.Volume, error) {
 	var inputVolume sdkgo.Volume
+	// TODO: if in if !!! Return early instead...
 	if volProperties != nil {
 		if volProperties.ImageId != "" {
 			inputVolume = sdkgo.Volume{
@@ -262,6 +264,7 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 					Image:            &volProperties.ImageId,
 					ImagePassword:    &volProperties.ImagePassword,
 					SshKeys:          &[]string{volProperties.SshKey},
+					UserData:         &volProperties.UserData,
 					AvailabilityZone: &volProperties.Zone,
 				},
 			}
@@ -274,6 +277,7 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 					ImageAlias:       &volProperties.ImageAlias,
 					ImagePassword:    &volProperties.ImagePassword,
 					SshKeys:          &[]string{volProperties.SshKey},
+					UserData:         &volProperties.UserData,
 					AvailabilityZone: &volProperties.Zone,
 				},
 			}
