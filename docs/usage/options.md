@@ -58,22 +58,23 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 
 Environment variables are also supported for setting options. This is a list of the environment variables available for Docker Machine Driver.
 
-| Option | Environment variable |
-| :--- | :--- |
-| `--ionoscloud-username` | `IONOSCLOUD_USERNAME` |
-| `--ionoscloud-password` | `IONOSCLOUD_PASSWORD` |
-| `--ionoscloud-token` | `IONOSCLOUD_TOKEN` |
-| `--ionoscloud-endpoint` | `IONOSCLOUD_ENDPOINT` |
-| `--ionoscloud-datacenter-id` | `IONOSCLOUD_DATACENTER_ID` |
-| `--ionoscloud-disk-size` | `IONOSCLOUD_DISK_SIZE` |
-| `--ionoscloud-disk-type` | `IONOSCLOUD_DISK_TYPE` |
-| `--ionoscloud-image` | `IONOSCLOUD_IMAGE` |
-| `--ionoscloud-image-password` | `IONOSCLOUD_IMAGE_PASSWORD` |
-| `--ionoscloud-location` | `IONOSCLOUD_LOCATION` |
-| `--ionoscloud-server-availability-zone` | `IONOSCLOUD_SERVER_ZONE` |
-| `--ionoscloud-cores` | `IONOSCLOUD_CORES` |
-| `--ionoscloud-cpu-family` | `IONOSCLOUD_CPU_FAMILY` |
-| `--ionoscloud-ram` | `IONOSCLOUD_RAM` |
-| `--ionoscloud-volume-availability-zone` | `IONOSCLOUD_VOLUME_ZONE` |
-| `--ionoscloud-user-data` | `IONOSCLOUD_USER_DATA` |
+| Option                                  | Environment variable        |
+|:----------------------------------------|:----------------------------|
+| `--ionoscloud-username`                 | `IONOSCLOUD_USERNAME`       |
+| `--ionoscloud-password`                 | `IONOSCLOUD_PASSWORD`       |
+| `--ionoscloud-token`                    | `IONOSCLOUD_TOKEN`          |
+| `--ionoscloud-endpoint`                 | `IONOSCLOUD_ENDPOINT`       |
+| `--ionoscloud-datacenter-id`            | `IONOSCLOUD_DATACENTER_ID`  |
+| `--ionoscloud-disk-size`                | `IONOSCLOUD_DISK_SIZE`      |
+| `--ionoscloud-disk-type`                | `IONOSCLOUD_DISK_TYPE`      |
+| `--ionoscloud-image`                    | `IONOSCLOUD_IMAGE`          |
+| `--ionoscloud-image-password`           | `IONOSCLOUD_IMAGE_PASSWORD` |
+| `--ionoscloud-location`                 | `IONOSCLOUD_LOCATION`       |
+| `--ionoscloud-server-availability-zone` | `IONOSCLOUD_SERVER_ZONE`    |
+| `--ionoscloud-cores`                    | `IONOSCLOUD_CORES`          |
+| `--ionoscloud-cpu-family`               | `IONOSCLOUD_CPU_FAMILY`     |
+| `--ionoscloud-ram`                      | `IONOSCLOUD_RAM`            |
+| `--ionoscloud-volume-availability-zone` | `IONOSCLOUD_VOLUME_ZONE`    |
+| `--ionoscloud-user-data`                | `IONOSCLOUD_USER_DATA`      |
+| `--ionoscloud-user-data-b64`            | `IONOSCLOUD_USER_DATA_B64`  |
 
