@@ -255,32 +255,24 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 	var inputVolume sdkgo.Volume
 	// TODO: if in if !!! Return early instead...
 	if volProperties != nil {
+		inputVolume = sdkgo.Volume{
+			Properties: &sdkgo.VolumeProperties{
+				Type:             &volProperties.DiskType,
+				Size:             &volProperties.DiskSize,
+				Name:             &volProperties.Name,
+				ImagePassword:    &volProperties.ImagePassword,
+				SshKeys:          &[]string{volProperties.SshKey},
+				AvailabilityZone: &volProperties.Zone,
+			},
+		}
 		if volProperties.ImageId != "" {
-			inputVolume = sdkgo.Volume{
-				Properties: &sdkgo.VolumeProperties{
-					Type:             &volProperties.DiskType,
-					Size:             &volProperties.DiskSize,
-					Name:             &volProperties.Name,
-					Image:            &volProperties.ImageId,
-					ImagePassword:    &volProperties.ImagePassword,
-					SshKeys:          &[]string{volProperties.SshKey},
-					UserData:         &volProperties.UserData,
-					AvailabilityZone: &volProperties.Zone,
-				},
-			}
+			inputVolume.Properties.Image = &volProperties.ImageId
 		} else {
-			inputVolume = sdkgo.Volume{
-				Properties: &sdkgo.VolumeProperties{
-					Type:             &volProperties.DiskType,
-					Size:             &volProperties.DiskSize,
-					Name:             &volProperties.Name,
-					ImageAlias:       &volProperties.ImageAlias,
-					ImagePassword:    &volProperties.ImagePassword,
-					SshKeys:          &[]string{volProperties.SshKey},
-					UserData:         &volProperties.UserData,
-					AvailabilityZone: &volProperties.Zone,
-				},
-			}
+			inputVolume.Properties.ImageAlias = &volProperties.ImageId
+		}
+		if volProperties.UserData != "" {
+			// SDK-1213 - INC-77693 if this is nil
+			inputVolume.Properties.UserData = &volProperties.UserData
 		}
 	}
 	volume, volumeResp, err := c.ServersApi.DatacentersServersVolumesPost(c.ctx, datacenterId, serverId).Volume(inputVolume).Execute()
