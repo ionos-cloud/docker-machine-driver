@@ -2,6 +2,7 @@ package ionoscloud
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -372,32 +373,25 @@ func (d *Driver) Create() error {
 		log.Debugf("Server ID: %v", d.ServerId)
 	}
 
-	// TODO: export to a func
-	var properties utils.ClientVolumeProperties
+	properties := utils.ClientVolumeProperties{
+		DiskType:      d.DiskType,
+		Name:          d.MachineName,
+		ImagePassword: d.ImagePassword,
+		Zone:          d.VolumeAvailabilityZone,
+		SshKey:        d.SSHKey,
+		DiskSize:      float32(d.DiskSize),
+	}
+
+	if d.UserData != "" {
+		properties.UserData = base64.StdEncoding.EncodeToString([]byte(d.UserData))
+	}
+
 	if !d.UseAlias {
 		log.Infof("Image Id: %v", result)
-		properties = utils.ClientVolumeProperties{
-			DiskType:      d.DiskType,
-			Name:          d.MachineName,
-			ImageId:       result,
-			ImagePassword: d.ImagePassword,
-			Zone:          d.VolumeAvailabilityZone,
-			SshKey:        d.SSHKey,
-			DiskSize:      float32(d.DiskSize),
-			UserData:      d.UserData,
-		}
+		properties.ImageId = result
 	} else {
 		log.Infof("Image Alias: %v", alias)
-		properties = utils.ClientVolumeProperties{
-			DiskType:      d.DiskType,
-			Name:          d.MachineName,
-			ImageAlias:    alias,
-			ImagePassword: d.ImagePassword,
-			Zone:          d.VolumeAvailabilityZone,
-			SshKey:        d.SSHKey,
-			DiskSize:      float32(d.DiskSize),
-			UserData:      d.UserData,
-		}
+		properties.ImageAlias = alias
 	}
 	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, &properties)
 	if err != nil {
