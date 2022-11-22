@@ -32,6 +32,7 @@ const (
 	flagImagePassword          = "ionoscloud-image-password"
 	flagLocation               = "ionoscloud-location"
 	flagDatacenterId           = "ionoscloud-datacenter-id"
+	flagLanId                  = "ionoscloud-lan-id"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
 )
@@ -198,6 +199,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Virtual Data Center Id",
 		},
 		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_LAN_ID",
+			Name:   flagLanId,
+			Usage:  "Ionos Cloud LAN Id",
+		},
+		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_VOLUME_ZONE",
 			Name:   flagVolumeAvailabilityZone,
 			Value:  defaultAvailabilityZone,
@@ -232,6 +238,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.DiskType = opts.String(flagDiskType)
 	d.CpuFamily = opts.String(flagServerCpuFamily)
 	d.DatacenterId = opts.String(flagDatacenterId)
+	d.LanId = opts.String(flagLanId)
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.UserData = opts.String(flagUserData)
@@ -346,17 +353,19 @@ func (d *Driver) Create() error {
 		log.Debugf("IpBlock ID: %v", d.IpBlockId)
 	}
 
-	lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, true)
-	if err != nil {
-		log.Warn(rollingBackNotice)
-		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
+	if d.LanId == "" {
+		lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, true)
+		if err != nil {
+			log.Warn(rollingBackNotice)
+			if removeErr := d.Remove(); removeErr != nil {
+				return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
+			}
+			return err
 		}
-		return err
-	}
-	if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
-		d.LanId = *lanId
-		log.Debugf("Lan ID: %v", d.LanId)
+		if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
+			d.LanId = *lanId
+			log.Debugf("Lan ID: %v", d.LanId)
+		}
 	}
 
 	server, err := d.client().CreateServer(d.DatacenterId, d.Location, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))

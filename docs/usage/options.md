@@ -24,6 +24,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-token` | Ionos Cloud Token |
 | `--ionoscloud-endpoint` | Ionos Cloud API Endpoint. It is recommended to be set to `https://api.ionos.com` or `https://api.ionos.com/cloudapi/v6`. The SDK will automatically put the `/cloudapi/v6` suffix if not set. |
 | `--ionoscloud-datacenter-id` | Ionos Cloud Virtual Data Center Id |
+| `--ionoscloud-lan-id` | Ionos Cloud LAN Id |
 | `--ionoscloud-disk-size` | Ionos Cloud Volume Disk-Size in GB \(10, 50, 100, 200, 400\) |
 | `--ionoscloud-disk-type` | Ionos Cloud Volume Disk-Type \(HDD, SSD\) |
 | `--ionoscloud-image` | Ionos Cloud Image Id or Alias \(ubuntu:latest, ubuntu:20.04\). If Image Id is set, please make sure the disk type supports the image type. |
@@ -65,6 +66,7 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-token` | `IONOSCLOUD_TOKEN` |
 | `--ionoscloud-endpoint` | `IONOSCLOUD_ENDPOINT` |
 | `--ionoscloud-datacenter-id` | `IONOSCLOUD_DATACENTER_ID` |
+| `--ionoscloud-lan-id` | `IONOSCLOUD_LAN_ID` |
 | `--ionoscloud-disk-size` | `IONOSCLOUD_DISK_SIZE` |
 | `--ionoscloud-disk-type` | `IONOSCLOUD_DISK_TYPE` |
 | `--ionoscloud-image` | `IONOSCLOUD_IMAGE` |
