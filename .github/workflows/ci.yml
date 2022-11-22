@@ -11,7 +11,6 @@ jobs:
   install:
     name: Test
     env:
-      go-version: ^1.17
       package-name: ionoscloud
     strategy:
       fail-fast: false
@@ -21,17 +20,27 @@ jobs:
     outputs:
       go-version: ${{ env.go-version }}
       package-name: ${{ env.package-name }}
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/checkout@v3
         with:
-          go-version: ${{ env.go-version }}
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+
       - name: Check code format
         run: make gofmt_check
         if: matrix.os == 'ubuntu-latest'
+
       - name: Run tests
         run: make test
+
       - name: Build
         run: make build
+
+      - name: Clean artifacts
+        run: make clean
