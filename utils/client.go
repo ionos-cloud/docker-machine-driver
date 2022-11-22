@@ -252,29 +252,26 @@ func (c *Client) RemoveServer(datacenterId, serverId string) error {
 }
 
 func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties *ClientVolumeProperties) (*sdkgo.Volume, error) {
-	var inputVolume sdkgo.Volume
-	// TODO: if in if !!! Return early instead...
-	if volProperties != nil {
-		inputVolume = sdkgo.Volume{
-			Properties: &sdkgo.VolumeProperties{
-				Type:             &volProperties.DiskType,
-				Size:             &volProperties.DiskSize,
-				Name:             &volProperties.Name,
-				ImagePassword:    &volProperties.ImagePassword,
-				SshKeys:          &[]string{volProperties.SshKey},
-				AvailabilityZone: &volProperties.Zone,
-			},
-		}
-		if volProperties.ImageId != "" {
-			inputVolume.Properties.Image = &volProperties.ImageId
-		} else {
-			inputVolume.Properties.ImageAlias = &volProperties.ImageId
-		}
-		if volProperties.UserData != "" {
-			// SDK-1213 - INC-77693 if this is nil
-			inputVolume.Properties.UserData = &volProperties.UserData
-		}
+	if volProperties == nil {
+		return nil, fmt.Errorf("volume properties are nil")
 	}
+	var inputProperties sdkgo.VolumeProperties
+	inputProperties.Type = &volProperties.DiskType
+	inputProperties.Size = &volProperties.DiskSize
+	inputProperties.ImagePassword = &volProperties.ImagePassword
+	inputProperties.SshKeys = &[]string{volProperties.SshKey}
+	inputProperties.AvailabilityZone = &volProperties.Zone
+
+	if volProperties.ImageId != "" {
+		inputProperties.Image = &volProperties.ImageId
+	} else {
+		inputProperties.ImageAlias = &volProperties.ImageAlias
+	}
+	if volProperties.UserData != "" {
+		inputProperties.UserData = &volProperties.UserData
+	}
+	inputVolume := sdkgo.Volume{Properties: &inputProperties}
+
 	volume, volumeResp, err := c.ServersApi.DatacentersServersVolumesPost(c.ctx, datacenterId, serverId).Volume(inputVolume).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error attaching volume to server: %v", err)
