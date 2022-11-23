@@ -287,6 +287,29 @@ func TestCreate(t *testing.T) {
 	driver.ServerId = testVar
 	driver.NicId = testVar
 	driver.VolumeId = testVar
+	driver.LanId = ""
+	driver.IPAddress = testVar
+	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
+	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
+	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil).Times(1)
+	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
+	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, propertiesImageId).Return(volume, nil)
+	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
+	clientMock.EXPECT().CreateAttachNIC(driver.DatacenterId, driver.ServerId, driver.MachineName, true, int32(0), &ips).Return(nic, nil)
+	err := driver.Create()
+	assert.NoError(t, err)
+}
+
+func TestCreateLanProvided(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
+	driver.SSHKey = testVar
+	driver.DatacenterId = testVar
+	driver.ServerId = testVar
+	driver.NicId = testVar
+	driver.VolumeId = testVar
 	driver.LanId = testVar
 	driver.IPAddress = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
@@ -294,7 +317,7 @@ func TestCreate(t *testing.T) {
 	clientMock.EXPECT().GetImages().Return(images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
-	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
+	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil).Times(0)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.Location, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
 	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, propertiesImageId).Return(volume, nil)
 	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
@@ -406,7 +429,7 @@ func TestCreateLanErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
 	driver.DatacenterId = testVar
-	driver.LanId = testVar
+	driver.LanId = ""
 	driver.IpBlockId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
