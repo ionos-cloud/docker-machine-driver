@@ -34,6 +34,7 @@ const (
 	flagDatacenterId           = "ionoscloud-datacenter-id"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
+	flagSshUser                = "ionoscloud-sshuser"
 )
 
 const (
@@ -45,6 +46,7 @@ const (
 	defaultDiskType         = "HDD"
 	defaultSize             = 10
 	driverName              = "ionoscloud"
+	defaultSshUser          = "root"
 )
 
 const (
@@ -87,6 +89,7 @@ type Driver struct {
 	ServerId               string
 	IpBlockId              string
 	UserData               string
+	SshUser                string
 
 	// Driver Version
 	Version string
@@ -214,6 +217,12 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagUserData,
 			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
+		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_SSH_USER",
+			Name:   flagSshUser,
+			Usage:  "The user on the VM to connect to via SSH",
+			Value:  defaultSshUser,
+		},
 	}
 }
 
@@ -235,6 +244,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.UserData = opts.String(flagUserData)
+	d.BaseDriver.SSHUser = opts.String(flagSshUser)
 
 	d.SwarmMaster = opts.Bool("swarm-master")
 	d.SwarmHost = opts.String("swarm-host")
