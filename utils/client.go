@@ -255,6 +255,10 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 	var inputVolume sdkgo.Volume
 	// TODO: if in if !!! Return early instead...
 	if volProperties != nil {
+		sshKeys := &[]string{}
+		if volProperties.SshKey != "" {
+			sshKeys = &[]string{volProperties.SshKey}
+		}
 		if volProperties.ImageId != "" {
 			inputVolume = sdkgo.Volume{
 				Properties: &sdkgo.VolumeProperties{
@@ -263,7 +267,7 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 					Name:             &volProperties.Name,
 					Image:            &volProperties.ImageId,
 					ImagePassword:    &volProperties.ImagePassword,
-					SshKeys:          &[]string{volProperties.SshKey},
+					SshKeys:          sshKeys,
 					UserData:         &volProperties.UserData,
 					AvailabilityZone: &volProperties.Zone,
 				},
@@ -276,7 +280,7 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 					Name:             &volProperties.Name,
 					ImageAlias:       &volProperties.ImageAlias,
 					ImagePassword:    &volProperties.ImagePassword,
-					SshKeys:          &[]string{volProperties.SshKey},
+					SshKeys:          sshKeys,
 					UserData:         &volProperties.UserData,
 					AvailabilityZone: &volProperties.Zone,
 				},

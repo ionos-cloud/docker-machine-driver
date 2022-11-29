@@ -2,10 +2,13 @@ package ionoscloud
 
 import (
 	"context"
+	b64 "encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/docker/machine/libmachine/drivers"
 	"github.com/docker/machine/libmachine/log"
@@ -34,6 +37,7 @@ const (
 	flagDatacenterId           = "ionoscloud-datacenter-id"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
+	flagSSHUser                = "ionoscloud-ssh-user"
 )
 
 const (
@@ -69,6 +73,7 @@ type Driver struct {
 	Ram                    int
 	Cores                  int
 	SSHKey                 string
+	SSHUser                string
 	DiskSize               int
 	DiskType               string
 	Image                  string
@@ -214,6 +219,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagUserData,
 			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
+		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_SSH_USER",
+			Name:   flagSSHUser,
+			Usage:  "The name of the user the driver will use for ssh",
+		},
 	}
 }
 
@@ -235,6 +245,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.UserData = opts.String(flagUserData)
+	d.SSHUser = opts.String(flagSSHUser)
 
 	d.SwarmMaster = opts.Bool("swarm-master")
 	d.SwarmHost = opts.String("swarm-host")
@@ -294,6 +305,58 @@ func (d *Driver) PreCreateCheck() error {
 	return nil
 }
 
+func (d *Driver) addSSHUserToYaml() (string, error) {
+	var (
+		sshUser     = d.SSHUser
+		sshkey      = d.SSHKey
+		yamlcontent = d.UserData
+	)
+	cf := make(map[interface{}]interface{})
+	if err := yaml.Unmarshal([]byte(yamlcontent), &cf); err != nil {
+		return "", err
+	}
+
+	commonUser := map[interface{}]interface{}{
+		"name":        sshUser,
+		"lock_passwd": true,
+		"ssh_authorized_keys": []string{
+			sshkey,
+		},
+	}
+
+	switch "linux" {
+	default:
+		// implements https://github.com/canonical/cloud-init/blob/master/cloudinit/config/cc_users_groups.py#L28-L71
+		// technically not in the spec, see this code for context
+		// https://github.com/canonical/cloud-init/blob/master/cloudinit/distros/__init__.py#L394-L397
+		commonUser["sudo"] = "ALL=(ALL) NOPASSWD:ALL"
+		commonUser["create_groups"] = false
+		commonUser["no_user_group"] = true
+
+	// Administrator is the default ssh user on Windows Server 2019/2022
+	// This implements cloudbase-init for Windows VMs as cloud-init doesn't support Windows
+	// https://cloudbase-init.readthedocs.io/en/latest/
+	// On Windows, primary_group and groups are concatenated.
+	case "windows":
+		commonUser["inactive"] = false
+	}
+
+	if val, ok := cf["users"]; ok {
+		u := val.([]interface{})
+		cf["users"] = append(u, commonUser)
+	} else {
+		users := make([]interface{}, 1)
+		users[0] = commonUser
+		cf["users"] = users
+	}
+
+	yaml, err := yaml.Marshal(cf)
+	if err != nil {
+		return "", err
+	}
+	return string(yaml), nil
+}
+
 // Create creates the machine.
 func (d *Driver) Create() error {
 	var err error
@@ -304,6 +367,17 @@ func (d *Driver) Create() error {
 			return fmt.Errorf("error creating SSH keys: %v", err)
 		}
 		log.Debugf("SSH Key generated in file: %v", d.publicSSHKeyPath())
+	}
+
+	rootSSHKey := d.SSHKey
+
+	if d.SSHUser != "" {
+		rootSSHKey = ""
+		if d.UserData == "" {
+			d.UserData = "#cloud-config\n" + d.UserData
+		}
+		newUserData, _ := d.addSSHUserToYaml()
+		d.UserData = b64.StdEncoding.EncodeToString([]byte(d.UserData + newUserData))
 	}
 
 	result, err := d.getImageId(d.Image)
@@ -382,7 +456,7 @@ func (d *Driver) Create() error {
 			ImageId:       result,
 			ImagePassword: d.ImagePassword,
 			Zone:          d.VolumeAvailabilityZone,
-			SshKey:        d.SSHKey,
+			SshKey:        rootSSHKey,
 			DiskSize:      float32(d.DiskSize),
 			UserData:      d.UserData,
 		}
@@ -394,7 +468,7 @@ func (d *Driver) Create() error {
 			ImageAlias:    alias,
 			ImagePassword: d.ImagePassword,
 			Zone:          d.VolumeAvailabilityZone,
-			SshKey:        d.SSHKey,
+			SshKey:        rootSSHKey,
 			DiskSize:      float32(d.DiskSize),
 			UserData:      d.UserData,
 		}
@@ -548,6 +622,10 @@ func (d *Driver) Kill() error {
 // GetSSHHostname returns an IP address or hostname for the machine instance.
 func (d *Driver) GetSSHHostname() (string, error) {
 	return d.GetIP()
+}
+
+func (d *Driver) GetSSHUsername() string {
+	return d.SSHUser
 }
 
 // GetURL returns a socket address to connect to Docker engine of the machine instance.
