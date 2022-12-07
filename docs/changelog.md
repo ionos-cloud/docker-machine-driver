@@ -2,8 +2,18 @@
 
 ## \[6.1.0\]
 
-* Multiline text for cloud init:
-  * changed: `ionoscloud-user-data` parameter now takes multiline text as input. We recommend using the UI Driver for this parameter
+### Added
+
+* Added the [**IONOS UI Driver**](https://github.com/ionos-cloud/ui-driver-ionoscloud), for users of the Rancher docker image. To use the custom UI, use following fields when adding the driver:
+    * Custom UI URL:  https://cdn.jsdelivr.net/gh/ionos-cloud/ui-driver-ionoscloud@0.1.0/releases/v0.1.0/component.js
+    * Whitelist Domains: https://cdn.jsdelivr.net
+    
+    We highly recommend using this UI Driver if you are using the Rancher docker image.
+
+### Changed
+
+* Changed cloud-init parameter behaviour:
+  * changed: `ionoscloud-user-data` parameter now takes multiline text as input.
   * added: `ionoscloud-user-data-b64` flag, which takes a b64 encoded string. This field will only be evaluated if `ionoscloud-user-data` is empty.
 
 
