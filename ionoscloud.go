@@ -304,6 +304,7 @@ func (d *Driver) PreCreateCheck() error {
 // Create creates the machine.
 func (d *Driver) Create() error {
 	var err error
+	var isLanPrivate bool
 	log.Infof("Creating SSH key...")
 	if d.SSHKey == "" {
 		d.SSHKey, err = d.createSSHKey()
@@ -368,6 +369,22 @@ func (d *Driver) Create() error {
 		}
 	}
 
+	lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
+
+	if err == nil {
+		if lanProp, ok := lan.GetPropertiesOk(); ok && lanProp != nil {
+			if public, ok := lanProp.GetPublicOk(); ok && public != nil {
+				isLanPrivate = !*public
+			}
+		}
+	} else {
+		log.Warn(rollingBackNotice)
+		if removeErr := d.Remove(); removeErr != nil {
+			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
+		}
+		return err
+	}
+
 	server, err := d.client().CreateServer(d.DatacenterId, d.Location, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
 	if err != nil {
 		log.Warn(rollingBackNotice)
@@ -422,9 +439,13 @@ func (d *Driver) Create() error {
 	}
 
 	l, _ := strconv.Atoi(d.LanId)
-	ips, err := d.client().GetIpBlockIps(ipBlock)
-	if err != nil {
-		return err
+	ips := &[]string{}
+
+	if !isLanPrivate {
+		ips, err = d.client().GetIpBlockIps(ipBlock)
+		if err != nil {
+			return err
+		}
 	}
 
 	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(l), ips)
@@ -438,6 +459,11 @@ func (d *Driver) Create() error {
 	if nicId, ok := nic.GetIdOk(); ok && nicId != nil {
 		d.NicId = *nic.Id
 		log.Debugf("Nic ID: %v", d.NicId)
+	}
+	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
+		if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
+			ips = nicIps
+		}
 	}
 
 	if len(*ips) > 0 {

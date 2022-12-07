@@ -2,3 +2,4 @@
 .idea/
 bin/docker-machine-driver-ionoscloud
 coverage.out
+reset.sh

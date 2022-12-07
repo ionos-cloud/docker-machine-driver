@@ -211,6 +211,22 @@ func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error)
 	return &server, nil
 }
 
+func (c *Client) GetLan(datacenterId, LanId string) (*sdkgo.Lan, error) {
+	lan, resp, err := c.LANsApi.DatacentersLansFindById(c.ctx, datacenterId, LanId).Execute()
+	if err != nil {
+		return nil, fmt.Errorf("error getting LAN: %v", err)
+	}
+	if resp.StatusCode > 299 {
+		if resp.StatusCode == 401 {
+			return nil, fmt.Errorf("unauthorized: either user name or password are incorrect")
+
+		} else {
+			return nil, fmt.Errorf("error occurred fetching a LAN: %s", resp.Status)
+		}
+	}
+	return &lan, nil
+}
+
 func (c *Client) StartServer(datacenterId, serverId string) error {
 	_, err := c.ServersApi.DatacentersServersStartPost(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
