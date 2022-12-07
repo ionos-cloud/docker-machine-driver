@@ -398,7 +398,7 @@ func (d *Driver) Create() error {
 	}
 
 	if ud := getPropertyWithFallback(base64.StdEncoding.EncodeToString([]byte(d.UserData)), d.UserDataB64, ""); ud != "" {
-		fmt.Printf("Using user data: %s", ud)
+		log.Infof("Using user data: %s", ud)
 		properties.UserData = ud
 	}
 
