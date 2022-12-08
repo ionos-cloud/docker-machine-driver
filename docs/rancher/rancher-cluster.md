@@ -33,15 +33,8 @@ docker logs -f container-id
 ## Prerequisites
 
 * Your IONOS Cloud account credentials: username and password or token
-* A link to download the latest release of docker-machine-driver for your platform. Check the [Release Page](https://github.com/ionos-cloud/docker-machine-driver/releases) for the latest releases available. Find the corresponding one for your operating system and architecture. 
-
-All you need to do is to copy the link location, which should look something like this: `
-
-```text
-https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<version>/docker-machine-driver-<version>-linux-amd64.tar.gz
-```
-
 * A web server accessible by your browser
+
 
 ## Installing Via The Rancher UI
 
@@ -49,10 +42,15 @@ After logging into Rancher UI, follow the next steps in order to install a clust
 
 ### v2.5.x
 
+#### Adding the Node Driver
+
 * Install Node Driver
   * Go to Tools ➜ Drivers ➜ Node Drivers
   * Click on `Add New Driver` button
-  * Enter the URL for the docker-machine-driver in the `Download URL` and click `Create`
+  * Enter the URLs and click `Create`
+    * Download URL: https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<version>/docker-machine-driver-<version>-linux-amd64.tar.gz
+    * Custom UI URL: https://ionos-cloud.github.io/ui-driver-ionoscloud/releases/v<version>/component.js
+    * Whitelist Domains: https://ionos-cloud.github.io/
   * Wait fot the machine driver to be downloaded and become `Active`
 * Create Node Template
   * Go to Node Templates, from the drop-down menu for `User Settings`
@@ -76,7 +74,10 @@ This version is under development, and it is not currently stable with the use o
 * Install Node Driver
   * Go to Cluster Management ➜ Drivers ➜ Node Drivers
   * Click on `Add Node Driver` button
-  * Enter the URL for the docker-machine-driver in the `Download URL` and click `Create`
+  * Enter the URLs `Create`
+    * Download URL: https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<version>/docker-machine-driver-<version>-linux-amd64.tar.gz
+    * Custom UI URL: https://ionos-cloud.github.io/ui-driver-ionoscloud/releases/v<version>/component.js
+    * Whitelist Domains: https://ionos-cloud.github.io/
   * Wait fot the machine driver to be downloaded and become `Active`
 * Create Node Template
   * Go to Cluster Management ➜ RKE1 Configuration ➜ Node Templates
