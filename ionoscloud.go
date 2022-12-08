@@ -345,15 +345,6 @@ func (d *Driver) Create() error {
 		log.Debugf("Datacenter ID: %v", d.DatacenterId)
 	}
 
-	ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
-	if err != nil {
-		return err
-	}
-	if ipBlockId, ok := ipBlock.GetIdOk(); ok && ipBlockId != nil {
-		d.IpBlockId = *ipBlockId
-		log.Debugf("IpBlock ID: %v", d.IpBlockId)
-	}
-
 	if d.LanId == "" {
 		lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, true)
 		if err != nil {
@@ -442,6 +433,14 @@ func (d *Driver) Create() error {
 	ips := &[]string{}
 
 	if !isLanPrivate {
+		ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
+		if err != nil {
+			return err
+		}
+		if ipBlockId, ok := ipBlock.GetIdOk(); ok && ipBlockId != nil {
+			d.IpBlockId = *ipBlockId
+			log.Debugf("IpBlock ID: %v", d.IpBlockId)
+		}
 		ips, err = d.client().GetIpBlockIps(ipBlock)
 		if err != nil {
 			return err
@@ -460,6 +459,9 @@ func (d *Driver) Create() error {
 		d.NicId = *nic.Id
 		log.Debugf("Nic ID: %v", d.NicId)
 	}
+
+	// TODO: Get NIC from cloud to have the assigned ip
+
 	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
 		if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
 			ips = nicIps
