@@ -14,6 +14,7 @@ type ClientService interface {
 	CreateServer(datacenterId, location, name, cpufamily, zone string, ram, cores int32) (*ionoscloud.Server, error)
 	GetServer(datacenterId, serverId string) (*ionoscloud.Server, error)
 	GetLan(datacenterId, LanId string) (*ionoscloud.Lan, error)
+	GetNic(datacenterId, ServerId, NicId string) (*ionoscloud.Nic, error)
 	StartServer(datacenterId, serverId string) error
 	StopServer(datacenterId, serverId string) error
 	RestartServer(datacenterId, serverId string) error

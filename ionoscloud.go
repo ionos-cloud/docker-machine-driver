@@ -460,7 +460,7 @@ func (d *Driver) Create() error {
 		log.Debugf("Nic ID: %v", d.NicId)
 	}
 
-	// TODO: Get NIC from cloud to have the assigned ip
+	nic, err = d.client().GetNic(d.DatacenterId, d.ServerId, d.NicId)
 
 	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
 		if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
