@@ -10,6 +10,8 @@ require (
 	github.com/stretchr/testify v1.8.1
 )
 
+require gopkg.in/yaml.v2 v2.4.0
+
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

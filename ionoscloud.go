@@ -3,10 +3,13 @@ package ionoscloud
 import (
 	"context"
 	"encoding/base64"
+	b64 "encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/docker/machine/libmachine/drivers"
 	"github.com/docker/machine/libmachine/log"
@@ -35,6 +38,7 @@ const (
 	flagDatacenterId           = "ionoscloud-datacenter-id"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
+	flagSSHUser                = "ionoscloud-ssh-user"
 	flagUserDataB64            = "ionoscloud-user-data-b64"
 )
 
@@ -45,6 +49,7 @@ const (
 	defaultCpuFamily        = "AMD_OPTERON"
 	defaultAvailabilityZone = "AUTO"
 	defaultDiskType         = "HDD"
+	defaultSSHUser          = "root"
 	defaultSize             = 10
 	driverName              = "ionoscloud"
 )
@@ -71,6 +76,7 @@ type Driver struct {
 	Ram                    int
 	Cores                  int
 	SSHKey                 string
+	SSHUser                string
 	DiskSize               int
 	DiskType               string
 	Image                  string
@@ -222,6 +228,12 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagUserDataB64,
 			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
+		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_SSH_USER",
+			Name:   flagSSHUser,
+			Value:  defaultSSHUser,
+			Usage:  "The name of the user the driver will use for ssh",
+		},
 	}
 }
 
@@ -243,6 +255,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.UserData = opts.String(flagUserData)
+	d.SSHUser = opts.String(flagSSHUser)
 	d.UserDataB64 = opts.String(flagUserDataB64)
 
 	d.SwarmMaster = opts.Bool("swarm-master")
@@ -303,6 +316,42 @@ func (d *Driver) PreCreateCheck() error {
 	return nil
 }
 
+func (d *Driver) addSSHUserToYaml() (string, error) {
+	var (
+		sshUser     = d.SSHUser
+		sshkey      = d.SSHKey
+		yamlcontent = d.UserData
+	)
+	cf := make(map[interface{}]interface{})
+	if err := yaml.Unmarshal([]byte(yamlcontent), &cf); err != nil {
+		return "", err
+	}
+
+	commonUser := map[interface{}]interface{}{
+		"name":                sshUser,
+		"lock_passwd":         true,
+		"sudo":                "ALL=(ALL) NOPASSWD:ALL",
+		"create_groups":       false,
+		"no_user_group":       true,
+		"ssh_authorized_keys": []string{sshkey},
+	}
+
+	if val, ok := cf["users"]; ok {
+		u := val.([]interface{})
+		cf["users"] = append(u, commonUser)
+	} else {
+		users := make([]interface{}, 1)
+		users[0] = commonUser
+		cf["users"] = users
+	}
+
+	yaml, err := yaml.Marshal(cf)
+	if err != nil {
+		return "", err
+	}
+	return string(yaml), nil
+}
+
 func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
 	if p1 == empty {
 		return p2
@@ -320,6 +369,24 @@ func (d *Driver) Create() error {
 			return fmt.Errorf("error creating SSH keys: %v", err)
 		}
 		log.Debugf("SSH Key generated in file: %v", d.publicSSHKeyPath())
+	}
+
+	rootSSHKey := d.SSHKey
+
+	givenB64Userdata, _ := base64.StdEncoding.DecodeString(d.UserDataB64)
+
+	if ud := getPropertyWithFallback(d.UserData, string(givenB64Userdata), ""); ud != "" {
+		log.Infof("Using user data: %s", ud)
+		d.UserData = ud
+	}
+
+	if d.SSHUser != "root" {
+		rootSSHKey = ""
+		if d.UserData == "" {
+			d.UserData = "#cloud-config\n" + d.UserData
+		}
+		newUserData, _ := d.addSSHUserToYaml()
+		d.UserData = b64.StdEncoding.EncodeToString([]byte(d.UserData + newUserData))
 	}
 
 	result, err := d.getImageId(d.Image)
@@ -393,13 +460,9 @@ func (d *Driver) Create() error {
 		Name:          d.MachineName,
 		ImagePassword: d.ImagePassword,
 		Zone:          d.VolumeAvailabilityZone,
-		SshKey:        d.SSHKey,
+		SshKey:        rootSSHKey,
 		DiskSize:      float32(d.DiskSize),
-	}
-
-	if ud := getPropertyWithFallback(base64.StdEncoding.EncodeToString([]byte(d.UserData)), d.UserDataB64, ""); ud != "" {
-		log.Infof("Using user data: %s", ud)
-		properties.UserData = ud
+		UserData:      d.UserData,
 	}
 
 	if !d.UseAlias {
@@ -558,6 +621,10 @@ func (d *Driver) Kill() error {
 // GetSSHHostname returns an IP address or hostname for the machine instance.
 func (d *Driver) GetSSHHostname() (string, error) {
 	return d.GetIP()
+}
+
+func (d *Driver) GetSSHUsername() string {
+	return d.SSHUser
 }
 
 // GetURL returns a socket address to connect to Docker engine of the machine instance.

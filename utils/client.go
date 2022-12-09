@@ -252,14 +252,19 @@ func (c *Client) RemoveServer(datacenterId, serverId string) error {
 }
 
 func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties *ClientVolumeProperties) (*sdkgo.Volume, error) {
+	// TODO: if in if !!! Return early instead...
 	if volProperties == nil {
 		return nil, fmt.Errorf("volume properties are nil")
+	}
+	sshKeys := &[]string{}
+	if volProperties.SshKey != "" {
+		sshKeys = &[]string{volProperties.SshKey}
 	}
 	var inputProperties sdkgo.VolumeProperties
 	inputProperties.Type = &volProperties.DiskType
 	inputProperties.Size = &volProperties.DiskSize
 	inputProperties.ImagePassword = &volProperties.ImagePassword
-	inputProperties.SshKeys = &[]string{volProperties.SshKey}
+	inputProperties.SshKeys = sshKeys
 	inputProperties.AvailabilityZone = &volProperties.Zone
 
 	if volProperties.ImageId != "" {
