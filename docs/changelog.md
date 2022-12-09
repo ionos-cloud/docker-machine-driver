@@ -1,6 +1,6 @@
 # Changelog
 
-## \[6.1.0\]
+## \[6.1.0-rc.1\]
 
 ### Added
 
@@ -9,6 +9,9 @@
     * Whitelist Domains: https://cdn.jsdelivr.net
     
     We highly recommend using this UI Driver if you are using the Rancher docker image.
+
+* Added the option to customize the SSH User that Rancher uses to connect to the Docker Host (`ionoscloud-ssh-user`). [#49](https://github.com/ionos-cloud/docker-machine-driver/pull/49)
+* Added the option to select an existing LAN in which to provision the Docker Host (`ionoscloud-lan-id`). Using this option requires you to set the Datacenter ID as well (`ionoscloud-datacenter-id`). [#42](https://github.com/ionos-cloud/docker-machine-driver/pull/42)
 
 ### Changed
 
