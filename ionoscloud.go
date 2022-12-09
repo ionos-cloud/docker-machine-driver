@@ -49,6 +49,7 @@ const (
 	defaultCpuFamily        = "AMD_OPTERON"
 	defaultAvailabilityZone = "AUTO"
 	defaultDiskType         = "HDD"
+	defaultSSHUser          = "root"
 	defaultSize             = 10
 	driverName              = "ionoscloud"
 )
@@ -230,6 +231,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_SSH_USER",
 			Name:   flagSSHUser,
+			Value:  defaultSSHUser,
 			Usage:  "The name of the user the driver will use for ssh",
 		},
 	}
@@ -371,7 +373,14 @@ func (d *Driver) Create() error {
 
 	rootSSHKey := d.SSHKey
 
-	if d.SSHUser != "" {
+	givenB64Userdata, _ := base64.StdEncoding.DecodeString(d.UserDataB64)
+
+	if ud := getPropertyWithFallback(d.UserData, string(givenB64Userdata), ""); ud != "" {
+		log.Infof("Using user data: %s", ud)
+		d.UserData = ud
+	}
+
+	if d.SSHUser != "root" {
 		rootSSHKey = ""
 		if d.UserData == "" {
 			d.UserData = "#cloud-config\n" + d.UserData
@@ -453,11 +462,7 @@ func (d *Driver) Create() error {
 		Zone:          d.VolumeAvailabilityZone,
 		SshKey:        rootSSHKey,
 		DiskSize:      float32(d.DiskSize),
-	}
-
-	if ud := getPropertyWithFallback(base64.StdEncoding.EncodeToString([]byte(d.UserData)), d.UserDataB64, ""); ud != "" {
-		log.Infof("Using user data: %s", ud)
-		properties.UserData = ud
+		UserData:      d.UserData,
 	}
 
 	if !d.UseAlias {
