@@ -326,28 +326,12 @@ func (d *Driver) addSSHUserToYaml() (string, error) {
 	}
 
 	commonUser := map[interface{}]interface{}{
-		"name":        sshUser,
-		"lock_passwd": true,
-		"ssh_authorized_keys": []string{
-			sshkey,
-		},
-	}
-
-	switch "linux" {
-	default:
-		// implements https://github.com/canonical/cloud-init/blob/master/cloudinit/config/cc_users_groups.py#L28-L71
-		// technically not in the spec, see this code for context
-		// https://github.com/canonical/cloud-init/blob/master/cloudinit/distros/__init__.py#L394-L397
-		commonUser["sudo"] = "ALL=(ALL) NOPASSWD:ALL"
-		commonUser["create_groups"] = false
-		commonUser["no_user_group"] = true
-
-	// Administrator is the default ssh user on Windows Server 2019/2022
-	// This implements cloudbase-init for Windows VMs as cloud-init doesn't support Windows
-	// https://cloudbase-init.readthedocs.io/en/latest/
-	// On Windows, primary_group and groups are concatenated.
-	case "windows":
-		commonUser["inactive"] = false
+		"name":                sshUser,
+		"lock_passwd":         true,
+		"sudo":                "ALL=(ALL) NOPASSWD:ALL",
+		"create_groups":       false,
+		"no_user_group":       true,
+		"ssh_authorized_keys": []string{sshkey},
 	}
 
 	if val, ok := cf["users"]; ok {
