@@ -252,41 +252,31 @@ func (c *Client) RemoveServer(datacenterId, serverId string) error {
 }
 
 func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties *ClientVolumeProperties) (*sdkgo.Volume, error) {
-	var inputVolume sdkgo.Volume
 	// TODO: if in if !!! Return early instead...
-	if volProperties != nil {
-		sshKeys := &[]string{}
-		if volProperties.SshKey != "" {
-			sshKeys = &[]string{volProperties.SshKey}
-		}
-		if volProperties.ImageId != "" {
-			inputVolume = sdkgo.Volume{
-				Properties: &sdkgo.VolumeProperties{
-					Type:             &volProperties.DiskType,
-					Size:             &volProperties.DiskSize,
-					Name:             &volProperties.Name,
-					Image:            &volProperties.ImageId,
-					ImagePassword:    &volProperties.ImagePassword,
-					SshKeys:          sshKeys,
-					UserData:         &volProperties.UserData,
-					AvailabilityZone: &volProperties.Zone,
-				},
-			}
-		} else {
-			inputVolume = sdkgo.Volume{
-				Properties: &sdkgo.VolumeProperties{
-					Type:             &volProperties.DiskType,
-					Size:             &volProperties.DiskSize,
-					Name:             &volProperties.Name,
-					ImageAlias:       &volProperties.ImageAlias,
-					ImagePassword:    &volProperties.ImagePassword,
-					SshKeys:          sshKeys,
-					UserData:         &volProperties.UserData,
-					AvailabilityZone: &volProperties.Zone,
-				},
-			}
-		}
+	if volProperties == nil {
+		return nil, fmt.Errorf("volume properties are nil")
 	}
+	sshKeys := &[]string{}
+	if volProperties.SshKey != "" {
+		sshKeys = &[]string{volProperties.SshKey}
+	}
+	var inputProperties sdkgo.VolumeProperties
+	inputProperties.Type = &volProperties.DiskType
+	inputProperties.Size = &volProperties.DiskSize
+	inputProperties.ImagePassword = &volProperties.ImagePassword
+	inputProperties.SshKeys = sshKeys
+	inputProperties.AvailabilityZone = &volProperties.Zone
+
+	if volProperties.ImageId != "" {
+		inputProperties.Image = &volProperties.ImageId
+	} else {
+		inputProperties.ImageAlias = &volProperties.ImageAlias
+	}
+	if volProperties.UserData != "" {
+		inputProperties.UserData = &volProperties.UserData
+	}
+	inputVolume := sdkgo.Volume{Properties: &inputProperties}
+
 	volume, volumeResp, err := c.ServersApi.DatacentersServersVolumesPost(c.ctx, datacenterId, serverId).Volume(inputVolume).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error attaching volume to server: %v", err)
