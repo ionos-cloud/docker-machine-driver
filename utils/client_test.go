@@ -96,6 +96,11 @@ func TestClientGetServerErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestClientGetLanErr(t *testing.T) {
+	_, err := getTestClient().GetLan(testName, testName)
+	assert.Error(t, err)
+}
+
 func TestClientStartServerErr(t *testing.T) {
 	err := getTestClient().StartServer(testName, testName)
 	assert.Error(t, err)

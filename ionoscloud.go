@@ -36,6 +36,7 @@ const (
 	flagImagePassword          = "ionoscloud-image-password"
 	flagLocation               = "ionoscloud-location"
 	flagDatacenterId           = "ionoscloud-datacenter-id"
+	flagLanId                  = "ionoscloud-lan-id"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
 	flagSSHUser                = "ionoscloud-ssh-user"
@@ -85,6 +86,7 @@ type Driver struct {
 	Location               string
 	CpuFamily              string
 	DCExists               bool
+	LanExists              bool
 	UseAlias               bool
 	VolumeAvailabilityZone string
 	ServerAvailabilityZone string
@@ -207,6 +209,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Virtual Data Center Id",
 		},
 		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_LAN_ID",
+			Name:   flagLanId,
+			Usage:  "Ionos Cloud LAN Id",
+		},
+		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_VOLUME_ZONE",
 			Name:   flagVolumeAvailabilityZone,
 			Value:  defaultAvailabilityZone,
@@ -252,6 +259,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.DiskType = opts.String(flagDiskType)
 	d.CpuFamily = opts.String(flagServerCpuFamily)
 	d.DatacenterId = opts.String(flagDatacenterId)
+	d.LanId = opts.String(flagLanId)
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.UserData = opts.String(flagUserData)
@@ -290,12 +298,24 @@ func (d *Driver) PreCreateCheck() error {
 			return fmt.Errorf("please provide password as parameter --ionoscloud-password or as environment variable $IONOSCLOUD_PASSWORD")
 		}
 	}
+
+	d.DCExists = false
+	d.LanExists = false
 	if d.DatacenterId != "" {
 		d.DCExists = true
+		if d.LanId != "" {
+			d.LanExists = true
+			lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
+			if err != nil {
+				return err
+			}
+			log.Info("Creating machine under LAN " + *lan.GetId())
+		}
 		dc, err := d.client().GetDatacenter(d.DatacenterId)
 		if err != nil {
 			return err
 		}
+
 		if dcProp, ok := dc.GetPropertiesOk(); ok && dcProp != nil {
 			if name, ok := dcProp.GetNameOk(); ok && name != nil {
 				log.Info("Creating machine under " + *name + " datacenter")
@@ -306,8 +326,6 @@ func (d *Driver) PreCreateCheck() error {
 				d.Location = *dcLocation
 			}
 		}
-	} else {
-		d.DCExists = false
 	}
 	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %v", d.Image, err)
@@ -362,6 +380,7 @@ func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
 // Create creates the machine.
 func (d *Driver) Create() error {
 	var err error
+	var isLanPrivate bool
 	log.Infof("Creating SSH key...")
 	if d.SSHKey == "" {
 		d.SSHKey, err = d.createSSHKey()
@@ -420,16 +439,23 @@ func (d *Driver) Create() error {
 		log.Debugf("Datacenter ID: %v", d.DatacenterId)
 	}
 
-	ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
-	if err != nil {
-		return err
-	}
-	if ipBlockId, ok := ipBlock.GetIdOk(); ok && ipBlockId != nil {
-		d.IpBlockId = *ipBlockId
-		log.Debugf("IpBlock ID: %v", d.IpBlockId)
+	if d.LanId == "" {
+		lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, true)
+		if err != nil {
+			log.Warn(rollingBackNotice)
+			if removeErr := d.Remove(); removeErr != nil {
+				return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
+			}
+			return err
+		}
+		if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
+			d.LanId = *lanId
+			log.Debugf("Lan ID: %v", d.LanId)
+		}
 	}
 
-	lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, true)
+	lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
+
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
@@ -437,9 +463,11 @@ func (d *Driver) Create() error {
 		}
 		return err
 	}
-	if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
-		d.LanId = *lanId
-		log.Debugf("Lan ID: %v", d.LanId)
+
+	if lanProp, ok := lan.GetPropertiesOk(); ok && lanProp != nil {
+		if public, ok := lanProp.GetPublicOk(); ok && public != nil {
+			isLanPrivate = !*public
+		}
 	}
 
 	server, err := d.client().CreateServer(d.DatacenterId, d.Location, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
@@ -486,9 +514,21 @@ func (d *Driver) Create() error {
 	}
 
 	l, _ := strconv.Atoi(d.LanId)
-	ips, err := d.client().GetIpBlockIps(ipBlock)
-	if err != nil {
-		return err
+	ips := &[]string{}
+
+	if !isLanPrivate {
+		ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
+		if err != nil {
+			return err
+		}
+		if ipBlockId, ok := ipBlock.GetIdOk(); ok && ipBlockId != nil {
+			d.IpBlockId = *ipBlockId
+			log.Debugf("IpBlock ID: %v", d.IpBlockId)
+		}
+		ips, err = d.client().GetIpBlockIps(ipBlock)
+		if err != nil {
+			return err
+		}
 	}
 
 	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(l), ips)
@@ -502,6 +542,14 @@ func (d *Driver) Create() error {
 	if nicId, ok := nic.GetIdOk(); ok && nicId != nil {
 		d.NicId = *nic.Id
 		log.Debugf("Nic ID: %v", d.NicId)
+	}
+
+	nic, err = d.client().GetNic(d.DatacenterId, d.ServerId, d.NicId)
+
+	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
+		if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
+			ips = nicIps
+		}
 	}
 
 	if len(*ips) > 0 {
@@ -541,10 +589,13 @@ func (d *Driver) Remove() error {
 	if err != nil {
 		result = multierror.Append(result, err)
 	}
-	log.Debugf("Starting deleting LAN with Id: %v", d.LanId)
-	err = d.client().RemoveLan(d.DatacenterId, d.LanId)
-	if err != nil {
-		result = multierror.Append(result, err)
+	// If the LAN existed before creating the machine, do not delete it at clean-up
+	if !d.LanExists {
+		log.Debugf("Starting deleting LAN with Id: %v", d.LanId)
+		err = d.client().RemoveLan(d.DatacenterId, d.LanId)
+		if err != nil {
+			result = multierror.Append(result, err)
+		}
 	}
 	// If the DataCenter existed before creating the machine, do not delete it at clean-up
 	if !d.DCExists {
