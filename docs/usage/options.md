@@ -16,44 +16,45 @@ rancher-machine create --help --driver ionoscloud
 
 Available Options for the IONOS Cloud Docker Machine Driver:
 
-| Option | Description |
-| :--- | :--- |
-| `--driver, -d` | Driver to create machine with |
-| `--ionoscloud-username` | Ionos Cloud Username |
-| `--ionoscloud-password` | Ionos Cloud Password |
-| `--ionoscloud-token` | Ionos Cloud Token |
-| `--ionoscloud-endpoint` | Ionos Cloud API Endpoint. It is recommended to be set to `https://api.ionos.com` or `https://api.ionos.com/cloudapi/v6`. The SDK will automatically put the `/cloudapi/v6` suffix if not set. |
-| `--ionoscloud-datacenter-id` | Ionos Cloud Virtual Data Center Id |
-| `--ionoscloud-lan-id` | Ionos Cloud LAN Id |
-| `--ionoscloud-disk-size` | Ionos Cloud Volume Disk-Size in GB \(10, 50, 100, 200, 400\) |
-| `--ionoscloud-disk-type` | Ionos Cloud Volume Disk-Type \(HDD, SSD\) |
-| `--ionoscloud-image` | Ionos Cloud Image Id or Alias \(ubuntu:latest, ubuntu:20.04\). If Image Id is set, please make sure the disk type supports the image type. |
-| `--ionoscloud-image-password` | Ionos Cloud Image Password to be able to access the server from DCD platform |
-| `--ionoscloud-location` | Ionos Cloud Location |
-| `--ionoscloud-server-availability-zone` | Ionos Cloud Server Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\) |
-| `--ionoscloud-cores` | Ionos Cloud Server Cores \(2, 3, 4, 5, 6, etc.\) |
-| `--ionoscloud-cpu-family` | Ionos Cloud Server CPU families \(AMD\_OPTERON,INTEL\_XEON, INTEL\_SKYLAKE\) |
-| `--ionoscloud-ram` | Ionos Cloud Server Ram in MB \(1024, 2048, 3072, 4096, etc.\) |
-| `--ionoscloud-volume-availability-zone` | Ionos Cloud Volume Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\) |
-| `--ionoscloud-user-data` | The cloud-init configuration for the volume as base64 encoded string |
-| `--swarm` | Configure Machine to join a Swarm cluster |
-| `--swarm-addr` | addr to advertise for Swarm \(default: detect and use the machine IP\) |
-| `--swarm-discovery` | Discovery service to use with Swarm |
-| `--swarm-experimental` | Enable Swarm experimental features |
-| `--swarm-host` | ip/socket to listen on for Swarm master |
-| `--swarm-image` | Specify Docker image to use for Swarm |
-| `--swarm-join-opt` | Define arbitrary flags for Swarm join |
-| `--swarm-master` | Configure Machine to be a Swarm master |
-| `--swarm-opt` | Define arbitrary flags for Swarm master |
-| `--swarm-strategy` | Define a default scheduling strategy for Swarm |
-| `--engine-env` | Specify environment variables to set in the engine |
-| `--engine-insecure-registry` | Specify insecure registries to allow with the created engine |
-| `--engine-install-url` | Custom URL to use for engine installation |
-| `--engine-label` | Specify labels for the created engine |
-| `--engine-opt` | Specify arbitrary flags to include with the created engine in the form flag=value |
-| `--engine-registry-mirror` | Specify registry mirrors to use |
-| `--engine-storage-driver` | Specify a storage driver to use with the engine |
-| `--tls-san` | Support extra SANs for TLS certs |
+| Option                                  | Description                                                                                                                                                                                   |
+|:----------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--driver, -d`                          | Driver to create machine with                                                                                                                                                                 |
+| `--ionoscloud-username`                 | Ionos Cloud Username                                                                                                                                                                          |
+| `--ionoscloud-password`                 | Ionos Cloud Password                                                                                                                                                                          |
+| `--ionoscloud-token`                    | Ionos Cloud Token                                                                                                                                                                             |
+| `--ionoscloud-endpoint`                 | Ionos Cloud API Endpoint. It is recommended to be set to `https://api.ionos.com` or `https://api.ionos.com/cloudapi/v6`. The SDK will automatically put the `/cloudapi/v6` suffix if not set. |
+| `--ionoscloud-datacenter-id`            | Existing Ionos Cloud Virtual Data Center ID (UUID-4) in which to create the Docker Host                                                                                                       |
+| `--ionoscloud-lan-id`                   | Existing Ionos Cloud LAN ID (numeric) in which to create the Docker Host                                                                                                                      |
+| `--ionoscloud-disk-size`                | Ionos Cloud Volume Disk-Size in GB \(10, 50, 100, 200, 400\)                                                                                                                                  |
+| `--ionoscloud-disk-type`                | Ionos Cloud Volume Disk-Type \(HDD, SSD\)                                                                                                                                                     |
+| `--ionoscloud-image`                    | Ionos Cloud Image Id or Alias \(ubuntu:latest, ubuntu:20.04\). If Image Id is set, please make sure the disk type supports the image type.                                                    |
+| `--ionoscloud-image-password`           | Ionos Cloud Image Password to be able to access the server from DCD platform                                                                                                                  |
+| `--ionoscloud-location`                 | Ionos Cloud Location                                                                                                                                                                          |
+| `--ionoscloud-server-availability-zone` | Ionos Cloud Server Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\)                                                                                                                      |
+| `--ionoscloud-cores`                    | Ionos Cloud Server Cores \(2, 3, 4, 5, 6, etc.\)                                                                                                                                              |
+| `--ionoscloud-cpu-family`               | Ionos Cloud Server CPU families \(AMD\_OPTERON,INTEL\_XEON, INTEL\_SKYLAKE\)                                                                                                                  |
+| `--ionoscloud-ram`                      | Ionos Cloud Server Ram in MB \(1024, 2048, 3072, 4096, etc.\)                                                                                                                                 |
+| `--ionoscloud-volume-availability-zone` | Ionos Cloud Volume Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\)                                                                                                                      |
+| `--ionoscloud-user-data`                | The cloud-init configuration for the volume as base64 encoded string                                                                                                                          |
+| `--ionoscloud-ssh-user`                 | The user to connect to via SSH                                                                                                                                                                |
+| `--swarm`                               | Configure Machine to join a Swarm cluster                                                                                                                                                     |
+| `--swarm-addr`                          | addr to advertise for Swarm \(default: detect and use the machine IP\)                                                                                                                        |
+| `--swarm-discovery`                     | Discovery service to use with Swarm                                                                                                                                                           |
+| `--swarm-experimental`                  | Enable Swarm experimental features                                                                                                                                                            |
+| `--swarm-host`                          | ip/socket to listen on for Swarm master                                                                                                                                                       |
+| `--swarm-image`                         | Specify Docker image to use for Swarm                                                                                                                                                         |
+| `--swarm-join-opt`                      | Define arbitrary flags for Swarm join                                                                                                                                                         |
+| `--swarm-master`                        | Configure Machine to be a Swarm master                                                                                                                                                        |
+| `--swarm-opt`                           | Define arbitrary flags for Swarm master                                                                                                                                                       |
+| `--swarm-strategy`                      | Define a default scheduling strategy for Swarm                                                                                                                                                |
+| `--engine-env`                          | Specify environment variables to set in the engine                                                                                                                                            |
+| `--engine-insecure-registry`            | Specify insecure registries to allow with the created engine                                                                                                                                  |
+| `--engine-install-url`                  | Custom URL to use for engine installation                                                                                                                                                     |
+| `--engine-label`                        | Specify labels for the created engine                                                                                                                                                         |
+| `--engine-opt`                          | Specify arbitrary flags to include with the created engine in the form flag=value                                                                                                             |
+| `--engine-registry-mirror`              | Specify registry mirrors to use                                                                                                                                                               |
+| `--engine-storage-driver`               | Specify a storage driver to use with the engine                                                                                                                                               |
+| `--tls-san`                             | Support extra SANs for TLS certs                                                                                                                                                              |
 
 ## Environment variables
 
@@ -79,4 +80,4 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-volume-availability-zone` | `IONOSCLOUD_VOLUME_ZONE`    |
 | `--ionoscloud-user-data`                | `IONOSCLOUD_USER_DATA`      |
 | `--ionoscloud-user-data-b64`            | `IONOSCLOUD_USER_DATA_B64`  |
-
+| `--ionoscloud-ssh-user`                 | `IONOSCLOUD_SSH_USER`       |
