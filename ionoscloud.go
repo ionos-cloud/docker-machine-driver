@@ -80,6 +80,7 @@ type Driver struct {
 	Location               string
 	CpuFamily              string
 	DCExists               bool
+	LanExists              bool
 	UseAlias               bool
 	VolumeAvailabilityZone string
 	ServerAvailabilityZone string
@@ -284,12 +285,24 @@ func (d *Driver) PreCreateCheck() error {
 			return fmt.Errorf("please provide password as parameter --ionoscloud-password or as environment variable $IONOSCLOUD_PASSWORD")
 		}
 	}
+
+	d.DCExists = false
+	d.LanExists = false
 	if d.DatacenterId != "" {
 		d.DCExists = true
+		if d.LanId != "" {
+			d.LanExists = true
+			lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
+			if err != nil {
+				return err
+			}
+			log.Info("Creating machine under LAN " + *lan.GetId())
+		}
 		dc, err := d.client().GetDatacenter(d.DatacenterId)
 		if err != nil {
 			return err
 		}
+
 		if dcProp, ok := dc.GetPropertiesOk(); ok && dcProp != nil {
 			if name, ok := dcProp.GetNameOk(); ok && name != nil {
 				log.Info("Creating machine under " + *name + " datacenter")
@@ -300,8 +313,6 @@ func (d *Driver) PreCreateCheck() error {
 				d.Location = *dcLocation
 			}
 		}
-	} else {
-		d.DCExists = false
 	}
 	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %v", d.Image, err)
@@ -378,18 +389,18 @@ func (d *Driver) Create() error {
 
 	lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
 
-	if err == nil {
-		if lanProp, ok := lan.GetPropertiesOk(); ok && lanProp != nil {
-			if public, ok := lanProp.GetPublicOk(); ok && public != nil {
-				isLanPrivate = !*public
-			}
-		}
-	} else {
+	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
 			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
 		}
 		return err
+	}
+
+	if lanProp, ok := lan.GetPropertiesOk(); ok && lanProp != nil {
+		if public, ok := lanProp.GetPublicOk(); ok && public != nil {
+			isLanPrivate = !*public
+		}
 	}
 
 	server, err := d.client().CreateServer(d.DatacenterId, d.Location, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
@@ -515,10 +526,13 @@ func (d *Driver) Remove() error {
 	if err != nil {
 		result = multierror.Append(result, err)
 	}
-	log.Debugf("Starting deleting LAN with Id: %v", d.LanId)
-	err = d.client().RemoveLan(d.DatacenterId, d.LanId)
-	if err != nil {
-		result = multierror.Append(result, err)
+	// If the LAN existed before creating the machine, do not delete it at clean-up
+	if !d.LanExists {
+		log.Debugf("Starting deleting LAN with Id: %v", d.LanId)
+		err = d.client().RemoveLan(d.DatacenterId, d.LanId)
+		if err != nil {
+			result = multierror.Append(result, err)
+		}
 	}
 	// If the DataCenter existed before creating the machine, do not delete it at clean-up
 	if !d.DCExists {
