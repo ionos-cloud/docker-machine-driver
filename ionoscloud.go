@@ -2,6 +2,7 @@ package ionoscloud
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -35,6 +36,7 @@ const (
 	flagLanId                  = "ionoscloud-lan-id"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
+	flagUserDataB64            = "ionoscloud-user-data-b64"
 )
 
 const (
@@ -88,6 +90,7 @@ type Driver struct {
 	ServerId               string
 	IpBlockId              string
 	UserData               string
+	UserDataB64            string
 
 	// Driver Version
 	Version string
@@ -218,6 +221,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_USER_DATA",
 			Name:   flagUserData,
+			Usage:  "The cloud-init configuration for the volume as a multi-line string",
+		},
+		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_USER_DATA_B64",
+			Name:   flagUserDataB64,
 			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
 	}
@@ -242,6 +250,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.UserData = opts.String(flagUserData)
+	d.UserDataB64 = opts.String(flagUserDataB64)
 
 	d.SwarmMaster = opts.Bool("swarm-master")
 	d.SwarmHost = opts.String("swarm-host")
@@ -299,6 +308,13 @@ func (d *Driver) PreCreateCheck() error {
 	}
 
 	return nil
+}
+
+func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
+	if p1 == empty {
+		return p2
+	}
+	return p1
 }
 
 // Create creates the machine.
@@ -389,32 +405,26 @@ func (d *Driver) Create() error {
 		log.Debugf("Server ID: %v", d.ServerId)
 	}
 
-	// TODO: export to a func
-	var properties utils.ClientVolumeProperties
+	properties := utils.ClientVolumeProperties{
+		DiskType:      d.DiskType,
+		Name:          d.MachineName,
+		ImagePassword: d.ImagePassword,
+		Zone:          d.VolumeAvailabilityZone,
+		SshKey:        d.SSHKey,
+		DiskSize:      float32(d.DiskSize),
+	}
+
+	if ud := getPropertyWithFallback(base64.StdEncoding.EncodeToString([]byte(d.UserData)), d.UserDataB64, ""); ud != "" {
+		log.Infof("Using user data: %s", ud)
+		properties.UserData = ud
+	}
+
 	if !d.UseAlias {
 		log.Infof("Image Id: %v", result)
-		properties = utils.ClientVolumeProperties{
-			DiskType:      d.DiskType,
-			Name:          d.MachineName,
-			ImageId:       result,
-			ImagePassword: d.ImagePassword,
-			Zone:          d.VolumeAvailabilityZone,
-			SshKey:        d.SSHKey,
-			DiskSize:      float32(d.DiskSize),
-			UserData:      d.UserData,
-		}
+		properties.ImageId = result
 	} else {
 		log.Infof("Image Alias: %v", alias)
-		properties = utils.ClientVolumeProperties{
-			DiskType:      d.DiskType,
-			Name:          d.MachineName,
-			ImageAlias:    alias,
-			ImagePassword: d.ImagePassword,
-			Zone:          d.VolumeAvailabilityZone,
-			SshKey:        d.SSHKey,
-			DiskSize:      float32(d.DiskSize),
-			UserData:      d.UserData,
-		}
+		properties.ImageAlias = alias
 	}
 	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, &properties)
 	if err != nil {
