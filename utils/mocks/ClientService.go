@@ -185,6 +185,21 @@ func (mr *MockClientServiceMockRecorder) GetIpBlockIps(ipBlock interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIpBlockIps", reflect.TypeOf((*MockClientService)(nil).GetIpBlockIps), ipBlock)
 }
 
+// GetLan mocks base method.
+func (m *MockClientService) GetLan(datacenterId, LanId string) (*ionoscloud.Lan, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLan", datacenterId, LanId)
+	ret0, _ := ret[0].(*ionoscloud.Lan)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLan indicates an expected call of GetLan.
+func (mr *MockClientServiceMockRecorder) GetLan(datacenterId, LanId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLan", reflect.TypeOf((*MockClientService)(nil).GetLan), datacenterId, LanId)
+}
+
 // GetLocationById mocks base method.
 func (m *MockClientService) GetLocationById(regionId, locationId string) (*ionoscloud.Location, error) {
 	m.ctrl.T.Helper()
@@ -198,6 +213,21 @@ func (m *MockClientService) GetLocationById(regionId, locationId string) (*ionos
 func (mr *MockClientServiceMockRecorder) GetLocationById(regionId, locationId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocationById", reflect.TypeOf((*MockClientService)(nil).GetLocationById), regionId, locationId)
+}
+
+// GetNic mocks base method.
+func (m *MockClientService) GetNic(datacenterId, ServerId, NicId string) (*ionoscloud.Nic, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNic", datacenterId, ServerId, NicId)
+	ret0, _ := ret[0].(*ionoscloud.Nic)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNic indicates an expected call of GetNic.
+func (mr *MockClientServiceMockRecorder) GetNic(datacenterId, ServerId, NicId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNic", reflect.TypeOf((*MockClientService)(nil).GetNic), datacenterId, ServerId, NicId)
 }
 
 // GetServer mocks base method.
