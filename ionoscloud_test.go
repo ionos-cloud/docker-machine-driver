@@ -24,7 +24,7 @@ var (
 	testImageIdVar = "test-image-id"
 	locationId     = "las"
 	imageType      = "HDD"
-	imageName      = "ubuntu:latest"
+	imageName      = defaultImageAlias
 	imageLocation  = "us/las"
 	dcVersion      = int32(1)
 	testErr        = fmt.Errorf("error")

@@ -40,7 +40,7 @@ const (
 
 const (
 	defaultRegion           = "us/las"
-	defaultImageAlias       = "ubuntu:latest"
+	defaultImageAlias       = "ubuntu:20.04"
 	defaultImagePassword    = "abcde12345" // Must contain both letters and numbers, at least 8 characters
 	defaultCpuFamily        = "AMD_OPTERON"
 	defaultAvailabilityZone = "AUTO"
