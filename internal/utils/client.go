@@ -110,7 +110,7 @@ func (c *Client) CreateDatacenter(name, location string) (*sdkgo.Datacenter, err
 func (c *Client) GetDatacenter(datacenterId string) (*sdkgo.Datacenter, error) {
 	datacenter, resp, err := c.DataCentersApi.DatacentersFindById(c.ctx, datacenterId).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting datacenter: %w", err)
+		return nil, fmt.Errorf("error getting datacenter: %w", api.SanitizeErrorJsonToHuman(err))
 	}
 	if err = api.SanitizeResponseCustom(resp, api.CustomStatusCodeMessages.Set(404, "provided UUID does not match any datacenter"), log.Info); err != nil {
 		return nil, err
@@ -184,7 +184,7 @@ func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone stri
 
 	svr, serverResp, err := c.ServersApi.DatacentersServersPost(c.ctx, datacenterId).Server(server).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error creating server in location %s err: %w", location, err)
+		return nil, fmt.Errorf("error creating server in location %s err: %w", location, api.SanitizeErrorJsonToHuman(err))
 	}
 
 	err = api.SanitizeResponse(serverResp, log.Info)
@@ -203,7 +203,7 @@ func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone stri
 func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error) {
 	server, resp, err := c.ServersApi.DatacentersServersFindById(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting server: %w", err)
+		return nil, fmt.Errorf("error getting server: %w", api.SanitizeErrorJsonToHuman(err))
 	}
 	err = api.SanitizeResponse(resp, log.Info)
 	if err != nil {
