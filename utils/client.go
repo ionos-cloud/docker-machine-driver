@@ -119,7 +119,7 @@ func (c *Client) RemoveDatacenter(datacenterId string) error {
 	}
 	if resp.StatusCode > 299 {
 		if resp.StatusCode == 405 {
-			return fmt.Errorf("error deleting datacenter: %v. Please consider to delete it manually", err)
+			return fmt.Errorf("error deleting datacenter: %v. Please consider to delete it manually", err) // TODO: This "err" var is nil, since if it wasn't nil, it would have been thrown out above
 		}
 		return fmt.Errorf("error deleting datacenter, API Response status: %s", resp.Status)
 	}
@@ -186,7 +186,7 @@ func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone stri
 	if serverResp.StatusCode == 202 {
 		log.Info("Server Created")
 	} else {
-		return nil, fmt.Errorf("error creating a server: %s", serverResp.Status)
+		return nil, fmt.Errorf("error creating a server: %+v", serverResp)
 	}
 	err = c.waitTillProvisioned(serverResp.Header.Get("location"))
 	if err != nil {
