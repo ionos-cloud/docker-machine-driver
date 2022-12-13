@@ -444,7 +444,7 @@ func (d *Driver) Create() error {
 		if err != nil {
 			log.Warn(rollingBackNotice)
 			if removeErr := d.Remove(); removeErr != nil {
-				return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %w", err, removeErr)
+				return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
 			}
 			return err
 		}
@@ -459,7 +459,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %w", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
 		}
 		return err
 	}
@@ -474,7 +474,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %w", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
 		}
 		return err
 	}
@@ -504,7 +504,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %w", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
 		}
 		return err
 	}
@@ -535,7 +535,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %w", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
 		}
 		return err
 	}

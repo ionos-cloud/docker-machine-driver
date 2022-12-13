@@ -24,17 +24,15 @@ func (m MapStatusCodeMessages) Set(k int, v string) MapStatusCodeMessages {
 	return m
 }
 
-type printFunc func(...any)
-
 // SanitizeResponse calls SanitizeResponseCustom with some default customized messages. Refer to its documentation for behaviour
-func SanitizeResponse(response *ionoscloud.APIResponse, validCodeLogFunc printFunc) error {
+func SanitizeResponse(response *ionoscloud.APIResponse, validCodeLogFunc func(...any)) error {
 	return SanitizeResponseCustom(response, CustomStatusCodeMessages, validCodeLogFunc)
 }
 
 // SanitizeResponseCustom is responsible for breaking execution if the response passed as a parameter has a bad status code (i.e. >299).
 // Refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for types of HTTP codes.
 // If a custom response is found, but the response code is valid (<300), then we log the response using the validCodeLogFunc param.
-func SanitizeResponseCustom(response *ionoscloud.APIResponse, mapOfCustomResponses MapStatusCodeMessages, validCodeLogFunc printFunc) error {
+func SanitizeResponseCustom(response *ionoscloud.APIResponse, mapOfCustomResponses MapStatusCodeMessages, validCodeLogFunc func(...any)) error {
 	sc := response.StatusCode
 	if sc < 300 {
 		// valid response
