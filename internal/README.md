@@ -1,7 +1,7 @@
 
 ## Inwards facing packages.
 
-Highly personalized. Exported functions here MUST be related to docker-machine-driver exclusively.
+Highly personalized code. Exported functions here MUST be related to docker-machine-driver-ionoscloud exclusively.
 
 Contains adapters to the exported functions in [pkg](../pkg/)
 

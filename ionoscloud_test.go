@@ -236,8 +236,8 @@ func TestPreCreateCheckDataCenterIdErr(t *testing.T) {
 	driver.DatacenterId = testVar
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	err := driver.PreCreateCheck()
 	assert.NoError(t, err)
 }
@@ -255,8 +255,8 @@ func TestPreCreateImageIdErr(t *testing.T) {
 	driver.DatacenterId = testVar
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, fmt.Errorf("error getting image: 404 not found"))
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, fmt.Errorf("error getting image: 404 not found"))
 	err := driver.PreCreateCheck()
 	assert.Error(t, err)
 }
@@ -264,8 +264,8 @@ func TestPreCreateImageIdErr(t *testing.T) {
 func TestPreCreateCheck(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	err := driver.PreCreateCheck()
 	assert.NoError(t, err)
 }
@@ -293,8 +293,8 @@ func TestCreate(t *testing.T) {
 	driver.LanId = ""
 	driver.IPAddress = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
@@ -318,8 +318,8 @@ func TestCreateLanProvided(t *testing.T) {
 	driver.LanId = testVar
 	driver.IPAddress = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
@@ -343,7 +343,7 @@ func TestCreateImageId(t *testing.T) {
 	driver.IPAddress = testVar
 	driver.Image = testImageIdVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(testImageIdVar).Return(imageFoundById, nil)
+	clientMock.EXPECT().GetImageById(testImageIdVar).Return(&imageFoundById, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
@@ -367,7 +367,7 @@ func TestCreateImageAlias(t *testing.T) {
 	driver.IPAddress = testVar
 	driver.Image = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
@@ -386,8 +386,8 @@ func TestCreateIpBlockErr(t *testing.T) {
 	driver.DatacenterId = testVar
 	driver.UseAlias = true
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
 	clientMock.EXPECT().GetNic(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("sv"), gomock.AssignableToTypeOf("nic")).Return(nic, nil)
@@ -407,8 +407,8 @@ func TestCreateGetImageErr(t *testing.T) {
 	err := driver.Create()
 	assert.Error(t, err)
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, testErr)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, testErr)
 	err = driver.Create()
 	assert.Error(t, err)
 }
@@ -418,8 +418,8 @@ func TestCreateGetDatacenterErr(t *testing.T) {
 	driver.SSHKey = testVar
 	driver.DatacenterId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, testErr)
 	err := driver.Create()
@@ -431,8 +431,8 @@ func TestCreateDatacenterErr(t *testing.T) {
 	driver.SSHKey = testVar
 	driver.DatacenterId = ""
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().CreateDatacenter(driver.MachineName, driver.Location).Return(dc, testErr)
 	err := driver.Create()
@@ -446,8 +446,8 @@ func TestCreateLanErr(t *testing.T) {
 	driver.LanId = ""
 	driver.IpBlockId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, testErr)
@@ -469,8 +469,8 @@ func TestCreateServerErr(t *testing.T) {
 	driver.IPAddress = testVar
 	driver.IpBlockId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
@@ -494,8 +494,8 @@ func TestCreateServerRemove(t *testing.T) {
 	driver.IPAddress = testVar
 	driver.IpBlockId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
@@ -520,8 +520,8 @@ func TestCreateAttachVolumeErr(t *testing.T) {
 	driver.IPAddress = testVar
 	driver.IpBlockId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
@@ -547,8 +547,8 @@ func TestCreateAttachVolumeRemove(t *testing.T) {
 	driver.IPAddress = testVar
 	driver.IpBlockId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
@@ -574,8 +574,8 @@ func TestCreateGetIpBlockErr(t *testing.T) {
 	driver.LanId = testVar
 	driver.IPAddress = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
@@ -598,8 +598,8 @@ func TestCreateAttachNicErr(t *testing.T) {
 	driver.IPAddress = testVar
 	driver.IpBlockId = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
@@ -873,8 +873,8 @@ func TestGetRegionIdAndLocationId(t *testing.T) {
 func TestGetImageId(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(images, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
 	driver.Location = defaultRegion
 	driver.DiskType = "SSD"
 	_, err := driver.getImageId(imageName)

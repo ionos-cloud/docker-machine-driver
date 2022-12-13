@@ -385,7 +385,7 @@ func (d *Driver) Create() error {
 	if d.SSHKey == "" {
 		d.SSHKey, err = d.createSSHKey()
 		if err != nil {
-			return fmt.Errorf("error creating SSH keys: %v", err)
+			return fmt.Errorf("error creating SSH keys: %w", err)
 		}
 		log.Debugf("SSH Key generated in file: %v", d.publicSSHKeyPath())
 	}
@@ -444,7 +444,7 @@ func (d *Driver) Create() error {
 		if err != nil {
 			log.Warn(rollingBackNotice)
 			if removeErr := d.Remove(); removeErr != nil {
-				return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
+				return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %w", err, removeErr)
 			}
 			return err
 		}
@@ -459,7 +459,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %w", err, removeErr)
 		}
 		return err
 	}
@@ -474,7 +474,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %w", err, removeErr)
 		}
 		return err
 	}
@@ -504,7 +504,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %w", err, removeErr)
 		}
 		return err
 	}
@@ -535,7 +535,7 @@ func (d *Driver) Create() error {
 	if err != nil {
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %v", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %v\n Removing created resources: %w", err, removeErr)
 		}
 		return err
 	}
@@ -621,7 +621,7 @@ func (d *Driver) Remove() error {
 func (d *Driver) Start() error {
 	serverState, err := d.GetState()
 	if err != nil {
-		return fmt.Errorf("error getting state: %v", err)
+		return fmt.Errorf("error getting state: %w", err)
 	}
 	if serverState != state.Running {
 		err = d.client().StartServer(d.DatacenterId, d.ServerId)
@@ -638,7 +638,7 @@ func (d *Driver) Start() error {
 func (d *Driver) Stop() error {
 	vmState, err := d.GetState()
 	if err != nil {
-		return fmt.Errorf("error getting state: %v", err)
+		return fmt.Errorf("error getting state: %w", err)
 	}
 	if vmState == state.Stopped {
 		log.Infof("Host is already stopped")
@@ -694,7 +694,7 @@ func (d *Driver) GetURL() (string, error) {
 func (d *Driver) GetIP() (string, error) {
 	server, err := d.client().GetServer(d.DatacenterId, d.ServerId)
 	if err != nil {
-		return "", fmt.Errorf("error getting server by id: %v", err)
+		return "", fmt.Errorf("error getting server by id: %w", err)
 	}
 
 	if serverEntities, ok := server.GetEntitiesOk(); ok && serverEntities != nil {

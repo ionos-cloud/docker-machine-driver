@@ -24,6 +24,6 @@ type ClientService interface {
 	CreateAttachNIC(datacenterId, serverId, name string, dhcp bool, lanId int32, ips *[]string) (*ionoscloud.Nic, error)
 	RemoveNic(datacenterId, serverId, nicId string) error
 	GetLocationById(regionId, locationId string) (*ionoscloud.Location, error)
-	GetImages() (ionoscloud.Images, error)
-	GetImageById(imageId string) (ionoscloud.Image, error)
+	GetImages() (*ionoscloud.Images, error)
+	GetImageById(imageId string) (*ionoscloud.Image, error)
 }
