@@ -184,7 +184,7 @@ func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone stri
 
 	svr, serverResp, err := c.ServersApi.DatacentersServersPost(c.ctx, datacenterId).Server(server).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error creating server in location %s err: %v", location, err)
+		return nil, fmt.Errorf("error creating server in location %s err: %w", location, err)
 	}
 
 	err = api.SanitizeResponse(serverResp, log.Info)
