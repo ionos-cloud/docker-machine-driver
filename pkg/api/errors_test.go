@@ -28,18 +28,18 @@ func TestSanitizeErrorJsonToHuman(t *testing.T) {
 		},
 		{
 			name:    "Extract message - possible",
-			input:   errors.New("400 DAMN { \"Api\": \"whoopsie.. I tripped!\", \"message\": \"Someone tripped!\" }"),
+			input:   errors.New("{}{[\"Api\":\"message\":\"Someone tripped!\"}"),
 			wantErr: errors.New("Someone tripped!"),
 		},
 		{
-			name:    "Extract message - impossible (wrong error format) Here we cant do much except strip newlines and duplicated spaces",
-			input:   errors.New("400 DAMN {\n \"Api\": \"whoopsie.. I tripped!\",\n \"message Someone tripped!\" }"),
-			wantErr: errors.New("400 DAMN { \"Api\": \"whoopsie.. I tripped!\", \"message Someone tripped!\" }"),
+			name:    "Most commonly met type of error - included JSON is selected and compacted",
+			input:   errors.New("400 DAMN {\n \"Api\":\t \"whoopsie.. I tripped!\",\n\n \"message\": \"Someone tripped!\" }"),
+			wantErr: errors.New("{\"Api\":\"whoopsie.. I tripped!\",\"message\":\"Someone tripped!\"}"),
 		},
 		{
-			name:    "Valid JSON - In this case we are happiest, we can just make it compact",
-			input:   errors.New("\t[\n\t{\n\t\t\"_id\": \"6398a01a9de8de1b8e577760\",\n\t\t\"message\": \"WHOOPS\"\n\t}\n\t]"),
-			wantErr: errors.New("[{\"_id\":\"6398a01a9de8de1b8e577760\",\"message\":\"WHOOPS\"}]"),
+			name:    "fallback to `message`",
+			input:   errors.New("\t[\n\t\n\t\t\"_id\": \"6398a01a9de8de1b8e577760\",\n\t\t\"message\": \"WHOOPS\"\n\t}\n\t]"),
+			wantErr: errors.New("WHOOPS"),
 		},
 	}
 	for _, tt := range tests {
