@@ -10,7 +10,8 @@ type MapStatusCodeMessages map[int]string
 // CustomStatusCodeMessages is looked up with a status code for custom responses.
 // Add your custom messages here instead of creating if statements in the ionoscloud package
 var CustomStatusCodeMessages = MapStatusCodeMessages{
-	404: "Resource is missing",
+	404: "resource is missing",
+	401: "authentication failed",
 }
 
 func (m MapStatusCodeMessages) Has(k int) bool {
@@ -29,11 +30,20 @@ func SanitizeResponse(response ionoscloud.APIResponse, validCodeLogFunc fmtPrint
 // Refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for types of HTTP codes.
 // If a custom response is found, but the response code is valid (<300), then we log the response.
 func SanitizeResponseCustom(response ionoscloud.APIResponse, mapOfCustomResponses MapStatusCodeMessages, validCodeLogFunc fmtPrintFunc) error {
-	if sc := response.StatusCode; sc < 300 {
+	sc := response.StatusCode
+	if sc < 300 {
+		// valid response
 		if mapOfCustomResponses.Has(sc) {
+			// loggable valid response
 			validCodeLogFunc(mapOfCustomResponses[sc])
 		}
 		return nil
 	}
-	return fmt.Errorf("%d: %s", response.StatusCode, response.Message)
+
+	if mapOfCustomResponses.Has(sc) {
+		// loggable invalid response
+		return fmt.Errorf("%d: %s", sc, mapOfCustomResponses[sc])
+	}
+
+	return fmt.Errorf("%d: %s", sc, response.Message)
 }
