@@ -7,5 +7,5 @@ import (
 )
 
 func SanitizerAdapter(response ionoscloud.APIResponse) error {
-	api_utils.SanitizeResponse(response, log.Infof)
+	return api_utils.SanitizeResponse(response, log.Infof)
 }

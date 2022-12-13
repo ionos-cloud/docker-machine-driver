@@ -17,7 +17,7 @@ import (
 	"github.com/docker/machine/libmachine/ssh"
 	"github.com/docker/machine/libmachine/state"
 	"github.com/hashicorp/go-multierror"
-	"github.com/ionos-cloud/docker-machine-driver/utils"
+	"github.com/ionos-cloud/docker-machine-driver/internal/utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 )
 

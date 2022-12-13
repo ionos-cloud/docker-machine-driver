@@ -6,8 +6,8 @@ import (
 
 	"github.com/docker/machine/libmachine/drivers"
 	"github.com/golang/mock/gomock"
-	"github.com/ionos-cloud/docker-machine-driver/utils"
-	mockutils "github.com/ionos-cloud/docker-machine-driver/utils/mocks"
+	"github.com/ionos-cloud/docker-machine-driver/internal/utils"
+	mockutils "github.com/ionos-cloud/docker-machine-driver/internal/utils/mocks"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 	"github.com/stretchr/testify/assert"
 )

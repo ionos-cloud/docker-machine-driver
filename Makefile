@@ -56,7 +56,7 @@ gofmt_update:
 .PHONY: mock_update
 mock_update:
 	@echo "Update mock for tests"
-	@mockgen -source=utils/client_service.go > utils/mocks/ClientService.go
+	@mockgen -source=internal/utils/client_service.go > internal/utils/mocks/ClientService.go
 	@echo "DONE"
 
 .PHONY: vendor_status
