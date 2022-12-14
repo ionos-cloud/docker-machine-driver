@@ -59,13 +59,13 @@ func SanitizeResponseCustom(response *ionoscloud.APIResponse, mapOfCustomRespons
 	return fmt.Errorf("%d: %s%s", sc, customMessage, response.Message)
 }
 
-func SanitizeErrorJsonToHuman(err error) error {
-	const messagePath = "messages.message" // If errors magically stop being able to extract the message overnight, and become JSONs, this is probably the most likely culprit.
+func ShortenErrSDK(err error) error {
+	const messagePath = "messages.message"
 	if err == nil {
 		return nil
 	}
-
-	jsonStr := string(err.(ionoscloud.GenericOpenAPIError).Body()) // GenericOpenAPIError is extended by the SDK error
+	genericOpenApiErr, _ := err.(ionoscloud.GenericOpenAPIError)
+	jsonStr := string(genericOpenApiErr.Body()) // GenericOpenAPIError is extended by the SDK error
 	if r := gjson.Get(jsonStr, messagePath); r.Exists() {
 		// Valid JSON and successfully queried messagePath
 		return errors.New(r.String())
@@ -75,7 +75,7 @@ func SanitizeErrorJsonToHuman(err error) error {
 	dst := &bytes.Buffer{}
 	if newErr := json.Compact(dst, []byte(jsonStr)); newErr != nil {
 		// Not a valid JSON. Try compacting the JSON manually.
-		stripped := regexp.MustCompile(`\s+`).ReplaceAllString(strings.ReplaceAll(err.Error(), "\n", " "), " ")
+		stripped := regexp.MustCompile(`\s+`).ReplaceAllString(strings.ReplaceAll(err.Error(), "\n", ""), " ")
 		return errors.New(stripped)
 	}
 
