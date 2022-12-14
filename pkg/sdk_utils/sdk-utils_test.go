@@ -38,7 +38,7 @@ func TestShortenErrSDK(t *testing.T) {
 	//assert := assert.New(t)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ShortenErrSDK(tt.args)
+			err := ShortenOpenApiErr(tt.args)
 			if tt.wantErr != nil {
 				assert.Equal(t, tt.wantErr.Error(), err.Error())
 			} else {
@@ -76,6 +76,15 @@ func TestSanitizeResponseCustom(t *testing.T) {
 				msgs:       CustomStatusCodeMessages,
 			},
 			wantErr: errors.New("401: authentication failed: Auth Fail"),
+		},
+		{
+			name: "no custom msg",
+			args: args{
+				statusCode: 555,
+				msg:        "server can't handle your request",
+				msgs:       CustomStatusCodeMessages,
+			},
+			wantErr: errors.New("555: server can't handle your request"),
 		},
 		{
 			name: "sample ok",

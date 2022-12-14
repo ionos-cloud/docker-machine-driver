@@ -53,8 +53,8 @@ func SanitizeStatusCodeCustom(statusCode int, message string, mapOfCustomRespons
 	return fmt.Errorf("%d: %s", statusCode, message)
 }
 
-func ShortenErrSDK(err error) error {
-	const messagePath = "messages.message"
+func ShortenOpenApiErr(err error) error {
+	const messagePath = "messages.0.message"
 	if err == nil {
 		return nil
 	}
