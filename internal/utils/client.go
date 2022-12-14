@@ -49,7 +49,7 @@ func (c *Client) CreateIpBlock(size int32, location string) (*sdkgo.IpBlock, err
 		return nil, fmt.Errorf("error creating ipblock: %w", sdk_utils.ShortenErrSDK(err))
 	}
 
-	if err = sdk_utils.SanitizeResponse(ipBlockResp, log.Info); err != nil {
+	if err = sdk_utils.SanitizeStatusCode(ipBlockResp.StatusCode, ipBlockResp.Message); err != nil {
 		return nil, err
 	}
 
@@ -76,7 +76,7 @@ func (c *Client) RemoveIpBlock(ipBlockId string) error {
 	if err != nil {
 		return fmt.Errorf("error deleting ipblock: %w", sdk_utils.ShortenErrSDK(err))
 	}
-	err = sdk_utils.SanitizeResponse(resp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(resp.StatusCode, resp.Message)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (c *Client) CreateDatacenter(name, location string) (*sdkgo.Datacenter, err
 		return nil, fmt.Errorf("error creating datacenter: %w", sdk_utils.ShortenErrSDK(err))
 	}
 
-	if err = sdk_utils.SanitizeResponse(dcResp, log.Info); err != nil {
+	if err = sdk_utils.SanitizeStatusCode(dcResp.StatusCode, dcResp.Message); err != nil {
 		return nil, err
 	}
 
@@ -112,7 +112,7 @@ func (c *Client) GetDatacenter(datacenterId string) (*sdkgo.Datacenter, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting datacenter: %w", sdk_utils.ShortenErrSDK(err))
 	}
-	if err = sdk_utils.SanitizeResponseCustom(resp, sdk_utils.CustomStatusCodeMessages.Set(404, "provided UUID does not match any datacenter"), log.Info); err != nil {
+	if err = sdk_utils.SanitizeStatusCodeCustom(resp.StatusCode, resp.Message, sdk_utils.CustomStatusCodeMessages.Set(404, "provided UUID does not match any datacenter")); err != nil {
 		return nil, err
 	}
 	return &datacenter, nil
@@ -123,7 +123,7 @@ func (c *Client) RemoveDatacenter(datacenterId string) error {
 	if err != nil {
 		return fmt.Errorf("error deleting datacenter: %w", sdk_utils.ShortenErrSDK(err))
 	}
-	if err = sdk_utils.SanitizeResponseCustom(resp, sdk_utils.CustomStatusCodeMessages.Set(405, "please delete the datacenter manually"), log.Info); err != nil {
+	if err = sdk_utils.SanitizeStatusCode(resp.StatusCode, resp.Message); err != nil {
 		return err
 	}
 	err = c.waitTillProvisioned(resp.Header.Get("location"))
@@ -144,7 +144,7 @@ func (c *Client) CreateLan(datacenterId, name string, public bool) (*sdkgo.LanPo
 		return nil, fmt.Errorf("error creating LAN: %w", sdk_utils.ShortenErrSDK(err))
 	}
 
-	err = sdk_utils.SanitizeResponse(lanResp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(lanResp.StatusCode, lanResp.Message)
 	if err != nil {
 		return nil, fmt.Errorf("error creating lan: %w", err)
 	}
@@ -162,7 +162,7 @@ func (c *Client) RemoveLan(datacenterId, lanId string) error {
 	if err != nil {
 		return fmt.Errorf("error deleting LAN: %w", sdk_utils.ShortenErrSDK(err))
 	}
-	err = sdk_utils.SanitizeResponse(resp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(resp.StatusCode, resp.Message)
 	if err != nil {
 		return fmt.Errorf("error deleting lan: %w", err)
 	}
@@ -187,7 +187,7 @@ func (c *Client) CreateServer(datacenterId, location, name, cpufamily, zone stri
 		return nil, fmt.Errorf("error creating server in location %s: %w", location, sdk_utils.ShortenErrSDK(err))
 	}
 
-	err = sdk_utils.SanitizeResponse(serverResp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(serverResp.StatusCode, serverResp.Message)
 	if err != nil {
 		return nil, fmt.Errorf("error creating server: %w", err)
 	}
@@ -205,7 +205,7 @@ func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error)
 	if err != nil {
 		return nil, fmt.Errorf("error getting server: %w", sdk_utils.ShortenErrSDK(err))
 	}
-	err = sdk_utils.SanitizeResponse(resp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(resp.StatusCode, resp.Message)
 	if err != nil {
 		return nil, fmt.Errorf("error getting server: %w", err)
 	}
@@ -218,7 +218,7 @@ func (c *Client) GetLan(datacenterId, LanId string) (*sdkgo.Lan, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting LAN: %w", sdk_utils.ShortenErrSDK(err))
 	}
-	err = sdk_utils.SanitizeResponse(resp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(resp.StatusCode, resp.Message)
 	if err != nil {
 		return nil, fmt.Errorf("error getting LAN: %w", err)
 	}
@@ -231,7 +231,7 @@ func (c *Client) GetNic(datacenterId, ServerId, NicId string) (*sdkgo.Nic, error
 	if err != nil {
 		return nil, fmt.Errorf("error getting NIC: %w", sdk_utils.ShortenErrSDK(err))
 	}
-	err = sdk_utils.SanitizeResponse(resp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(resp.StatusCode, resp.Message)
 	if err != nil {
 		return nil, fmt.Errorf("error getting NIC: %w", err)
 	}
@@ -268,7 +268,7 @@ func (c *Client) RemoveServer(datacenterId, serverId string) error {
 	if err != nil {
 		return fmt.Errorf("error deleting server: %w", sdk_utils.ShortenErrSDK(err))
 	}
-	err = sdk_utils.SanitizeResponse(resp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(resp.StatusCode, resp.Message)
 	if err != nil {
 		return fmt.Errorf("error deleting server: %w", err)
 	}
@@ -309,7 +309,7 @@ func (c *Client) CreateAttachVolume(datacenterId, serverId string, volProperties
 	if err != nil {
 		return nil, fmt.Errorf("error attaching volume to server: %w", sdk_utils.ShortenErrSDK(err))
 	}
-	err = sdk_utils.SanitizeResponse(volumeResp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(volumeResp.StatusCode, volumeResp.Message)
 	if err != nil {
 		return nil, fmt.Errorf("error attaching Volume to server: %w", err)
 	}
@@ -326,7 +326,7 @@ func (c *Client) RemoveVolume(datacenterId, volumeId string) error {
 	if err != nil {
 		return fmt.Errorf("error deleting volume: %w", sdk_utils.ShortenErrSDK(err))
 	}
-	err = sdk_utils.SanitizeResponse(resp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(resp.StatusCode, resp.Message)
 	if err != nil {
 		return fmt.Errorf("error removing volume: %w", err)
 	}
@@ -351,7 +351,7 @@ func (c *Client) CreateAttachNIC(datacenterId, serverId, name string, dhcp bool,
 	if err != nil {
 		return nil, fmt.Errorf("error attaching NIC to server: %s", err.Error())
 	}
-	err = sdk_utils.SanitizeResponse(nicResp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(nicResp.StatusCode, nicResp.Message)
 	if err != nil {
 		return nil, fmt.Errorf("error attaching NIC: %w", err)
 	}
@@ -368,7 +368,7 @@ func (c *Client) RemoveNic(datacenterId, serverId, nicId string) error {
 	if err != nil {
 		return fmt.Errorf("error deleting NIC: %w", sdk_utils.ShortenErrSDK(err))
 	}
-	err = sdk_utils.SanitizeResponse(resp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(resp.StatusCode, resp.Message)
 	if err != nil {
 		return err
 	}
@@ -393,7 +393,7 @@ func (c *Client) GetImages() (*sdkgo.Images, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = sdk_utils.SanitizeResponse(imagesResp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(imagesResp.StatusCode, imagesResp.Message)
 	if err != nil {
 		return nil, err
 	}
@@ -405,7 +405,7 @@ func (c *Client) GetImageById(imageId string) (*sdkgo.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = sdk_utils.SanitizeResponse(imagesResp, log.Info)
+	err = sdk_utils.SanitizeStatusCode(imagesResp.StatusCode, imagesResp.Message)
 	if err != nil {
 		return nil, err
 	}

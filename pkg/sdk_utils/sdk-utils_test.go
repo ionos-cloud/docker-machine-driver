@@ -4,7 +4,6 @@ import (
 	"errors"
 	ionoscloud "github.com/ionos-cloud/sdk-go/v6"
 	"github.com/stretchr/testify/assert"
-	"net/http"
 	"testing"
 )
 
@@ -41,7 +40,7 @@ func TestShortenErrSDK(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := ShortenErrSDK(tt.args)
 			if tt.wantErr != nil {
-				assert.Equal(t, err.Error(), tt.wantErr.Error())
+				assert.Equal(t, tt.wantErr.Error(), err.Error())
 			} else {
 				assert.NoError(t, err)
 			}
@@ -51,9 +50,9 @@ func TestShortenErrSDK(t *testing.T) {
 
 func TestSanitizeResponseCustom(t *testing.T) {
 	type args struct {
-		response             *ionoscloud.APIResponse
-		mapOfCustomResponses MapStatusCodeMessages
-		validCodeLogFunc     func(...any)
+		statusCode int
+		msg        string
+		msgs       MapStatusCodeMessages
 	}
 	tests := []struct {
 		name    string
@@ -63,27 +62,36 @@ func TestSanitizeResponseCustom(t *testing.T) {
 		{
 			name: "sample custom err",
 			args: args{
-				response:             &ionoscloud.APIResponse{Message: "Something went truly wrong", Response: &http.Response{StatusCode: 404}},
-				mapOfCustomResponses: CustomStatusCodeMessages,
-				validCodeLogFunc:     nil,
+				statusCode: 404,
+				msg:        "Not Found",
+				msgs:       CustomStatusCodeMessages,
 			},
-			wantErr: errors.New("404: resource is missing: Something went truly wrong"),
+			wantErr: errors.New("404: resource is missing: Not Found"),
 		},
 		{
-			name: "sample OK",
+			name: "sample 401",
 			args: args{
-				response:             &ionoscloud.APIResponse{Message: "OK", Response: &http.Response{StatusCode: 202}},
-				mapOfCustomResponses: CustomStatusCodeMessages,
-				validCodeLogFunc:     nil,
+				statusCode: 401,
+				msg:        "Auth Fail",
+				msgs:       CustomStatusCodeMessages,
+			},
+			wantErr: errors.New("401: authentication failed: Auth Fail"),
+		},
+		{
+			name: "sample ok",
+			args: args{
+				statusCode: 200,
+				msg:        "all good",
+				msgs:       CustomStatusCodeMessages,
 			},
 			wantErr: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := SanitizeResponseCustom(tt.args.response, tt.args.mapOfCustomResponses, tt.args.validCodeLogFunc)
+			err := SanitizeStatusCodeCustom(tt.args.statusCode, tt.args.msg, tt.args.msgs)
 			if tt.wantErr != nil {
-				assert.Equal(t, err.Error(), tt.wantErr.Error())
+				assert.Equal(t, tt.wantErr.Error(), err.Error())
 			} else {
 				assert.NoError(t, err)
 			}

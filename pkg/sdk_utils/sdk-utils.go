@@ -30,33 +30,27 @@ func (m MapStatusCodeMessages) Set(k int, v string) MapStatusCodeMessages {
 	return m
 }
 
-// SanitizeResponse calls SanitizeResponseCustom with some default customized messages. Refer to its documentation for behaviour
-func SanitizeResponse(response *ionoscloud.APIResponse, validCodeLogFunc func(...any)) error {
-	return SanitizeResponseCustom(response, CustomStatusCodeMessages, validCodeLogFunc)
+// SanitizeStatusCode calls SanitizeStatusCodeCustom with some default customized messages. Refer to its documentation for behaviour
+func SanitizeStatusCode(statusCode int, message string) error {
+	return SanitizeStatusCodeCustom(statusCode, message, CustomStatusCodeMessages)
 }
 
 // SanitizeResponseCustom is responsible for breaking execution if the response passed as a parameter has a bad status code (i.e. >299).
 // Refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for types of HTTP codes.
 // If a custom response is found, but the response code is valid (<300), then we log the response using the validCodeLogFunc param.
-func SanitizeResponseCustom(response *ionoscloud.APIResponse, mapOfCustomResponses MapStatusCodeMessages, validCodeLogFunc func(...any)) error {
-	sc := response.StatusCode
-	if sc < 300 {
+func SanitizeStatusCodeCustom(statusCode int, message string, mapOfCustomResponses MapStatusCodeMessages) error {
+	if statusCode < 300 {
 		// valid response
-		if mapOfCustomResponses.Has(sc) {
-			// loggable valid response
-			validCodeLogFunc(mapOfCustomResponses[sc])
-		}
 		return nil
 	}
 
-	customMessage := ""
-	if mapOfCustomResponses.Has(sc) {
+	if mapOfCustomResponses.Has(statusCode) {
 		// loggable invalid response
-		customMessage = mapOfCustomResponses[sc] + ": "
+		message = fmt.Sprintf("%s: %s", mapOfCustomResponses[statusCode], message)
 	}
 
 	// "404: resource is missing: (API_ERROR)"
-	return fmt.Errorf("%d: %s%s", sc, customMessage, response.Message)
+	return fmt.Errorf("%d: %s", statusCode, message)
 }
 
 func ShortenErrSDK(err error) error {
