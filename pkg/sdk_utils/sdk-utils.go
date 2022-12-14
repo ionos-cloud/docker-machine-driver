@@ -1,8 +1,14 @@
-package api
+package sdk_utils
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	ionoscloud "github.com/ionos-cloud/sdk-go/v6"
+	"github.com/tidwall/gjson"
+	"regexp"
+	"strings"
 )
 
 type MapStatusCodeMessages map[int]string
@@ -51,4 +57,28 @@ func SanitizeResponseCustom(response *ionoscloud.APIResponse, mapOfCustomRespons
 
 	// "404: resource is missing: (API_ERROR)"
 	return fmt.Errorf("%d: %s%s", sc, customMessage, response.Message)
+}
+
+func SanitizeErrorJsonToHuman(err error) error {
+	const messagePath = "messages.message" // If errors magically stop being able to extract the message overnight, and become JSONs, this is probably the most likely culprit.
+	if err == nil {
+		return nil
+	}
+
+	jsonStr := string(err.(ionoscloud.GenericOpenAPIError).Body()) // GenericOpenAPIError is extended by the SDK error
+	if r := gjson.Get(jsonStr, messagePath); r.Exists() {
+		// Valid JSON and successfully queried messagePath
+		return errors.New(r.String())
+	}
+
+	// If something went wrong, try compacting the JSON.
+	dst := &bytes.Buffer{}
+	if newErr := json.Compact(dst, []byte(jsonStr)); newErr != nil {
+		// Not a valid JSON. Try compacting the JSON manually.
+		stripped := regexp.MustCompile(`\s+`).ReplaceAllString(strings.ReplaceAll(err.Error(), "\n", " "), " ")
+		return errors.New(stripped)
+	}
+
+	// Valid JSON but failed querying messagePath
+	return errors.New(dst.String())
 }
