@@ -307,13 +307,13 @@ func (d *Driver) PreCreateCheck() error {
 			d.LanExists = true
 			lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
 			if err != nil {
-				return err
+				return fmt.Errorf("error getting LAN: %w", err)
 			}
 			log.Info("Creating machine under LAN " + *lan.GetId())
 		}
 		dc, err := d.client().GetDatacenter(d.DatacenterId)
 		if err != nil {
-			return err
+			return fmt.Errorf("error getting datacenter: %w", err)
 		}
 
 		if dcProp, ok := dc.GetPropertiesOk(); ok && dcProp != nil {
@@ -424,14 +424,14 @@ func (d *Driver) Create() error {
 		log.Debugf("Creating datacenter...")
 		dc, err = d.client().CreateDatacenter(d.MachineName, d.Location)
 		if err != nil {
-			return err
+			return fmt.Errorf("error creating datacenter: %w", err)
 		}
 	} else {
 		d.DCExists = true
 		log.Debugf("Getting existing datacenter..")
 		dc, err = d.client().GetDatacenter(d.DatacenterId)
 		if err != nil {
-			return err
+			return fmt.Errorf("error getting datacenter: %w", err)
 		}
 	}
 	if dcId, ok := dc.GetIdOk(); ok && dcId != nil {
@@ -442,11 +442,14 @@ func (d *Driver) Create() error {
 	if d.LanId == "" {
 		lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, true)
 		if err != nil {
+			err = fmt.Errorf("error creating LAN: %w", err)
+			// TODO : export below to a func --->
 			log.Warn(rollingBackNotice)
 			if removeErr := d.Remove(); removeErr != nil {
 				return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
 			}
 			return err
+			// TODO: <---
 		}
 		if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
 			d.LanId = *lanId
@@ -455,6 +458,9 @@ func (d *Driver) Create() error {
 	}
 
 	lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
+	if err != nil {
+		return fmt.Errorf("error getting LAN: %w", err)
+	}
 
 	if err != nil {
 		log.Warn(rollingBackNotice)
@@ -470,11 +476,12 @@ func (d *Driver) Create() error {
 		}
 	}
 
-	server, err := d.client().CreateServer(d.DatacenterId, d.Location, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
+	server, err := d.client().CreateServer(d.DatacenterId, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
 	if err != nil {
+		// TODO: Export to a func
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
+			return fmt.Errorf("failed to create server due to error: %w\n Removing created resources: %v", err, removeErr)
 		}
 		return err
 	}
@@ -502,9 +509,10 @@ func (d *Driver) Create() error {
 	}
 	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, &properties)
 	if err != nil {
+		// TODO: Export to a func. Duplicated
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", fmt.Errorf("error attaching volume to server: %w", err), removeErr)
 		}
 		return err
 	}
@@ -519,7 +527,7 @@ func (d *Driver) Create() error {
 	if !isLanPrivate {
 		ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
 		if err != nil {
-			return err
+			return fmt.Errorf("error creating ipblock: %w", err)
 		}
 		if ipBlockId, ok := ipBlock.GetIdOk(); ok && ipBlockId != nil {
 			d.IpBlockId = *ipBlockId
@@ -533,9 +541,10 @@ func (d *Driver) Create() error {
 
 	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(l), ips)
 	if err != nil {
+		// TODO: Duplicated
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
+			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", fmt.Errorf("error attaching NIC: %w", err), removeErr)
 		}
 		return err
 	}
@@ -545,6 +554,9 @@ func (d *Driver) Create() error {
 	}
 
 	nic, err = d.client().GetNic(d.DatacenterId, d.ServerId, d.NicId)
+	if err != nil {
+		return fmt.Errorf("error getting NIC: %w", err)
+	}
 
 	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
 		if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
@@ -577,24 +589,24 @@ func (d *Driver) Remove() error {
 	log.Debugf("Starting deleting Nic with Id: %v", d.NicId)
 	err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
 	if err != nil {
-		result = multierror.Append(result, err)
+		result = multierror.Append(result, fmt.Errorf("error deleting NIC: %w", err))
 	}
 	log.Debugf("Starting deleting Volume with Id: %v", d.VolumeId)
 	err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)
 	if err != nil {
-		result = multierror.Append(result, err)
+		result = multierror.Append(result, fmt.Errorf("error removing volume: %w", err))
 	}
 	log.Debugf("Starting deleting Server with Id: %v", d.ServerId)
 	err = d.client().RemoveServer(d.DatacenterId, d.ServerId)
 	if err != nil {
-		result = multierror.Append(result, err)
+		result = multierror.Append(result, fmt.Errorf("error deleting server: %w", err))
 	}
 	// If the LAN existed before creating the machine, do not delete it at clean-up
 	if !d.LanExists {
 		log.Debugf("Starting deleting LAN with Id: %v", d.LanId)
 		err = d.client().RemoveLan(d.DatacenterId, d.LanId)
 		if err != nil {
-			result = multierror.Append(result, err)
+			result = multierror.Append(result, fmt.Errorf("error deleting LAN: %w", err))
 		}
 	}
 	// If the DataCenter existed before creating the machine, do not delete it at clean-up
@@ -602,13 +614,13 @@ func (d *Driver) Remove() error {
 		log.Debugf("Starting deleting Datacenter with Id: %v", d.DatacenterId)
 		err = d.client().RemoveDatacenter(d.DatacenterId)
 		if err != nil {
-			result = multierror.Append(result, err)
+			result = multierror.Append(result, fmt.Errorf("error deleting datacenter: %w", err))
 		}
 	}
 	log.Debugf("Starting deleting IpBlock with Id: %v", d.IpBlockId)
 	err = d.client().RemoveIpBlock(d.IpBlockId)
 	if err != nil {
-		result = multierror.Append(result, err)
+		result = multierror.Append(result, fmt.Errorf("error deleting ipblock: %w", err))
 	}
 
 	if result != nil {
@@ -626,7 +638,7 @@ func (d *Driver) Start() error {
 	if serverState != state.Running {
 		err = d.client().StartServer(d.DatacenterId, d.ServerId)
 		if err != nil {
-			return err
+			return fmt.Errorf("error starting server: %w", err)
 		}
 	} else {
 		log.Info("Host is already running or starting")
@@ -646,7 +658,7 @@ func (d *Driver) Stop() error {
 	}
 	err = d.client().StopServer(d.DatacenterId, d.ServerId)
 	if err != nil {
-		return err
+		return fmt.Errorf("error stoping server: %w", err)
 	}
 	return nil
 }
@@ -655,7 +667,7 @@ func (d *Driver) Stop() error {
 func (d *Driver) Restart() error {
 	err := d.client().RestartServer(d.DatacenterId, d.ServerId)
 	if err != nil {
-		return err
+		return fmt.Errorf("error restarting server: %w", err)
 	}
 	return nil
 }
@@ -664,7 +676,7 @@ func (d *Driver) Restart() error {
 func (d *Driver) Kill() error {
 	err := d.client().StopServer(d.DatacenterId, d.ServerId)
 	if err != nil {
-		return err
+		return fmt.Errorf("error stopping server: %w", err)
 	}
 	return nil
 }
@@ -721,7 +733,7 @@ func (d *Driver) GetIP() (string, error) {
 func (d *Driver) GetState() (state.State, error) {
 	server, err := d.client().GetServer(d.DatacenterId, d.ServerId)
 	if err != nil {
-		return state.None, err
+		return state.None, fmt.Errorf("error getting server: %w", err)
 	}
 
 	if metadata, ok := server.GetMetadataOk(); ok && metadata != nil {

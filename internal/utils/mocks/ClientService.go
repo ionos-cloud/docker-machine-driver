@@ -111,18 +111,18 @@ func (mr *MockClientServiceMockRecorder) CreateLan(datacenterId, name, public in
 }
 
 // CreateServer mocks base method.
-func (m *MockClientService) CreateServer(datacenterId, location, name, cpufamily, zone string, ram, cores int32) (*ionoscloud.Server, error) {
+func (m *MockClientService) CreateServer(datacenterId, name, cpufamily, zone string, ram, cores int32) (*ionoscloud.Server, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateServer", datacenterId, location, name, cpufamily, zone, ram, cores)
+	ret := m.ctrl.Call(m, "CreateServer", datacenterId, name, cpufamily, zone, ram, cores)
 	ret0, _ := ret[0].(*ionoscloud.Server)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateServer indicates an expected call of CreateServer.
-func (mr *MockClientServiceMockRecorder) CreateServer(datacenterId, location, name, cpufamily, zone, ram, cores interface{}) *gomock.Call {
+func (mr *MockClientServiceMockRecorder) CreateServer(datacenterId, name, cpufamily, zone, ram, cores interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateServer", reflect.TypeOf((*MockClientService)(nil).CreateServer), datacenterId, location, name, cpufamily, zone, ram, cores)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateServer", reflect.TypeOf((*MockClientService)(nil).CreateServer), datacenterId, name, cpufamily, zone, ram, cores)
 }
 
 // GetDatacenter mocks base method.

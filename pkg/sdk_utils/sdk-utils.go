@@ -35,7 +35,7 @@ func SanitizeStatusCode(statusCode int, message string) error {
 	return SanitizeStatusCodeCustom(statusCode, message, CustomStatusCodeMessages)
 }
 
-// SanitizeResponseCustom is responsible for breaking execution if the response passed as a parameter has a bad status code (i.e. >299).
+// SanitizeStatusCodeCustom is responsible for breaking execution if the response passed as a parameter has a bad status code (i.e. >299).
 // Refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for types of HTTP codes.
 // If a custom response is found, but the response code is valid (<300), then we log the response using the validCodeLogFunc param.
 func SanitizeStatusCodeCustom(statusCode int, message string, mapOfCustomResponses MapStatusCodeMessages) error {
