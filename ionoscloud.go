@@ -36,6 +36,7 @@ const (
 	flagImagePassword          = "ionoscloud-image-password"
 	flagLocation               = "ionoscloud-location"
 	flagDatacenterId           = "ionoscloud-datacenter-id"
+	flagDatacenterName         = "ionoscloud-datacenter-name"
 	flagLanId                  = "ionoscloud-lan-id"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
@@ -51,6 +52,7 @@ const (
 	defaultAvailabilityZone = "AUTO"
 	defaultDiskType         = "HDD"
 	defaultSSHUser          = "root"
+	defaultDatacenterName   = "docker-machine-data-center"
 	defaultSize             = 10
 	driverName              = "ionoscloud"
 )
@@ -92,6 +94,7 @@ type Driver struct {
 	ServerAvailabilityZone string
 	LanId                  string
 	DatacenterId           string
+	DatacenterName         string
 	VolumeId               string
 	NicId                  string
 	ServerId               string
@@ -209,6 +212,12 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Virtual Data Center Id",
 		},
 		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_DATACENTER_NAME",
+			Name:   flagDatacenterName,
+			Value:  defaultDatacenterName,
+			Usage:  "Ionos Cloud Virtual Data Center Name",
+		},
+		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_LAN_ID",
 			Name:   flagLanId,
 			Usage:  "Ionos Cloud LAN Id",
@@ -259,6 +268,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.DiskType = opts.String(flagDiskType)
 	d.CpuFamily = opts.String(flagServerCpuFamily)
 	d.DatacenterId = opts.String(flagDatacenterId)
+	d.DatacenterName = opts.String(flagDatacenterName)
 	d.LanId = opts.String(flagLanId)
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
@@ -301,6 +311,27 @@ func (d *Driver) PreCreateCheck() error {
 
 	d.DCExists = false
 	d.LanExists = false
+
+	if d.DatacenterId == "" {
+		datacenters, err := d.client().GetDatacenters()
+		if err != nil {
+			return err
+		}
+
+		found_dc := false
+		for _, dc := range *datacenters.Items {
+			if *dc.Properties.Name == d.DatacenterName {
+				if found_dc {
+					return fmt.Errorf("multiple Data Centers with name %v found", d.DatacenterName)
+				}
+				found_dc = true
+				if dcId, ok := dc.GetIdOk(); ok && dcId != nil {
+					d.DatacenterId = *dcId
+				}
+			}
+		}
+	}
+
 	if d.DatacenterId != "" {
 		d.DCExists = true
 		if d.LanId != "" {
@@ -422,7 +453,7 @@ func (d *Driver) Create() error {
 		d.DCExists = false
 		var err error
 		log.Debugf("Creating datacenter...")
-		dc, err = d.client().CreateDatacenter(d.MachineName, d.Location)
+		dc, err = d.client().CreateDatacenter(d.DatacenterName, d.Location)
 		if err != nil {
 			return err
 		}
@@ -544,7 +575,7 @@ func (d *Driver) Create() error {
 		log.Debugf("Nic ID: %v", d.NicId)
 	}
 
-	nic, err = d.client().GetNic(d.DatacenterId, d.ServerId, d.NicId)
+	nic, _ = d.client().GetNic(d.DatacenterId, d.ServerId, d.NicId)
 
 	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
 		if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
