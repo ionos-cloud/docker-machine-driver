@@ -10,7 +10,10 @@ require (
 	github.com/stretchr/testify v1.8.1
 )
 
-require gopkg.in/yaml.v2 v2.4.0
+require (
+	github.com/tidwall/gjson v1.14.4
+	gopkg.in/yaml.v2 v2.4.0
+)
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
@@ -20,6 +23,8 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/moby/term v0.0.0-20221105221325-4eb28fa6025c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	golang.org/x/crypto v0.2.0 // indirect
 	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/oauth2 v0.2.0 // indirect
