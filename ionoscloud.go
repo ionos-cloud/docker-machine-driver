@@ -405,8 +405,9 @@ func (d *Driver) Create() error {
 			d.UserData = "#cloud-config\n" + d.UserData
 		}
 		newUserData, _ := d.addSSHUserToYaml()
-		d.UserData = b64.StdEncoding.EncodeToString([]byte(d.UserData + newUserData))
+		d.UserData += newUserData
 	}
+	d.UserData = b64.StdEncoding.EncodeToString([]byte(d.UserData))
 
 	result, err := d.getImageId(d.Image)
 	if err != nil {
