@@ -89,6 +89,9 @@ var (
 	nic = &sdkgo.Nic{
 		Id: &testVar,
 	}
+	dcs = &sdkgo.Datacenters{
+		Items: &[]sdkgo.Datacenter{},
+	}
 	ips = []string{testVar}
 )
 
@@ -263,6 +266,7 @@ func TestPreCreateImageIdErr(t *testing.T) {
 
 func TestPreCreateCheck(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	clientMock.EXPECT().GetDatacenters().Return(dcs, nil)
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
 	clientMock.EXPECT().GetImages().Return(images, nil)
@@ -433,8 +437,7 @@ func TestCreateDatacenterErr(t *testing.T) {
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(sdkgo.Image{}, fmt.Errorf("no image found with this id"))
 	clientMock.EXPECT().GetImages().Return(images, nil)
-	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
-	clientMock.EXPECT().CreateDatacenter(driver.MachineName, driver.Location).Return(dc, testErr)
+	clientMock.EXPECT().CreateDatacenter(driver.DatacenterName, driver.Location).Return(dc, testErr)
 	err := driver.Create()
 	assert.Error(t, err)
 }
