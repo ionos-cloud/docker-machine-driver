@@ -44,6 +44,10 @@ const (
 	flagUserData               = "ionoscloud-user-data"
 	flagSSHUser                = "ionoscloud-ssh-user"
 	flagUserDataB64            = "ionoscloud-user-data-b64"
+	// NAT Gatway flags
+	flagNatPublicIps      = "ionoscloud-nat-public-ips"
+	flagNatLansToGateways = "ionoscloud-nat-lans-to-gateways"
+	// ---
 )
 
 const (
@@ -145,6 +149,18 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 // GetCreateFlags returns list of create flags driver accepts.
 func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 	return []mcnflag.Flag{
+		mcnflag.StringSliceFlag{
+			EnvVar: "IONOSCLOUD_NAT_PUBLIC_IPS",
+			Name:   flagNatPublicIps,
+			Value:  nil,
+			Usage:  "Ionos Cloud NAT Gateway public IPs",
+		},
+		mcnflag.StringSliceFlag{
+			EnvVar: "IONOSCLOUD_NAT_LANS_TO_GATEWAYS",
+			Name:   flagNatLansToGateways,
+			Value:  nil, // A string, like "1=[10.0.0.1,10.0.0.2];2=[10.0.0.10]". Lans MUST be separated by `;`. IPs MUST be separated by `,`
+			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=[10.0.0.1,10.0.0.2];2=[10.0.0.10]\"",
+		},
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_ENDPOINT",
 			Name:   flagEndpoint,
