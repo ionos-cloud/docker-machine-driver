@@ -12,7 +12,7 @@ type ClientService interface {
 	RemoveDatacenter(datacenterId string) error
 	CreateLan(datacenterId, name string, public bool) (*ionoscloud.LanPost, error)
 	RemoveLan(datacenterId, lanId string) error
-	CreateServer(datacenterId, location, name, cpufamily, zone string, ram, cores int32) (*ionoscloud.Server, error)
+	CreateServer(datacenterId, name, cpufamily, zone string, ram, cores int32) (*ionoscloud.Server, error)
 	GetServer(datacenterId, serverId string) (*ionoscloud.Server, error)
 	GetLan(datacenterId, LanId string) (*ionoscloud.Lan, error)
 	GetNic(datacenterId, ServerId, NicId string) (*ionoscloud.Nic, error)
@@ -25,6 +25,6 @@ type ClientService interface {
 	CreateAttachNIC(datacenterId, serverId, name string, dhcp bool, lanId int32, ips *[]string) (*ionoscloud.Nic, error)
 	RemoveNic(datacenterId, serverId, nicId string) error
 	GetLocationById(regionId, locationId string) (*ionoscloud.Location, error)
-	GetImages() (ionoscloud.Images, error)
-	GetImageById(imageId string) (ionoscloud.Image, error)
+	GetImages() (*ionoscloud.Images, error)
+	GetImageById(imageId string) (*ionoscloud.Image, error)
 }

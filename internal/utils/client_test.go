@@ -87,7 +87,7 @@ func TestClientRemoveLanErr(t *testing.T) {
 }
 
 func TestClientCreateServerErr(t *testing.T) {
-	_, err := getTestClient().CreateServer(testName, testLocation, testName, testName, testName, 2048, 1)
+	_, err := getTestClient().CreateServer(testName, testName, testName, testName, 2048, 1)
 	assert.Error(t, err)
 }
 
