@@ -49,8 +49,8 @@ After logging into Rancher UI, follow the next steps in order to install a clust
   * Click on `Add New Driver` button
   * Enter the URLs and click `Create`
     * Download URL: https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<version>/docker-machine-driver-<version>-linux-amd64.tar.gz
-    * Custom UI URL: https://ionos-cloud.github.io/ui-driver-ionoscloud/releases/v<version>/component.js
-    * Whitelist Domains: https://ionos-cloud.github.io/
+    * Custom UI URL:  https://cdn.jsdelivr.net/gh/ionos-cloud/ui-driver-ionoscloud@main/releases/v<UI_version|latest>/component.js
+    * Whitelist Domains: cdn.jsdelivr.net
   * Wait fot the machine driver to be downloaded and become `Active`
 * Create Node Template
   * Go to Node Templates, from the drop-down menu for `User Settings`
@@ -76,8 +76,8 @@ This version is under development, and it is not currently stable with the use o
   * Click on `Add Node Driver` button
   * Enter the URLs `Create`
     * Download URL: https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<version>/docker-machine-driver-<version>-linux-amd64.tar.gz
-    * Custom UI URL: https://ionos-cloud.github.io/ui-driver-ionoscloud/releases/v<version>/component.js
-    * Whitelist Domains: https://ionos-cloud.github.io/
+    * Custom UI URL:  https://cdn.jsdelivr.net/gh/ionos-cloud/ui-driver-ionoscloud@main/releases/v<UI_version|latest>/component.js
+    * Whitelist Domains: cdn.jsdelivr.net
   * Wait fot the machine driver to be downloaded and become `Active`
 * Create Node Template
   * Go to Cluster Management ➜ RKE1 Configuration ➜ Node Templates

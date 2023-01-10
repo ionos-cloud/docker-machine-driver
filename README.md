@@ -31,9 +31,9 @@ Docker Machine Driver is the official driver for Docker Machine to use with IONO
 * Run the Rancher docker image on a publicly accessible server, reachable on ports `80` and `443`: `docker run -d --name=rancher-server --restart=unless-stopped -p 80:80 -p 443:443 --privileged rancher/rancher:v2.6.8`
 * Add the Node Driver. Usage of the UI driver is **highly recommended**, but **not necessary**: `[server-ip]/dashboard/c/local/manager/pages/rke-drivers`
 ```markdown
-  * Download URL: https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<driver-version(v6.1.0-rc.1)>/docker-machine-driver-<driver-version(v6.1.0-rc.1)>-linux-amd64.tar.gz
-  * Custom UI URL:  https://cdn.jsdelivr.net/gh/ionos-cloud/ui-driver-ionoscloud@<ui-driver-version(0.1.0)>/releases/<ui-driver-version(0.1.0)>/component.js
-  * Whitelist Domains: https://cdn.jsdelivr.net
+    * Download URL: https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<version>/docker-machine-driver-<version>-linux-amd64.tar.gz
+    * Custom UI URL:  https://cdn.jsdelivr.net/gh/ionos-cloud/ui-driver-ionoscloud@main/releases/v<UI_version|latest>/component.js  
+    * Whitelist Domains: cdn.jsdelivr.net
 ```
 * The Docker Machine Driver for Ionoscloud is ready to use. Refer to the [Rancher Cluster](docs/rancher/rancher-cluster.md) section for version-specific instructions and further help with creating RKE1 templates and provisioning clusters.
 
