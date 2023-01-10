@@ -24,26 +24,21 @@ Docker Machine Driver is the official driver for Docker Machine to use with IONO
 
 ## Getting started
 
-### Prerequisites
+## Setup
 
-#### Installing Docker Machine
+### Option 1: Use with Rancher docker image
 
-This Ionos Cloud plugin works with Docker Machine and with Rancher Machine as well. Before we continue, you will need to install [Docker Machine](https://docs.docker.com/machine/install-machine/) or [Rancher Machine](https://github.com/rancher/machine/releases/).
-
-#### Installing Go
-
-The Ionos Cloud Docker Machine Driver is written in the Go programming language. Your system will need to have Go installed. Please refer to the [Go Install Documentation](https://golang.org/doc/install) if you do not have Go installed and configured for your system.
-
-Remember to set `$GOPATH` and update `$PATH`. The following are just examples using the `export` command, you will need to adjust the paths for your particular installation.
-
-```text
-export GOPATH=/usr/local/go
-export PATH=$PATH:/usr/local/go/bin
+* Run the Rancher docker image on a publicly accessible server, reachable on ports `80` and `443`: `docker run -d --name=rancher-server --restart=unless-stopped -p 80:80 -p 443:443 --privileged rancher/rancher:v2.6.8`
+* Add the Node Driver. Usage of the UI driver is **highly recommended**, but **not necessary**: `[server-ip]/dashboard/c/local/manager/pages/rke-drivers`
+```markdown
+    * Download URL: https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<version>/docker-machine-driver-<version>-linux-amd64.tar.gz
+    * Custom UI URL:  https://cdn.jsdelivr.net/gh/ionos-cloud/ui-driver-ionoscloud@main/releases/v<UI_version|latest>/component.js  
+    * Whitelist Domains: cdn.jsdelivr.net
 ```
+* The Docker Machine Driver for Ionoscloud is ready to use. Refer to the [Rancher Cluster](docs/rancher/rancher-cluster.md) section for version-specific instructions and further help with creating RKE1 templates and provisioning clusters.
 
-### Installing
 
-#### Released Binaries
+### Option 2: Use with docker-machine or rancher-machine CLIs
 
 Check the [Release Page](https://github.com/ionos-cloud/docker-machine-driver/releases) and find the corresponding archive for your operating system and architecture. You can download the archive from your browser or you can follow the next steps:
 
@@ -57,15 +52,21 @@ curl -sL https://github.com/ionos-cloud/docker-machine-driver/releases/download/
 # Move the binary somewhere in your $PATH:
 sudo mv ~/docker-machine-driver-ionoscloud /usr/local/bin
 
-# See options for the driver to use with the Docker Machine
+# See options for the driver to use with the Docker Machine CLI
 docker-machine create --help --driver ionoscloud
+
+# See options for the driver to use with the Rancher Machine CLI
+rancher-machine create --help --driver ionoscloud
 ```
 
 For Windows users, you can download the latest release available on [Release Page](https://github.com/ionos-cloud/docker-machine-driver/releases), unzip it and copy the binary in your `PATH`. You can follow this [official guide](https://msdn.microsoft.com/en-us/library/office/ee537574(v=office.14).aspx) that explains how to add tools to your `PATH`.
 
-#### Local Version
+### Building From Source
 
-With the prerequisites taken care of, will need to run the following commands to install the Ionos Cloud Docker Machine Driver:
+#### Prerequisites
+Please refer to the [Go Install Documentation](https://golang.org/doc/install) if you do not have Go installed and configured for your system.
+
+Run the following commands to install the Ionos Cloud Docker Machine Driver:
 
 ```text
 git clone https://github.com/ionos-cloud/docker-machine-driver.git
