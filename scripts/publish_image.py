@@ -7,7 +7,7 @@ import sys
 
 import argparse
 import dropbox
-import git
+import git #  To install `git` module: `pip install gitpython`
 
 
 def dropbox_connect():
