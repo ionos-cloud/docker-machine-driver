@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/ionos-cloud/docker-machine-driver/pkg/extraflag"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -155,10 +156,10 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Value:  nil,
 			Usage:  "Ionos Cloud NAT Gateway public IPs",
 		},
-		mcnflag.StringSliceFlag{
+		extraflag.SliceToSlice{
 			EnvVar: "IONOSCLOUD_NAT_LANS_TO_GATEWAYS",
 			Name:   flagNatLansToGateways,
-			Value:  nil, // A string, like "1=[10.0.0.1,10.0.0.2];2=[10.0.0.10]". Lans MUST be separated by `;`. IPs MUST be separated by `,`
+			Value:  "", // A string, like "1=10.0.0.1,10.0.0.2;2=10.0.0.10" . Lans MUST be separated by `;`. IPs MUST be separated by `,`
 			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=[10.0.0.1,10.0.0.2];2=[10.0.0.10]\"",
 		},
 		mcnflag.StringFlag{
