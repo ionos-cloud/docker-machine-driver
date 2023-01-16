@@ -38,6 +38,7 @@ const (
 	flagDatacenterId           = "ionoscloud-datacenter-id"
 	flagDatacenterName         = "ionoscloud-datacenter-name"
 	flagLanId                  = "ionoscloud-lan-id"
+	flagLanName                = "ionoscloud-lan-name"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
 	flagSSHUser                = "ionoscloud-ssh-user"
@@ -53,6 +54,7 @@ const (
 	defaultDiskType         = "HDD"
 	defaultSSHUser          = "root"
 	defaultDatacenterName   = "docker-machine-data-center"
+	defaultLanName          = "docker-machine-lan"
 	defaultSize             = 10
 	driverName              = "ionoscloud"
 )
@@ -93,6 +95,7 @@ type Driver struct {
 	VolumeAvailabilityZone string
 	ServerAvailabilityZone string
 	LanId                  string
+	LanName                string
 	DatacenterId           string
 	DatacenterName         string
 	VolumeId               string
@@ -223,6 +226,12 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud LAN Id",
 		},
 		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_LAN_Name",
+			Name:   flagLanName,
+			Value:  defaultLanName,
+			Usage:  "Ionos Cloud LAN Name",
+		},
+		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_VOLUME_ZONE",
 			Name:   flagVolumeAvailabilityZone,
 			Value:  defaultAvailabilityZone,
@@ -270,6 +279,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.DatacenterId = opts.String(flagDatacenterId)
 	d.DatacenterName = opts.String(flagDatacenterName)
 	d.LanId = opts.String(flagLanId)
+	d.LanName = opts.String(flagLanName)
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.UserData = opts.String(flagUserData)
@@ -334,6 +344,27 @@ func (d *Driver) PreCreateCheck() error {
 
 	if d.DatacenterId != "" {
 		d.DCExists = true
+
+		if d.LanId == "" {
+			lans, err := d.client().GetLans(d.DatacenterId)
+			if err != nil {
+				return err
+			}
+
+			foundLan := false
+			for _, lan := range *lans.Items {
+				if *lan.Properties.Name == d.LanName {
+					if foundLan {
+						return fmt.Errorf("multiple LANs with name %v found", d.LanName)
+					}
+					foundLan = true
+					if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
+						d.LanId = *lanId
+					}
+				}
+			}
+
+		}
 		if d.LanId != "" {
 			d.LanExists = true
 			lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
@@ -471,7 +502,7 @@ func (d *Driver) Create() error {
 	}
 
 	if d.LanId == "" {
-		lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, true)
+		lan, err := d.client().CreateLan(d.DatacenterId, d.LanName, true)
 		if err != nil {
 			err = fmt.Errorf("error creating LAN: %w", err)
 			// TODO : export below to a func --->
