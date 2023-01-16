@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/ionos-cloud/docker-machine-driver/pkg/extraflag"
+	"github.com/ionos-cloud/docker-machine-driver/pkg/moreopts"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -114,6 +114,8 @@ type Driver struct {
 	IpBlockId              string
 	UserData               string
 	UserDataB64            string
+	NatPublicIps           []string
+	NatLansToGateways      map[int][]string
 
 	// Driver Version
 	Version string
@@ -153,14 +155,14 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.StringSliceFlag{
 			EnvVar: "IONOSCLOUD_NAT_PUBLIC_IPS",
 			Name:   flagNatPublicIps,
-			Value:  nil,
-			Usage:  "Ionos Cloud NAT Gateway public IPs",
+			//Value:  nil,
+			Usage: "Ionos Cloud NAT Gateway public IPs",
 		},
-		extraflag.SliceToSlice{
+		mcnflag.StringFlag{
+			// A string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10" . Lans MUST be separated by `:`. IPs MUST be separated by `,`
 			EnvVar: "IONOSCLOUD_NAT_LANS_TO_GATEWAYS",
 			Name:   flagNatLansToGateways,
-			Value:  "", // A string, like "1=10.0.0.1,10.0.0.2;2=10.0.0.10" . Lans MUST be separated by `;`. IPs MUST be separated by `,`
-			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=[10.0.0.1,10.0.0.2];2=[10.0.0.10]\"",
+			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=10.0.0.1,10.0.0.2:2=10.0.0.10\"",
 		},
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_ENDPOINT",
@@ -298,6 +300,8 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 
 // SetConfigFromFlags initializes driver values from the command line values.
 func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
+	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
+	d.NatLansToGateways = moreopts.IntToStringSlice(opts, flagNatLansToGateways)
 	d.URL = opts.String(flagEndpoint)
 	d.Username = opts.String(flagUsername)
 	d.Password = opts.String(flagPassword)
