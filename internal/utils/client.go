@@ -3,11 +3,12 @@ package utils
 import (
 	"context"
 	"fmt"
+	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/docker/machine/libmachine/log"
-	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 	"gopkg.in/yaml.v3"
 )
@@ -38,6 +39,36 @@ func New(ctx context.Context, name, password, token, url, httpUserAgent string) 
 		APIClient: sdkgo.NewAPIClient(clientConfig),
 		ctx:       ctx,
 	}
+}
+func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGateways map[string][]string) (*sdkgo.NatGateway, error) {
+	var lans []sdkgo.NatGatewayLanProperties
+	for lanId, gatewayIps := range lansToGateways {
+		id, err := strconv.ParseInt(lanId, 10, 32)
+		if err != nil {
+			return nil, err
+		}
+		id32 := int32(id)
+		// Unpack the map into NatGatewayLanProperties objects. https://api.ionos.com/docs/cloud/v6/#tag/NAT-Gateways/operation/datacentersNatgatewaysPost
+		lans = append(lans, sdkgo.NatGatewayLanProperties{Id: &id32, GatewayIps: &gatewayIps})
+	}
+	natName := "NAT Docker Machine"
+
+	nat, _, err := c.NATGatewaysApi.DatacentersNatgatewaysPost(c.ctx, datacenterId).NatGateway(
+		sdkgo.NatGateway{
+			Properties: &sdkgo.NatGatewayProperties{
+				Name:      &natName,
+				PublicIps: &publicIps,
+				Lans:      &lans,
+			},
+		},
+	).Execute()
+
+	return &nat, err
+}
+
+func (c *Client) RemoveNat(datacenterId, natId string) error {
+	_, err := c.NATGatewaysApi.DatacentersNatgatewaysDelete(c.ctx, datacenterId, natId).Execute()
+	return err
 }
 
 // UpdateCloudInitFile will try to unmarshal the cloud config YAML string, append the given values to the selected key, and then marshal it back into a YAML string which is returned
