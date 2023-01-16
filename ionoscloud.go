@@ -318,13 +318,13 @@ func (d *Driver) PreCreateCheck() error {
 			return err
 		}
 
-		found_dc := false
+		foundDc := false
 		for _, dc := range *datacenters.Items {
 			if *dc.Properties.Name == d.DatacenterName {
-				if found_dc {
+				if foundDc {
 					return fmt.Errorf("multiple Data Centers with name %v found", d.DatacenterName)
 				}
-				found_dc = true
+				foundDc = true
 				if dcId, ok := dc.GetIdOk(); ok && dcId != nil {
 					d.DatacenterId = *dcId
 				}
