@@ -115,7 +115,7 @@ type Driver struct {
 	UserData               string
 	UserDataB64            string
 	NatPublicIps           []string
-	NatLansToGateways      map[int][]string
+	NatLansToGateways      map[string][]string
 
 	// Driver Version
 	Version string
@@ -301,7 +301,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 // SetConfigFromFlags initializes driver values from the command line values.
 func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
-	d.NatLansToGateways = moreopts.IntToStringSlice(opts, flagNatLansToGateways)
+	d.NatLansToGateways = moreopts.StringToStringSlice(opts, flagNatLansToGateways)
 	d.URL = opts.String(flagEndpoint)
 	d.Username = opts.String(flagUsername)
 	d.Password = opts.String(flagPassword)

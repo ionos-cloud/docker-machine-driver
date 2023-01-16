@@ -5,23 +5,18 @@ package moreopts
 import (
 	"fmt"
 	"github.com/docker/machine/libmachine/drivers"
-	"strconv"
 	"strings"
 )
 
-// IntToStringSlice queries the String value at key, and expects the `,` separator for new slice entries, and `:` for new map entries
+// StringToStringSlice queries the String value at key, and expects the `,` separator for new slice entries, and `:` for new map entries
 // e.g. 1=10.0.0.1,10.0.0.2:2=20.1.0.10 => map[int][]string{ 1: { "10.0.0.1", "10.0.0.2" }, 2: { "20.1.0.10" } }
-func IntToStringSlice(opts drivers.DriverOptions, key string) (out map[int][]string) {
+func StringToStringSlice(opts drivers.DriverOptions, key string) map[string][]string {
 	val := opts.String(key)
-	out = make(map[int][]string)
+	out := make(map[string][]string)
 	lans := strings.Split(val, ":")
 	for _, lan := range lans {
 		parts := strings.Split(lan, "=")
-		strLan, ips := parts[0], parts[1]
-		lanId, err := strconv.Atoi(strLan)
-		if err != nil {
-			panic(err)
-		}
+		lanId, ips := parts[0], parts[1]
 		out[lanId] = append(out[lanId], strings.Split(ips, ",")...)
 	}
 	fmt.Printf("Out %+v", out)
