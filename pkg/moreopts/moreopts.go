@@ -13,6 +13,7 @@ import (
 // e.g. 1=10.0.0.1,10.0.0.2:2=20.1.0.10 => map[int][]string{ 1: { "10.0.0.1", "10.0.0.2" }, 2: { "20.1.0.10" } }
 func IntToStringSlice(opts drivers.DriverOptions, key string) (out map[int][]string) {
 	val := opts.String(key)
+	out = make(map[int][]string)
 	lans := strings.Split(val, ":")
 	for _, lan := range lans {
 		parts := strings.Split(lan, "=")
@@ -21,7 +22,7 @@ func IntToStringSlice(opts drivers.DriverOptions, key string) (out map[int][]str
 		if err != nil {
 			panic(err)
 		}
-		out[lanId] = strings.Split(ips, ",")
+		out[lanId] = append(out[lanId], strings.Split(ips, ",")...)
 	}
 	fmt.Printf("Out %+v", out)
 	return out
