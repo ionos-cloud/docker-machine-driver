@@ -74,3 +74,7 @@ vendor_update:
 clean:
 	rm -f ./bin/${BIN_NAME}*
 	rm -f ${GOPATH}/bin/${BIN_NAME}*
+
+.PHONY: upload
+upload: clean compile
+	./scripts/publish_image.py
