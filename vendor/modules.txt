@@ -67,6 +67,9 @@ golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/terminal
+# golang.org/x/exp v0.0.0-20230118134722-a68e582fa157
+## explicit; go 1.18
+golang.org/x/exp/maps
 # golang.org/x/net v0.2.0
 ## explicit; go 1.17
 golang.org/x/net/context

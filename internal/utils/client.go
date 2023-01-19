@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
+	"golang.org/x/exp/maps" // General availability soon
 	"strconv"
 	"strings"
 	"time"
@@ -40,8 +41,14 @@ func New(ctx context.Context, name, password, token, url, httpUserAgent string) 
 		ctx:       ctx,
 	}
 }
+
 func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGateways map[string][]string) (*sdkgo.NatGateway, error) {
 	var lans []sdkgo.NatGatewayLanProperties
+	err := c.createLansOrMakePrivate(datacenterId, maps.Keys(lansToGateways))
+	if err != nil {
+		return nil, err
+	}
+	time.Sleep(10 * time.Second)
 	for lanId, gatewayIps := range lansToGateways {
 		id, err := strconv.ParseInt(lanId, 10, 32)
 		if err != nil {
@@ -50,6 +57,7 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 		id32 := int32(id)
 		// Unpack the map into NatGatewayLanProperties objects. https://api.ionos.com/docs/cloud/v6/#tag/NAT-Gateways/operation/datacentersNatgatewaysPost
 		lans = append(lans, sdkgo.NatGatewayLanProperties{Id: &id32, GatewayIps: &gatewayIps})
+		fmt.Printf("Created a NatGatewayLanProperties obj with Id: %d, GatewayIps: %+v\n", id32, gatewayIps)
 	}
 	natName := "NAT Docker Machine"
 
@@ -64,6 +72,39 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 	).Execute()
 
 	return &nat, err
+}
+
+func (c *Client) createLansOrMakePrivate(datacenterId string, lanIds []string) error {
+	for _, lanid := range lanIds {
+		lan, resp, err := c.LANsApi.DatacentersLansFindById(c.ctx, datacenterId, lanid).Execute()
+		if err != nil && resp.StatusCode != 404 {
+			// Don't throw err if Status Code 404, because of 'Resource does not exist' errs.
+			return err
+		}
+		if resp.StatusCode == 404 {
+			fmt.Printf("Creating LAN %s for NAT\n", lanid)
+			_, err := c.CreateLan(datacenterId, "Docker Machine LAN (NAT)", false)
+			if err != nil {
+				return err
+			}
+			continue // breakpoint
+		}
+		if *lan.Properties.Public {
+			// TODO: Immutable. Must delete and re-create in this case.
+			lan.Properties.SetPublic(false)
+			fmt.Printf("Making LAN %s private. Currently: %t\n", lanid, *lan.Properties.Public)
+			_, resp, err := c.LANsApi.DatacentersLansPut(c.ctx, datacenterId, lanid).Lan(lan).Execute()
+			if err != nil {
+				return err
+			}
+			err = c.waitTillProvisioned(resp.Header.Get("location"))
+			if err != nil {
+				return err
+			}
+			continue
+		}
+	}
+	return nil
 }
 
 func (c *Client) RemoveNat(datacenterId, natId string) error {
@@ -153,7 +194,6 @@ func (c *Client) CreateDatacenter(name, location string) (*sdkgo.Datacenter, err
 	if err = sdk_utils.SanitizeStatusCode(dcResp.StatusCode, dcResp.Message); err != nil {
 		return nil, err
 	}
-
 	log.Info("Datacenter created!")
 
 	err = c.waitTillProvisioned(dcResp.Header.Get("location"))

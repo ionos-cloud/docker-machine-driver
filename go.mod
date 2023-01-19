@@ -13,6 +13,8 @@ require (
 require (
 	github.com/tidwall/gjson v1.14.4
 	gopkg.in/yaml.v3 v3.0.1
+	golang.org/x/exp v0.0.0-20230118134722-a68e582fa157
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
