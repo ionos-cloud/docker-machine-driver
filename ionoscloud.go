@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/ionos-cloud/docker-machine-driver/pkg/moreopts"
+	"github.com/ionos-cloud/docker-machine-driver/pkg/extflag"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -153,112 +153,113 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 	return []mcnflag.Flag{
 		mcnflag.StringSliceFlag{
-			EnvVar: "IONOSCLOUD_NAT_PUBLIC_IPS",
 			Name:   flagNatPublicIps,
+			EnvVar: extflag.KebabCaseToCamelCase(flagNatPublicIps),
 			//Value:  nil,
 			Usage: "Ionos Cloud NAT Gateway public IPs",
 		},
 		mcnflag.StringFlag{
 			// A string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10" . Lans MUST be separated by `:`. IPs MUST be separated by `,`
-			EnvVar: "IONOSCLOUD_NAT_LANS_TO_GATEWAYS",
 			Name:   flagNatLansToGateways,
+			EnvVar: extflag.KebabCaseToCamelCase(flagNatLansToGateways),
 			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=10.0.0.1,10.0.0.2:2=10.0.0.10\"",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_ENDPOINT",
 			Name:   flagEndpoint,
+			EnvVar: extflag.KebabCaseToCamelCase(flagEndpoint),
 			Value:  sdkgo.DefaultIonosServerUrl,
 			Usage:  "Ionos Cloud API Endpoint",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_USERNAME",
 			Name:   flagUsername,
+			EnvVar: extflag.KebabCaseToCamelCase(flagUsername),
 			Usage:  "Ionos Cloud Username",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_PASSWORD",
 			Name:   flagPassword,
+			EnvVar: extflag.KebabCaseToCamelCase(flagPassword),
 			Usage:  "Ionos Cloud Password",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_TOKEN",
 			Name:   flagToken,
+			EnvVar: extflag.KebabCaseToCamelCase(flagToken),
 			Usage:  "Ionos Cloud Token",
 		},
 		mcnflag.IntFlag{
-			EnvVar: "IONOSCLOUD_CORES",
 			Name:   flagServerCores,
+			EnvVar: extflag.KebabCaseToCamelCase(flagServerCores),
 			Value:  4,
 			Usage:  "Ionos Cloud Server Cores (2, 3, 4, 5, 6, etc.)",
 		},
 		mcnflag.IntFlag{
-			EnvVar: "IONOSCLOUD_RAM",
 			Name:   flagServerRam,
+			EnvVar: extflag.KebabCaseToCamelCase(flagServerRam),
 			Value:  2048,
 			Usage:  "Ionos Cloud Server Ram in MB(1024, 2048, 3072, 4096, etc.)",
 		},
 		mcnflag.IntFlag{
-			EnvVar: "IONOSCLOUD_DISK_SIZE",
 			Name:   flagDiskSize,
+			EnvVar: extflag.KebabCaseToCamelCase(flagDiskSize),
 			Value:  50,
 			Usage:  "Ionos Cloud Volume Disk-Size in GB(10, 50, 100, 200, 400)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_IMAGE",
+
 			Name:   flagImage,
+			EnvVar: extflag.KebabCaseToCamelCase(flagImage),
 			Value:  defaultImageAlias,
 			Usage:  "Ionos Cloud Image Id or Alias (ubuntu:latest, ubuntu:20.04)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_IMAGE_PASSWORD",
 			Name:   flagImagePassword,
+			EnvVar: extflag.KebabCaseToCamelCase(flagImagePassword),
 			Value:  defaultImagePassword,
 			Usage:  "Ionos Cloud Image Password to be able to access the server from DCD platform",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_LOCATION",
 			Name:   flagLocation,
+			EnvVar: extflag.KebabCaseToCamelCase(flagLocation),
 			Value:  defaultRegion,
 			Usage:  "Ionos Cloud Location",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_DISK_TYPE",
 			Name:   flagDiskType,
+			EnvVar: extflag.KebabCaseToCamelCase(flagDiskType),
 			Value:  defaultDiskType,
 			Usage:  "Ionos Cloud Volume Disk-Type (HDD, SSD)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_SERVER_TYPE",
 			Name:   flagServerType,
+			EnvVar: extflag.KebabCaseToCamelCase(flagServerType),
 			Value:  defaultServerType,
 			Usage:  "Ionos Cloud Server Type(ENTERPRISE or CUBE). CUBE servers are only available in certain locations.",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_TEMPLATE",
 			Name:   flagTemplate,
+			EnvVar: extflag.KebabCaseToCamelCase(flagTemplate),
 			Value:  defaultTemplate,
 			Usage:  "Ionos Cloud CUBE Template, only used for CUBE servers.",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_CPU_FAMILY",
 			Name:   flagServerCpuFamily,
+			EnvVar: extflag.KebabCaseToCamelCase(flagServerCpuFamily),
 			Value:  defaultCpuFamily,
 			Usage:  "Ionos Cloud Server CPU families (AMD_OPTERON, INTEL_XEON, INTEL_SKYLAKE)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_DATACENTER_ID",
 			Name:   flagDatacenterId,
+			EnvVar: extflag.KebabCaseToCamelCase(flagDatacenterId),
 			Usage:  "Ionos Cloud Virtual Data Center Id",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_DATACENTER_NAME",
 			Name:   flagDatacenterName,
+			EnvVar: extflag.KebabCaseToCamelCase(flagDatacenterName),
 			Value:  defaultDatacenterName,
 			Usage:  "Ionos Cloud Virtual Data Center Name",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_LAN_ID",
 			Name:   flagLanId,
+			EnvVar: extflag.KebabCaseToCamelCase(flagLanId),
 			Usage:  "Ionos Cloud LAN Id",
 		},
 		mcnflag.StringFlag{
@@ -268,30 +269,30 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud LAN Name",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_VOLUME_ZONE",
 			Name:   flagVolumeAvailabilityZone,
+			EnvVar: extflag.KebabCaseToCamelCase(flagVolumeAvailabilityZone),
 			Value:  defaultAvailabilityZone,
 			Usage:  "Ionos Cloud Volume Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_SERVER_ZONE",
 			Name:   flagServerAvailabilityZone,
+			EnvVar: extflag.KebabCaseToCamelCase(flagServerAvailabilityZone),
 			Value:  defaultAvailabilityZone,
 			Usage:  "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_USER_DATA",
 			Name:   flagUserData,
+			EnvVar: extflag.KebabCaseToCamelCase(flagUserData),
 			Usage:  "The cloud-init configuration for the volume as a multi-line string",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_USER_DATA_B64",
 			Name:   flagUserDataB64,
+			EnvVar: extflag.KebabCaseToCamelCase(flagUserDataB64),
 			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_SSH_USER",
 			Name:   flagSSHUser,
+			EnvVar: extflag.KebabCaseToCamelCase(flagSSHUser),
 			Value:  defaultSSHUser,
 			Usage:  "The name of the user the driver will use for ssh",
 		},
@@ -301,7 +302,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 // SetConfigFromFlags initializes driver values from the command line values.
 func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
-	d.NatLansToGateways = moreopts.StringToStringSlice(opts, flagNatLansToGateways)
+	d.NatLansToGateways = extflag.ToMapOfStringToStringSlice(opts.String(flagNatLansToGateways))
 	d.URL = opts.String(flagEndpoint)
 	d.Username = opts.String(flagUsername)
 	d.Password = opts.String(flagPassword)
