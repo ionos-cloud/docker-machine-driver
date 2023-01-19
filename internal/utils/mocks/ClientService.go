@@ -110,6 +110,21 @@ func (mr *MockClientServiceMockRecorder) CreateLan(datacenterId, name, public in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLan", reflect.TypeOf((*MockClientService)(nil).CreateLan), datacenterId, name, public)
 }
 
+// CreateNat mocks base method.
+func (m *MockClientService) CreateNat(datacenterId string, publicIps []string, lansToGateways map[string][]string) (*ionoscloud.NatGateway, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateNat", datacenterId, publicIps, lansToGateways)
+	ret0, _ := ret[0].(*ionoscloud.NatGateway)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateNat indicates an expected call of CreateNat.
+func (mr *MockClientServiceMockRecorder) CreateNat(datacenterId, publicIps, lansToGateways interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNat", reflect.TypeOf((*MockClientService)(nil).CreateNat), datacenterId, publicIps, lansToGateways)
+}
+
 // CreateServer mocks base method.
 func (m *MockClientService) CreateServer(datacenterId string, server ionoscloud.Server) (*ionoscloud.Server, error) {
 	m.ctrl.T.Helper()
@@ -330,6 +345,20 @@ func (m *MockClientService) RemoveLan(datacenterId, lanId string) error {
 func (mr *MockClientServiceMockRecorder) RemoveLan(datacenterId, lanId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveLan", reflect.TypeOf((*MockClientService)(nil).RemoveLan), datacenterId, lanId)
+}
+
+// RemoveNat mocks base method.
+func (m *MockClientService) RemoveNat(datacenterId, natId string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveNat", datacenterId, natId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveNat indicates an expected call of RemoveNat.
+func (mr *MockClientServiceMockRecorder) RemoveNat(datacenterId, natId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveNat", reflect.TypeOf((*MockClientService)(nil).RemoveNat), datacenterId, natId)
 }
 
 // RemoveNic mocks base method.
