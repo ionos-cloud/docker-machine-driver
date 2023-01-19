@@ -1,26 +1,33 @@
 package extflag
 
 import (
-	"fmt"
 	"strings"
 )
 
 // ToMapOfStringToStringSlice takes a string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10", and returns
 // its equivalent map[string][]string object: { 1: [10.0.0.1, 10.0.0.2], 2: [10.0.0.10] }
 // Map entries MUST be separated by `:`. Slice entries MUST be separated by `,`
+// Slices can be null, for example "1:2:3=foo, bar" would return { "1": nil, "2": nil, "3": ['foo' 'bar'] }
 func ToMapOfStringToStringSlice(val string) map[string][]string {
-	if len(val) == 0 || !strings.Contains(val, "=") {
+	if len(val) == 0 {
 		return nil
 	}
-	out := make(map[string][]string)
-	mapping := strings.Split(val, ":")
-	for _, pair := range mapping {
-		parts := strings.Split(pair, "=")
-		key, values := parts[0], parts[1]
-		out[key] = append(out[key], strings.Split(values, ",")...)
+	parts := strings.Split(val, ":")
+	m := make(map[string][]string)
+	for _, part := range parts {
+		kv := strings.Split(part, "=")
+		switch len(kv) {
+		case 2:
+			m[kv[0]] = strings.Split(kv[1], ",")
+			break
+		case 1:
+			m[kv[0]] = nil
+			break
+		default:
+			continue
+		}
 	}
-	fmt.Printf("Out %+v", out)
-	return out
+	return m
 }
 
 // KebabCaseToCamelCase converts kebab-style-strings to CAMEL_CASE_STRINGS,
