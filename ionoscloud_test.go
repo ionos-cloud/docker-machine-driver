@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultHostName  = "default"
+	defaultHostName  = "default1"
 	defaultStorePath = "path"
 )
 
@@ -80,6 +80,10 @@ var (
 	lan = &sdkgo.LanPost{
 		Id: &testVar,
 	}
+	lans = sdkgo.Lans{
+		Items: &[]sdkgo.Lan{},
+	}
+
 	server = &sdkgo.Server{
 		Id: &testVar,
 	}
@@ -241,6 +245,7 @@ func TestPreCreateCheckDataCenterIdErr(t *testing.T) {
 	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
 	clientMock.EXPECT().GetImages().Return(&images, nil)
+	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&lans, nil)
 	err := driver.PreCreateCheck()
 	assert.NoError(t, err)
 }
@@ -249,6 +254,8 @@ func TestPreCreateCheckDataCenterErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
 	driver.DatacenterId = testVar
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(nil, fmt.Errorf("error getting datacenter: 404 not found"))
+
+	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&lans, nil)
 	err := driver.PreCreateCheck()
 	assert.Error(t, err)
 }
@@ -256,6 +263,7 @@ func TestPreCreateCheckDataCenterErr(t *testing.T) {
 func TestPreCreateImageIdErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
 	driver.DatacenterId = testVar
+	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&lans, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
@@ -303,7 +311,7 @@ func TestCreate(t *testing.T) {
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
 	clientMock.EXPECT().GetNic(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("sv"), gomock.AssignableToTypeOf("nic")).Return(nic, nil)
-	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil).Times(1)
+	clientMock.EXPECT().CreateLan(driver.DatacenterId, "docker-machine-lan", true).Return(lan, nil).Times(1)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
 	clientMock.EXPECT().CreateAttachVolume(driver.DatacenterId, driver.ServerId, propertiesImageId).Return(volume, nil)
 	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
@@ -395,7 +403,7 @@ func TestCreateIpBlockErr(t *testing.T) {
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
 	clientMock.EXPECT().GetNic(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("sv"), gomock.AssignableToTypeOf("nic")).Return(nic, nil)
-	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, nil)
+	clientMock.EXPECT().CreateLan(driver.DatacenterId, "docker-machine-lan", true).Return(lan, nil)
 	clientMock.EXPECT().CreateServer(driver.DatacenterId, driver.MachineName, driver.CpuFamily, driver.ServerAvailabilityZone, int32(driver.Ram), int32(driver.Cores)).Return(server, nil)
 	clientMock.EXPECT().CreateAttachVolume(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("sv"), gomock.AssignableToTypeOf(propertiesImageAlias)).Return(volume, nil)
 
@@ -453,7 +461,7 @@ func TestCreateLanErr(t *testing.T) {
 	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
-	clientMock.EXPECT().CreateLan(driver.DatacenterId, driver.MachineName, true).Return(lan, testErr)
+	clientMock.EXPECT().CreateLan(driver.DatacenterId, "docker-machine-lan", true).Return(lan, testErr)
 	clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(testErr)
 	clientMock.EXPECT().RemoveVolume(driver.DatacenterId, driver.VolumeId).Return(testErr)
 	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(testErr)

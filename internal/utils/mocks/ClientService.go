@@ -215,6 +215,21 @@ func (mr *MockClientServiceMockRecorder) GetLan(datacenterId, LanId interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLan", reflect.TypeOf((*MockClientService)(nil).GetLan), datacenterId, LanId)
 }
 
+// GetLans mocks base method.
+func (m *MockClientService) GetLans(datacenterId string) (*ionoscloud.Lans, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLans", datacenterId)
+	ret0, _ := ret[0].(*ionoscloud.Lans)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLans indicates an expected call of GetLans.
+func (mr *MockClientServiceMockRecorder) GetLans(datacenterId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLans", reflect.TypeOf((*MockClientService)(nil).GetLans), datacenterId)
+}
+
 // GetLocationById mocks base method.
 func (m *MockClientService) GetLocationById(regionId, locationId string) (*ionoscloud.Location, error) {
 	m.ctrl.T.Helper()

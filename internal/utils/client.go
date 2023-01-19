@@ -236,7 +236,7 @@ func (c *Client) GetLan(datacenterId, LanId string) (*sdkgo.Lan, error) {
 }
 
 func (c *Client) GetLans(datacenterId string) (*sdkgo.Lans, error) {
-	lans, resp, err := c.LANsApi.DatacentersLansGet(c.ctx, datacenterId).Execute()
+	lans, resp, err := c.LANsApi.DatacentersLansGet(c.ctx, datacenterId).Depth(1).Execute()
 	if err != nil {
 		return nil, sdk_utils.ShortenOpenApiErr(err)
 	}

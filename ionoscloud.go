@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
+	"unicode"
 
 	"gopkg.in/yaml.v2"
 
@@ -322,6 +324,14 @@ func (d *Driver) PreCreateCheck() error {
 	d.DCExists = false
 	d.LanExists = false
 
+	for i := len(d.MachineName) - 1; i >= 0; i-- {
+		if !unicode.IsNumber(rune(d.MachineName[i])) {
+			if d.MachineName[i+1:] != "1" {
+				time.Sleep(60 * time.Second)
+			}
+			break
+		}
+	}
 	if d.DatacenterId == "" {
 		datacenters, err := d.client().GetDatacenters()
 		if err != nil {
@@ -392,7 +402,6 @@ func (d *Driver) PreCreateCheck() error {
 	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}
-
 	return nil
 }
 
