@@ -5,7 +5,13 @@ import (
 	"strings"
 )
 
+// ToMapOfStringToStringSlice takes a string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10", and returns
+// its equivalent map[string][]string object: { 1: [10.0.0.1, 10.0.0.2], 2: [10.0.0.10] }
+// Map entries MUST be separated by `:`. Slice entries MUST be separated by `,`
 func ToMapOfStringToStringSlice(val string) map[string][]string {
+	if len(val) == 0 || !strings.Contains(val, "=") {
+		return nil
+	}
 	out := make(map[string][]string)
 	mapping := strings.Split(val, ":")
 	for _, pair := range mapping {
