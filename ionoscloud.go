@@ -554,6 +554,14 @@ func (d *Driver) Create() error {
 		}
 	}
 
+	if d.NatPublicIps != nil || d.NatLansToGateways != nil {
+		nat, err := d.client().CreateNat(d.DatacenterId, d.NatPublicIps, d.NatLansToGateways)
+		if err != nil {
+			return err
+		}
+		log.Debugf("Nat ID: %v", nat.Id)
+	}
+
 	lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
 	if err != nil {
 		return fmt.Errorf("error getting LAN: %w", err)
