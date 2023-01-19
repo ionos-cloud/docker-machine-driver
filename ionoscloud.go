@@ -48,6 +48,7 @@ const (
 	// NAT Gatway flags
 	flagNatPublicIps      = "ionoscloud-nat-public-ips"
 	flagNatLansToGateways = "ionoscloud-nat-lans-to-gateways"
+	flagPrivateLan        = "ionoscloud-private-lan"
 	// ---
 )
 
@@ -116,6 +117,7 @@ type Driver struct {
 	UserDataB64            string
 	NatPublicIps           []string
 	NatLansToGateways      map[string][]string
+	PrivateLan             bool
 
 	// Driver Version
 	Version string
@@ -164,6 +166,12 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			EnvVar: extflag.KebabCaseToCamelCase(flagNatLansToGateways),
 			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=10.0.0.1,10.0.0.2:2=10.0.0.10\"",
 		},
+		mcnflag.BoolFlag{
+			// A string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10" . Lans MUST be separated by `:`. IPs MUST be separated by `,`
+			Name:   flagPrivateLan,
+			EnvVar: extflag.KebabCaseToCamelCase(flagPrivateLan),
+			Usage:  "Should the created LAN be private? Does nothing if LAN ID is provided",
+		},
 		mcnflag.StringFlag{
 			Name:   flagEndpoint,
 			EnvVar: extflag.KebabCaseToCamelCase(flagEndpoint),
@@ -204,7 +212,6 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Volume Disk-Size in GB(10, 50, 100, 200, 400)",
 		},
 		mcnflag.StringFlag{
-
 			Name:   flagImage,
 			EnvVar: extflag.KebabCaseToCamelCase(flagImage),
 			Value:  defaultImageAlias,
@@ -326,6 +333,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.UserData = opts.String(flagUserData)
 	d.SSHUser = opts.String(flagSSHUser)
 	d.UserDataB64 = opts.String(flagUserDataB64)
+	d.PrivateLan = opts.Bool(flagPrivateLan)
 
 	d.SwarmMaster = opts.Bool("swarm-master")
 	d.SwarmHost = opts.String("swarm-host")
@@ -441,6 +449,11 @@ func (d *Driver) PreCreateCheck() error {
 	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}
+
+	if d.NatPublicIps != nil {
+		fmt.Printf("Running with Public IPs: %+v", d.NatPublicIps)
+	}
+
 	return nil
 }
 
@@ -538,7 +551,7 @@ func (d *Driver) Create() error {
 	}
 
 	if d.LanId == "" {
-		lan, err := d.client().CreateLan(d.DatacenterId, d.LanName, true)
+		lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, !d.PrivateLan)
 		if err != nil {
 			err = fmt.Errorf("error creating LAN: %w", err)
 			// TODO : export below to a func --->
@@ -553,14 +566,6 @@ func (d *Driver) Create() error {
 			d.LanId = *lanId
 			log.Debugf("Lan ID: %v", d.LanId)
 		}
-	}
-
-	if d.NatPublicIps != nil || d.NatLansToGateways != nil {
-		nat, err := d.client().CreateNat(d.DatacenterId, d.NatPublicIps, d.NatLansToGateways)
-		if err != nil {
-			return err
-		}
-		log.Debugf("Nat ID: %v", nat.Id)
 	}
 
 	lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
@@ -713,6 +718,14 @@ func (d *Driver) Create() error {
 		ipBlockIps := *ips
 		d.IPAddress = ipBlockIps[0]
 		log.Info(d.IPAddress)
+	}
+
+	if d.NatPublicIps != nil {
+		nat, err := d.client().CreateNat(d.DatacenterId, d.NatPublicIps, d.NatLansToGateways)
+		if err != nil {
+			return err
+		}
+		log.Debugf("Nat ID: %v", nat.Id)
 	}
 
 	return nil
