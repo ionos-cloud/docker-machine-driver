@@ -3,9 +3,10 @@ package utils
 import (
 	"context"
 	"fmt"
-	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	"strings"
 	"time"
+
+	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 
 	"github.com/docker/machine/libmachine/log"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
@@ -171,17 +172,7 @@ func (c *Client) RemoveLan(datacenterId, lanId string) error {
 	return c.waitTillProvisioned(resp.Header.Get("location"))
 }
 
-func (c *Client) CreateServer(datacenterId, name, cpufamily, zone string, ram, cores int32) (*sdkgo.Server, error) {
-	server := sdkgo.Server{
-		Properties: &sdkgo.ServerProperties{
-			Name:             &name,
-			Ram:              &ram,
-			Cores:            &cores,
-			CpuFamily:        &cpufamily,
-			AvailabilityZone: &zone,
-		},
-	}
-
+func (c *Client) CreateServer(datacenterId string, server sdkgo.Server) (*sdkgo.Server, error) {
 	svr, serverResp, err := c.ServersApi.DatacentersServersPost(c.ctx, datacenterId).Server(server).Execute()
 	if err != nil {
 		return nil, sdk_utils.ShortenOpenApiErr(err)
@@ -209,7 +200,6 @@ func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error)
 	if err != nil {
 		return nil, err
 	}
-	log.Info("Got existing server!")
 	return &server, nil
 }
 

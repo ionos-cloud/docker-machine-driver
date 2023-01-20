@@ -11,7 +11,7 @@ type ClientService interface {
 	RemoveDatacenter(datacenterId string) error
 	CreateLan(datacenterId, name string, public bool) (*ionoscloud.LanPost, error)
 	RemoveLan(datacenterId, lanId string) error
-	CreateServer(datacenterId, name, cpufamily, zone string, ram, cores int32) (*ionoscloud.Server, error)
+	CreateServer(datacenterId string, server ionoscloud.Server) (*ionoscloud.Server, error)
 	GetServer(datacenterId, serverId string) (*ionoscloud.Server, error)
 	GetLan(datacenterId, LanId string) (*ionoscloud.Lan, error)
 	GetNic(datacenterId, ServerId, NicId string) (*ionoscloud.Nic, error)
