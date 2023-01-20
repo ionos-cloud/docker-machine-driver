@@ -44,7 +44,7 @@ func New(ctx context.Context, name, password, token, url, httpUserAgent string) 
 
 func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGateways map[string][]string) (*sdkgo.NatGateway, error) {
 	var lans []sdkgo.NatGatewayLanProperties
-	err := c.createLansOrMakePrivate(datacenterId, maps.Keys(lansToGateways))
+	err := c.createLansIfNotExist(datacenterId, maps.Keys(lansToGateways))
 	if err != nil {
 		return nil, err
 	}
@@ -74,14 +74,11 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 	return &nat, err
 }
 
-func (c *Client) createLansOrMakePrivate(datacenterId string, lanIds []string) error {
+func (c *Client) createLansIfNotExist(datacenterId string, lanIds []string) error {
 	for _, lanid := range lanIds {
-		lan, resp, err := c.LANsApi.DatacentersLansFindById(c.ctx, datacenterId, lanid).Execute()
-		if err != nil && resp.StatusCode != 404 {
-			// Don't throw err if Status Code 404, because of 'Resource does not exist' errs.
-			return err
-		}
+		_, resp, err := c.LANsApi.DatacentersLansFindById(c.ctx, datacenterId, lanid).Execute()
 		if resp.StatusCode == 404 {
+			// Run this before err check, as 404s throws an err.
 			fmt.Printf("Creating LAN %s for NAT\n", lanid)
 			_, err := c.CreateLan(datacenterId, "Docker Machine LAN (NAT)", false)
 			if err != nil {
@@ -89,19 +86,8 @@ func (c *Client) createLansOrMakePrivate(datacenterId string, lanIds []string) e
 			}
 			continue // breakpoint
 		}
-		if *lan.Properties.Public {
-			// TODO: Immutable. Must delete and re-create in this case.
-			lan.Properties.SetPublic(false)
-			fmt.Printf("Making LAN %s private. Currently: %t\n", lanid, *lan.Properties.Public)
-			_, resp, err := c.LANsApi.DatacentersLansPut(c.ctx, datacenterId, lanid).Lan(lan).Execute()
-			if err != nil {
-				return err
-			}
-			err = c.waitTillProvisioned(resp.Header.Get("location"))
-			if err != nil {
-				return err
-			}
-			continue
+		if err != nil {
+			return err
 		}
 	}
 	return nil
