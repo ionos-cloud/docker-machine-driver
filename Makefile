@@ -77,4 +77,8 @@ clean:
 
 .PHONY: upload
 upload: clean compile
+ifdef to_clip
+	./scripts/publish_image.py -c True
+else
 	./scripts/publish_image.py
+endif

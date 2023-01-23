@@ -96,22 +96,46 @@ DESCRIPTION = """This is a tool through which the docker-machine-driver image is
                  It prints out an URL that can be used to download the image.
                  The binary must be stored in ./bin and must be named 'docker-machine-driver-ionoscloud'.
                  The authentication is done using a token that can be set using an environment variable named ACCESS_TOKEN."""
-parser = argparse.ArgumentParser(description=DESCRIPTION)
-args = parser.parse_args()
 
-# Access token validation
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", None)
-if not ACCESS_TOKEN:
-    print("Please provide a value for the ACCESS_TOKEN env variable.")
-    sys.exit(0)
 
-# Add the commit hash to the dropbox path.
-repository = git.Repo(search_parent_directories=True)
-commit_hash = repository.head.object.hexsha
-dropbox_final_file_path = DROPBOX_FILE_PATH + "-" + commit_hash
+import subprocess
 
-dropbox_upload_file(LOCAL_PATH, LOCAL_FILE, dropbox_final_file_path)
-print("=======================================")
-print("DOWNLOAD THE IMAGE USING THE URL BELOW:")
-print(dropbox_get_link(dropbox_final_file_path))
-print("=======================================")
+def copy2clip(txt):
+    cmd='echo '+txt.strip()+'|xclip'
+    try:
+        call = subprocess.check_call(cmd, shell=True)
+    except subprocess.CalledProcessError:
+        print("Copy to clipboard: CalledProcessError. Try `sudo apt install xclip`")
+        return False
+    if call == False:
+        print("Copy to clipboard failed")
+    return call
+
+def main():
+    parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser.add_argument("-c", help="Set this to copy the URL to clipboard", default=False)
+    args = parser.parse_args()
+
+    # Access token validation
+    if not ACCESS_TOKEN:
+        print("Please provide a value for the ACCESS_TOKEN env variable.")
+        sys.exit(0)
+
+    # Add the commit hash to the dropbox path.
+    repository = git.Repo(search_parent_directories=True)
+    commit_hash = repository.head.object.hexsha
+    dropbox_final_file_path = DROPBOX_FILE_PATH + "-" + commit_hash
+
+    dropbox_upload_file(LOCAL_PATH, LOCAL_FILE, dropbox_final_file_path)
+    print("=======================================")
+    print("DOWNLOAD THE IMAGE USING THE URL BELOW:")
+    print(dropbox_get_link(dropbox_final_file_path))
+    print("=======================================")
+
+#     bool_cp_clipboard = input("Load URL to clipboard? (Linux only): ([Yy]/[Nn*])").lower()
+    if args.c:
+        copy2clip(dropbox_get_link(dropbox_final_file_path))
+
+if __name__ == "__main__":
+    main()
