@@ -721,7 +721,7 @@ func (d *Driver) Create() error {
 	}
 
 	if d.NatPublicIps != nil {
-		nat, err := d.client().CreateNat(d.DatacenterId, d.NatPublicIps, d.NatLansToGateways)
+		nat, err := d.client().CreateNat(d.DatacenterId, d.NatPublicIps, d.NatLansToGateways, "10.0.0.1")
 		if err != nil {
 			return err
 		}
