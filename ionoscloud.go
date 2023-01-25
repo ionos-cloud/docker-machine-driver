@@ -857,11 +857,15 @@ func (d *Driver) GetURL() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("tcp://%s:2376", ip), nil
+	return fmt.Sprintf("tcp://%s:2376", ip), nil // TODO: Perhaps we can allow customization of the Docker Port: https://github.com/rancher/machine/blob/master/drivers/azure/azure.go#L619
 }
 
 // GetIP returns public IP address or hostname of the machine instance.
 func (d *Driver) GetIP() (string, error) {
+	if d.PrivateLan && d.NatPublicIps != nil {
+		return d.NatPublicIps[0], nil
+	}
+
 	server, err := d.client().GetServer(d.DatacenterId, d.ServerId)
 	if err != nil {
 		return "", fmt.Errorf("error getting server by id: %w", err)

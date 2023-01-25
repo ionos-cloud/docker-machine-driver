@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	"golang.org/x/exp/maps" // General availability soon
 	"strconv"
@@ -59,19 +60,51 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 		lans = append(lans, sdkgo.NatGatewayLanProperties{Id: &id32, GatewayIps: &gatewayIps})
 		fmt.Printf("Created a NatGatewayLanProperties obj with Id: %d, GatewayIps: %+v\n", id32, gatewayIps)
 	}
-	natName := "NAT Docker Machine"
 
-	nat, _, err := c.NATGatewaysApi.DatacentersNatgatewaysPost(c.ctx, datacenterId).NatGateway(
+	nat, natresp, err := c.NATGatewaysApi.DatacentersNatgatewaysPost(c.ctx, datacenterId).NatGateway(
 		sdkgo.NatGateway{
 			Properties: &sdkgo.NatGatewayProperties{
-				Name:      &natName,
+				Name:      pointer.To("NAT Docker Machine"),
 				PublicIps: &publicIps,
 				Lans:      &lans,
 			},
 		},
 	).Execute()
 
+	err = c.waitTillProvisioned(natresp.Header.Get("location"))
+
+	// Configure default NAT Rules
+	_, err = c.CreateNatRule(
+		"NAT Rule Docker Machine",
+		datacenterId,
+		*nat.GetId(),
+		publicIps[0],
+		lansToGateways["1"][0],
+		lansToGateways["1"][0],
+		sdkgo.TargetPortRange{
+			Start: pointer.To(int32(6443)),
+			End:   pointer.To(int32(6443)),
+		},
+	)
+
 	return &nat, err
+}
+
+func (c *Client) CreateNatRule(name, datacenterId, natId, publicIp, srcSubnet, targetSubnet string, portRange sdkgo.TargetPortRange) (*sdkgo.NatGatewayRule, error) {
+	rule, _, err := c.NATGatewaysApi.DatacentersNatgatewaysRulesPost(c.ctx, datacenterId, natId).NatGatewayRule(
+		sdkgo.NatGatewayRule{
+			Properties: &sdkgo.NatGatewayRuleProperties{
+				Name:            &name,
+				Type:            pointer.To(sdkgo.NatGatewayRuleType("SNAT")),
+				Protocol:        pointer.To(sdkgo.NatGatewayRuleProtocol("TCP")),
+				SourceSubnet:    &srcSubnet,
+				TargetSubnet:    &targetSubnet,
+				PublicIp:        &publicIp,
+				TargetPortRange: &portRange,
+			},
+		},
+	).Execute()
+	return &rule, err
 }
 
 func (c *Client) createLansIfNotExist(datacenterId string, lanIds []string) error {
