@@ -81,30 +81,46 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 		publicIps[0],
 		lansToGateways["1"][0],
 		lansToGateways["1"][0],
-		sdkgo.TargetPortRange{
-			Start: pointer.To(int32(6443)),
-			End:   pointer.To(int32(6443)),
+		[]sdkgo.TargetPortRange{
+			{
+				Start: pointer.To(int32(6443)),
+				End:   pointer.To(int32(6443)),
+			},
 		},
 	)
 
 	return &nat, err
 }
 
-func (c *Client) CreateNatRule(name, datacenterId, natId, publicIp, srcSubnet, targetSubnet string, portRange sdkgo.TargetPortRange) (*sdkgo.NatGatewayRule, error) {
-	rule, _, err := c.NATGatewaysApi.DatacentersNatgatewaysRulesPost(c.ctx, datacenterId, natId).NatGatewayRule(
-		sdkgo.NatGatewayRule{
-			Properties: &sdkgo.NatGatewayRuleProperties{
-				Name:            &name,
-				Type:            pointer.To(sdkgo.NatGatewayRuleType("SNAT")),
-				Protocol:        pointer.To(sdkgo.NatGatewayRuleProtocol("TCP")),
-				SourceSubnet:    &srcSubnet,
-				TargetSubnet:    &targetSubnet,
-				PublicIp:        &publicIp,
-				TargetPortRange: &portRange,
+func (c *Client) CreateNatRule(name, datacenterId, natId, publicIp, srcSubnet, targetSubnet string, portRanges []sdkgo.TargetPortRange) ([]*sdkgo.NatGatewayRule, error) {
+	properties := &sdkgo.NatGatewayRuleProperties{
+		Name:         &name,
+		Type:         pointer.To(sdkgo.NatGatewayRuleType("SNAT")),
+		Protocol:     pointer.To(sdkgo.NatGatewayRuleProtocol("TCP")),
+		SourceSubnet: &srcSubnet,
+		TargetSubnet: &targetSubnet,
+		PublicIp:     &publicIp,
+	}
+
+	rules := make([]*sdkgo.NatGatewayRule, 0)
+	for _, portRange := range portRanges {
+		properties.TargetPortRange = &portRange
+		rule, resp, err := c.NATGatewaysApi.DatacentersNatgatewaysRulesPost(c.ctx, datacenterId, natId).NatGatewayRule(
+			sdkgo.NatGatewayRule{
+				Properties: properties,
 			},
-		},
-	).Execute()
-	return &rule, err
+		).Execute()
+		if err != nil {
+			return nil, err
+		}
+		err = c.waitTillProvisioned(resp.Header.Get("location"))
+		if err != nil {
+			return nil, err
+		}
+		rules = append(rules, &rule)
+	}
+
+	return rules, nil
 }
 
 func (c *Client) createLansIfNotExist(datacenterId string, lanIds []string) error {
