@@ -83,8 +83,32 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 		lansToGateways["1"][0],
 		[]sdkgo.TargetPortRange{
 			{
+				Start: pointer.To(int32(22)), // TODO: Investigate if rancher/rke/issues/212 is a complete list
+				End:   pointer.To(int32(22)),
+			},
+			{
 				Start: pointer.To(int32(6443)),
 				End:   pointer.To(int32(6443)),
+			},
+			{
+				Start: pointer.To(int32(2379)),
+				End:   pointer.To(int32(2380)),
+			},
+			{
+				Start: pointer.To(int32(10250)),
+				End:   pointer.To(int32(10252)),
+			},
+			{
+				Start: pointer.To(int32(10255)), // Investigate 10255 if needed
+				End:   pointer.To(int32(10256)),
+			},
+			{
+				Start: pointer.To(int32(8472)),
+				End:   pointer.To(int32(8472)),
+			},
+			{
+				Start: pointer.To(int32(30000)), // Worker Nodes ports. Maybe should be separated?
+				End:   pointer.To(int32(32767)),
 			},
 		},
 	)
