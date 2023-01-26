@@ -10,17 +10,21 @@ import (
 // Map entries MUST be separated by `:`. Slice entries MUST be separated by `,`
 // Slices can be null, for example "1:2:3=foo,bar" would return { "1": nil, "2": nil, "3": ['foo' 'bar'] }
 func ToMapOfStringToStringSlice(val string) map[string][]string {
+	return ToCustomMapOfStringToStringSlice(val, ",", ":", "=")
+}
+
+func ToCustomMapOfStringToStringSlice(val, sliceSep, mapEntrySep, assignOperator string) map[string][]string {
 	if len(val) == 0 {
 		return nil
 	}
 
-	parts := strings.Split(val, ":")
+	parts := strings.Split(val, mapEntrySep)
 	m := make(map[string][]string)
 	for _, part := range parts {
-		kv := strings.Split(part, "=")
+		kv := strings.Split(part, assignOperator)
 		switch len(kv) {
 		case 2:
-			m[kv[0]] = strings.Split(kv[1], ",")
+			m[kv[0]] = strings.Split(kv[1], sliceSep)
 			break
 		case 1:
 			m[kv[0]] = nil
