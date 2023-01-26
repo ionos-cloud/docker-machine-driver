@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/extflag"
 	"io/ioutil"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -450,9 +451,10 @@ func (d *Driver) PreCreateCheck() error {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}
 
-	if d.NatPublicIps != nil {
-		fmt.Printf("Running with Public IPs: %+v", d.NatPublicIps)
-	}
+	//if !d.CreateDefaultNat && d.NatPublicIps == nil {
+	//	// If d.CreateDefaultNat -> then we should provide d.NatPublicIps with the created / got IPBlock as soon as it is availableE
+	//	fmt.Printf("Running with Public IPs: %+v", d.NatPublicIps)
+	//}
 
 	return nil
 }
@@ -492,9 +494,7 @@ func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
 }
 
 // Create creates the machine.
-func (d *Driver) Create() error {
-	var err error
-	var isLanPrivate bool
+func (d *Driver) Create() (err error) {
 	log.Infof("Creating SSH key...")
 	if d.SSHKey == "" {
 		d.SSHKey, err = d.createSSHKey()
@@ -581,6 +581,7 @@ func (d *Driver) Create() error {
 		return err
 	}
 
+	var isLanPrivate bool
 	if lanProp, ok := lan.GetPropertiesOk(); ok && lanProp != nil {
 		if public, ok := lanProp.GetPublicOk(); ok && public != nil {
 			isLanPrivate = !*public
@@ -710,24 +711,30 @@ func (d *Driver) Create() error {
 
 	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
 		if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
+			if len(*nicIps) == 0 {
+				return fmt.Errorf("NIC has no IPs")
+			}
 			ips = nicIps
 		}
 	}
 
-	if len(*ips) > 0 {
-		ipBlockIps := *ips
-		d.IPAddress = ipBlockIps[0]
-		log.Info(d.IPAddress)
-	}
+	nicIps := *ips
+	if d.PrivateLan && d.NatPublicIps != nil {
+		d.IPAddress = d.NatPublicIps[0]
+		log.Infof("Public IP: %s", d.IPAddress)
+		log.Infof("Local VM IP: %s", nicIps[0])
 
-	if d.NatPublicIps != nil {
-		nat, err := d.client().CreateNat(d.DatacenterId, d.NatPublicIps, d.NatLansToGateways, "10.0.0.1")
+		nat, err := d.client().CreateNat(d.DatacenterId, d.NatPublicIps, d.NatLansToGateways, net.ParseIP(nicIps[0]).Mask(net.CIDRMask(24, 32)).String()+"/24")
 		if err != nil {
 			return err
 		}
 		log.Debugf("Nat ID: %v", nat.Id)
+	} else {
+		// IMPORTANT NOTE: It seems that if the NIC is in a Public LAN, it receives public IPs for the ips field.
+		// In a Private LAN, it behaves as expected and receives a local IP, corresponding to the VM in that LAN.
+		d.IPAddress = nicIps[0]
+		log.Infof("Public IP: %s", d.IPAddress)
 	}
-
 	return nil
 }
 
