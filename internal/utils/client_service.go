@@ -3,7 +3,7 @@ package utils
 import ionoscloud "github.com/ionos-cloud/sdk-go/v6"
 
 type ClientService interface {
-	UpdateCloudInitFile(cloudInitYAML string, key string, value []interface{}) (string, error)
+	UpdateCloudInitFile(cloudInitYAML []byte, key string, value []interface{}) ([]byte, error)
 	CreateIpBlock(size int32, location string) (*ionoscloud.IpBlock, error)
 	GetIpBlockIps(ipBlock *ionoscloud.IpBlock) (*[]string, error)
 	RemoveIpBlock(ipBlockId string) error
@@ -14,6 +14,7 @@ type ClientService interface {
 	CreateLan(datacenterId, name string, public bool) (*ionoscloud.LanPost, error)
 	RemoveLan(datacenterId, lanId string) error
 	CreateNat(datacenterId string, publicIps []string, lansToGateways map[string][]string, subnet string) (*ionoscloud.NatGateway, error)
+	GetNat(datacenterId string, natId string) (*ionoscloud.NatGateway, error)
 	RemoveNat(datacenterId, natId string) error
 	CreateServer(datacenterId, name, cpufamily, zone string, ram, cores int32) (*ionoscloud.Server, error)
 	GetServer(datacenterId, serverId string) (*ionoscloud.Server, error)

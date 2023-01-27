@@ -486,6 +486,27 @@ func (d *Driver) addSSHUserToYaml() (string, error) {
 	return d.client().UpdateCloudInitFile(d.UserData, "users", []interface{}{commonUser})
 }
 
+// TODO: Extract addFirstBootCommands and addSSHUserToYaml into a cloud-config handler pkg
+func (d *Driver) addIpRouteCommand(gatewayIp string) (string, error) {
+	type CloudConfig struct {
+		Runcmd []string `yaml:"runcmd"`
+	}
+	var cf CloudConfig
+	if err := yaml.Unmarshal([]byte(d.UserData), &cf); err != nil {
+		return "", err
+	}
+
+	cf.Runcmd = append(cf.Runcmd, fmt.Sprintf("ip route add default via %s", gatewayIp))
+	cf.Runcmd = append(cf.Runcmd, fmt.Sprintf("mkdir Alex_Was_Here"))
+	//config.Runcmd = append(config.Runcmd, []string{"ls", "-l", "/"})
+
+	yaml, err := yaml.Marshal(cf)
+	if err != nil {
+		return "", err
+	}
+	return string(yaml), nil
+}
+
 func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
 	if p1 == empty {
 		return p2
@@ -728,13 +749,62 @@ func (d *Driver) Create() (err error) {
 		if err != nil {
 			return err
 		}
-		log.Debugf("Nat ID: %v", nat.Id)
+		log.Debugf("Nat ID: %s", *nat.Id)
+
+		nat, err = d.client().GetNat(d.DatacenterId, *nat.Id)
+		if err != nil {
+			return err
+		}
+
+		lans := *nat.Properties.Lans
+		gs := *lans[0].GatewayIps
+
+		ud, err := d.client().UpdateCloudInitFile([]byte(d.UserData), "runcmd", []interface{}{fmt.Sprintf("mkdir /home/Alex_was_here"), fmt.Sprintf("ip route add default %s", gs[0])})
+		if err != nil {
+			return err
+		}
+		d.UserData = string(ud)
+
 	} else {
 		// IMPORTANT NOTE: It seems that if the NIC is in a Public LAN, it receives public IPs for the ips field.
 		// In a Private LAN, it behaves as expected and receives a local IP, corresponding to the VM in that LAN.
 		d.IPAddress = nicIps[0]
 		log.Infof("Public IP: %s", d.IPAddress)
 	}
+	d.UserData = b64.StdEncoding.EncodeToString([]byte(d.UserData))
+	fmt.Printf("Sending b64 ud: %s\n", d.UserData)
+
+	properties := utils.ClientVolumeProperties{
+		DiskType:      d.DiskType,
+		Name:          d.MachineName,
+		ImagePassword: d.ImagePassword,
+		Zone:          d.VolumeAvailabilityZone,
+		SshKey:        rootSSHKey,
+		DiskSize:      float32(d.DiskSize),
+		UserData:      d.UserData,
+	}
+
+	if !d.UseAlias {
+		log.Infof("Image Id: %v", result)
+		properties.ImageId = result
+	} else {
+		log.Infof("Image Alias: %v", alias)
+		properties.ImageAlias = alias
+	}
+	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, &properties)
+	if err != nil {
+		// TODO: Export to a func. Duplicated
+		log.Warn(rollingBackNotice)
+		if removeErr := d.Remove(); removeErr != nil {
+			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", fmt.Errorf("error attaching volume to server: %w", err), removeErr)
+		}
+		return err
+	}
+	if volumeId, ok := volume.GetIdOk(); ok && volumeId != nil {
+		d.VolumeId = *volumeId
+		log.Debugf("Volume ID: %v", d.VolumeId)
+	}
+
 	return nil
 }
 

@@ -6,6 +6,7 @@ import (
 	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	"golang.org/x/exp/maps" // General availability soon
+	"gopkg.in/yaml.v3"
 	"strconv"
 	"strings"
 	"time"
@@ -41,6 +42,43 @@ func New(ctx context.Context, name, password, token, url, httpUserAgent string) 
 		APIClient: sdkgo.NewAPIClient(clientConfig),
 		ctx:       ctx,
 	}
+}
+
+func (c *Client) UpdateCloudInitFile(cloudInitYAML []byte, key string, value []interface{}) ([]byte, error) {
+	var cloudInit map[string]interface{}
+	cloudInit = make(map[string]interface{})
+	if err := yaml.Unmarshal(cloudInitYAML, &cloudInit); err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("client: Got cloundInit:\n%+v\n", cloudInit)
+
+	if _, ok := cloudInit[key]; !ok {
+		cloudInit[key] = []interface{}{}
+	}
+
+	val, ok := cloudInit[key].([]interface{})
+	if !ok {
+		val = []interface{}{cloudInit[key]}
+	}
+	val = append(val, value...)
+	cloudInit[key] = val
+
+	fmt.Printf("client: Set cloundInit:\n%+v\n", cloudInit)
+
+	cloudInitYAML, err := yaml.Marshal(cloudInit)
+	if err != nil {
+		return nil, err
+	}
+	return cloudInitYAML, nil
+}
+
+func (c *Client) GetNat(datacenterId, natId string) (*sdkgo.NatGateway, error) {
+	nat, _, err := c.NATGatewaysApi.DatacentersNatgatewaysFindByNatGatewayId(c.ctx, datacenterId, natId).Execute()
+	if err != nil {
+		return nil, sdk_utils.ShortenOpenApiErr(err)
+	}
+	return &nat, nil
 }
 
 func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGateways map[string][]string, subnet string) (*sdkgo.NatGateway, error) {
@@ -179,7 +217,10 @@ func (c *Client) createLansIfNotExist(datacenterId string, lanIds []string) erro
 
 func (c *Client) RemoveNat(datacenterId, natId string) error {
 	_, err := c.NATGatewaysApi.DatacentersNatgatewaysDelete(c.ctx, datacenterId, natId).Execute()
-	return err
+	if err != nil {
+		return sdk_utils.ShortenOpenApiErr(err)
+	}
+	return nil
 }
 
 // UpdateCloudInitFile will try to unmarshal the cloud config YAML string, append the given values to the selected key, and then marshal it back into a YAML string which is returned
