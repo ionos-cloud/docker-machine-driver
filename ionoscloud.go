@@ -513,7 +513,7 @@ func (d *Driver) Create() error {
 
 	server_to_create := sdkgo.Server{}
 
-	// floatDiskSize := float32(d.DiskSize)
+	floatDiskSize := float32(d.DiskSize)
 	volume_properties := sdkgo.VolumeProperties{
 		Type:          &d.DiskType,
 		Name:          &d.MachineName,
@@ -530,21 +530,20 @@ func (d *Driver) Create() error {
 		volume_properties.ImageAlias = &alias
 	}
 
-	// intRam := int32(d.Ram)
-	// intCores := int32(d.Cores)
+	intRam := int32(d.Ram)
+	intCores := int32(d.Cores)
 
 	if d.ServerType == "ENTERPRISE" {
-		return fmt.Errorf("error why ENTERPISE %s: %s", d.Template, d.ServerType)
-		// server_to_create.Properties = &sdkgo.ServerProperties{
-		// 	Name:             &d.MachineName,
-		// 	Ram:              &intRam,
-		// 	Cores:            &intCores,
-		// 	CpuFamily:        &d.CpuFamily,
-		// 	AvailabilityZone: &d.ServerAvailabilityZone,
-		// }
+		server_to_create.Properties = &sdkgo.ServerProperties{
+			Name:             &d.MachineName,
+			Ram:              &intRam,
+			Cores:            &intCores,
+			CpuFamily:        &d.CpuFamily,
+			AvailabilityZone: &d.ServerAvailabilityZone,
+		}
 
-		// volume_properties.Size = &floatDiskSize
-		// volume_properties.AvailabilityZone = &d.VolumeAvailabilityZone
+		volume_properties.Size = &floatDiskSize
+		volume_properties.AvailabilityZone = &d.VolumeAvailabilityZone
 	} else {
 		TemplateUuid, err := d.getCubeTemplateUuid()
 
