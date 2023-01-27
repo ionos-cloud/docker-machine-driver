@@ -15,6 +15,7 @@ type ClientService interface {
 	GetServer(datacenterId, serverId string) (*ionoscloud.Server, error)
 	GetLan(datacenterId, LanId string) (*ionoscloud.Lan, error)
 	GetNic(datacenterId, ServerId, NicId string) (*ionoscloud.Nic, error)
+	GetTemplates() (*ionoscloud.Templates, error)
 	StartServer(datacenterId, serverId string) error
 	StopServer(datacenterId, serverId string) error
 	RestartServer(datacenterId, serverId string) error

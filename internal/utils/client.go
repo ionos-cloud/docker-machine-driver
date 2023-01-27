@@ -378,6 +378,18 @@ func (c *Client) GetLocationById(regionId, locationId string) (*sdkgo.Location, 
 	return &location, nil
 }
 
+func (c *Client) GetTemplates() (*sdkgo.Templates, error) {
+	templates, templatesResp, err := c.TemplatesApi.TemplatesGet(c.ctx).Depth(1).Execute()
+	if err != nil {
+		return nil, err
+	}
+	err = sdk_utils.SanitizeStatusCode(templatesResp.StatusCode, templatesResp.Message)
+	if err != nil {
+		return nil, err
+	}
+	return &templates, nil
+}
+
 func (c *Client) GetImages() (*sdkgo.Images, error) {
 	images, imagesResp, err := c.ImagesApi.ImagesGet(c.ctx).Execute()
 	if err != nil {

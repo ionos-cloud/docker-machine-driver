@@ -33,7 +33,7 @@ const (
 	flagDiskSize               = "ionoscloud-disk-size"
 	flagDiskType               = "ionoscloud-disk-type"
 	flagServerType             = "ionoscloud-server-type"
-	flagTemplateUuid           = "ionoscloud-template-uuid"
+	flagTemplate               = "ionoscloud-template"
 	flagImage                  = "ionoscloud-image"
 	flagImagePassword          = "ionoscloud-image-password"
 	flagLocation               = "ionoscloud-location"
@@ -53,7 +53,7 @@ const (
 	defaultAvailabilityZone = "AUTO"
 	defaultDiskType         = "HDD"
 	defaultServerType       = "ENTERPRISE"
-	defaultTemplateUuid     = "15c6dd2f-02d2-4987-b439-9a58dd59ecc3"
+	defaultTemplate         = "CUBES XS"
 	defaultSSHUser          = "root"
 	defaultSize             = 10
 	driverName              = "ionoscloud"
@@ -90,7 +90,7 @@ type Driver struct {
 	Location               string
 	CpuFamily              string
 	ServerType             string
-	TemplateUuid           string
+	Template               string
 	DCExists               bool
 	LanExists              bool
 	UseAlias               bool
@@ -210,10 +210,10 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Server Type(ENTERPRISE or CUBE). CUBE servers are only available in certain locations.",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_TEMPLATE_UUID",
-			Name:   flagTemplateUuid,
-			Value:  defaultTemplateUuid,
-			Usage:  "Ionos Cloud Template UUID, only used for CUBE servers.",
+			EnvVar: "IONOSCLOUD_TEMPLATE",
+			Name:   flagTemplate,
+			Value:  defaultTemplate,
+			Usage:  "Ionos Cloud CUBE Template, only used for CUBE servers.",
 		},
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_CPU_FAMILY",
@@ -276,7 +276,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.Location = opts.String(flagLocation)
 	d.DiskType = opts.String(flagDiskType)
 	d.ServerType = opts.String(flagServerType)
-	d.TemplateUuid = opts.String(flagTemplateUuid)
+	d.Template = opts.String(flagTemplate)
 	d.CpuFamily = opts.String(flagServerCpuFamily)
 	d.DatacenterId = opts.String(flagDatacenterId)
 	d.LanId = opts.String(flagLanId)
@@ -352,6 +352,20 @@ func (d *Driver) PreCreateCheck() error {
 	}
 
 	return nil
+}
+
+func (d *Driver) getCubeTemplateUuid() (string, error) {
+	templates, err := d.client().GetTemplates()
+	if err != nil {
+		return "", err
+	}
+
+	for _, template := range *templates.Items {
+		if *template.Properties.Name == d.Template {
+			return *template.Id, nil
+		}
+	}
+	return "", err
 }
 
 func (d *Driver) addSSHUserToYaml() (string, error) {
@@ -499,7 +513,7 @@ func (d *Driver) Create() error {
 
 	server_to_create := sdkgo.Server{}
 
-	floatDiskSize := float32(d.DiskSize)
+	// floatDiskSize := float32(d.DiskSize)
 	volume_properties := sdkgo.VolumeProperties{
 		Type:          &d.DiskType,
 		Name:          &d.MachineName,
@@ -516,25 +530,31 @@ func (d *Driver) Create() error {
 		volume_properties.ImageAlias = &alias
 	}
 
-	intRam := int32(d.Ram)
-	intCores := int32(d.Cores)
+	// intRam := int32(d.Ram)
+	// intCores := int32(d.Cores)
 
 	if d.ServerType == "ENTERPRISE" {
-		server_to_create.Properties = &sdkgo.ServerProperties{
-			Name:             &d.MachineName,
-			Ram:              &intRam,
-			Cores:            &intCores,
-			CpuFamily:        &d.CpuFamily,
-			AvailabilityZone: &d.ServerAvailabilityZone,
-		}
+		return fmt.Errorf("error why ENTERPISE %s: %s", d.Template, d.ServerType)
+		// server_to_create.Properties = &sdkgo.ServerProperties{
+		// 	Name:             &d.MachineName,
+		// 	Ram:              &intRam,
+		// 	Cores:            &intCores,
+		// 	CpuFamily:        &d.CpuFamily,
+		// 	AvailabilityZone: &d.ServerAvailabilityZone,
+		// }
 
-		volume_properties.Size = &floatDiskSize
-		volume_properties.AvailabilityZone = &d.VolumeAvailabilityZone
+		// volume_properties.Size = &floatDiskSize
+		// volume_properties.AvailabilityZone = &d.VolumeAvailabilityZone
 	} else {
+		TemplateUuid, err := d.getCubeTemplateUuid()
+
+		if err != nil {
+			return fmt.Errorf("error getting CUBE Template UUID from Template %s: %w", d.Template, err)
+		}
 		server_to_create.Properties = &sdkgo.ServerProperties{
 			Name:         &d.MachineName,
 			Type:         &d.ServerType,
-			TemplateUuid: &d.TemplateUuid,
+			TemplateUuid: &TemplateUuid,
 		}
 
 		dasType := "DAS"
