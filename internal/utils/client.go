@@ -44,29 +44,26 @@ func New(ctx context.Context, name, password, token, url, httpUserAgent string) 
 	}
 }
 
-func (c *Client) UpdateCloudInitFile(cloudInitYAML []byte, key string, value []interface{}) ([]byte, error) {
-	var cloudInit map[string]interface{}
-	cloudInit = make(map[string]interface{})
-	if err := yaml.Unmarshal(cloudInitYAML, &cloudInit); err != nil {
+func (c *Client) UpdateCloudInitFile(cloudInitYAML []byte, key string, values []interface{}) ([]byte, error) {
+	var cf map[string]interface{}
+	cf = make(map[string]interface{})
+	if err := yaml.Unmarshal(cloudInitYAML, &cf); err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("client: Got cloundInit:\n%+v\n", cloudInit)
+	fmt.Printf("client: Got cloundInit:\n%+v\n", cf)
 
-	if _, ok := cloudInit[key]; !ok {
-		cloudInit[key] = []interface{}{}
+	if val, ok := cf[key]; ok {
+		u := val.([]interface{})
+		cf["users"] = append(u, values...)
+	} else {
+		val := make([]interface{}, len(values))
+		cf[key] = val
 	}
 
-	val, ok := cloudInit[key].([]interface{})
-	if !ok {
-		val = []interface{}{cloudInit[key]}
-	}
-	val = append(val, value...)
-	cloudInit[key] = val
+	fmt.Printf("client: Set cloundInit:\n%+v\n", cf)
 
-	fmt.Printf("client: Set cloundInit:\n%+v\n", cloudInit)
-
-	cloudInitYAML, err := yaml.Marshal(cloudInit)
+	cloudInitYAML, err := yaml.Marshal(cf)
 	if err != nil {
 		return nil, err
 	}

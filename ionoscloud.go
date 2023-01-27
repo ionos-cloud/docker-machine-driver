@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/extflag"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net"
 	"strconv"
@@ -459,6 +460,7 @@ func (d *Driver) PreCreateCheck() error {
 	return nil
 }
 
+<<<<<<< HEAD
 func (d *Driver) getCubeTemplateUuid() (string, error) {
 	templates, err := d.client().GetTemplates()
 	if err != nil {
@@ -473,7 +475,7 @@ func (d *Driver) getCubeTemplateUuid() (string, error) {
 	return "", err
 }
 
-func (d *Driver) addSSHUserToYaml() (string, error) {
+func (d *Driver) addSSHUserToYaml() ([]byte, error) {
 	commonUser := map[interface{}]interface{}{
 		"name":                d.SSHUser,
 		"lock_passwd":         true,
@@ -483,7 +485,7 @@ func (d *Driver) addSSHUserToYaml() (string, error) {
 		"ssh_authorized_keys": []string{d.SSHKey},
 	}
 
-	return d.client().UpdateCloudInitFile(d.UserData, "users", []interface{}{commonUser})
+	return d.client().UpdateCloudInitFile([]byte(d.UserData), "users", []interface{}{commonUser})
 }
 
 // TODO: Extract addFirstBootCommands and addSSHUserToYaml into a cloud-config handler pkg
@@ -526,18 +528,19 @@ func (d *Driver) Create() (err error) {
 	}
 
 	givenB64Userdata, _ := base64.StdEncoding.DecodeString(d.UserDataB64)
-	if ud := getPropertyWithFallback(string(givenB64Userdata), d.UserData, ""); ud != "" {
-		// Provided B64 User Data has priority over UI provided User Data
+	if ud := getPropertyWithFallback(d.UserData, string(givenB64Userdata), ""); ud != "" {
+		log.Infof("Using user data: %s", ud)
 		d.UserData = ud
 	}
 
 	rootSSHKey := d.SSHKey
 	if d.SSHUser != "root" {
 		rootSSHKey = ""
-		d.UserData, err = d.addSSHUserToYaml()
+		newUserData, err := d.addSSHUserToYaml()
 		if err != nil {
 			return err
 		}
+		d.UserData = "#cloud-config\n" + string(newUserData)
 	}
 
 	result, err := d.getImageId(d.Image)
