@@ -460,7 +460,6 @@ func (d *Driver) PreCreateCheck() error {
 	return nil
 }
 
-<<<<<<< HEAD
 func (d *Driver) getCubeTemplateUuid() (string, error) {
 	templates, err := d.client().GetTemplates()
 	if err != nil {
@@ -475,7 +474,7 @@ func (d *Driver) getCubeTemplateUuid() (string, error) {
 	return "", err
 }
 
-func (d *Driver) addSSHUserToYaml() ([]byte, error) {
+func (d *Driver) addSSHUserToYaml() (string, error) {
 	commonUser := map[interface{}]interface{}{
 		"name":                d.SSHUser,
 		"lock_passwd":         true,
@@ -485,7 +484,7 @@ func (d *Driver) addSSHUserToYaml() ([]byte, error) {
 		"ssh_authorized_keys": []string{d.SSHKey},
 	}
 
-	return d.client().UpdateCloudInitFile([]byte(d.UserData), "users", []interface{}{commonUser})
+	return d.client().UpdateCloudInitFile(d.UserData, "users", []interface{}{commonUser})
 }
 
 // TODO: Extract addFirstBootCommands and addSSHUserToYaml into a cloud-config handler pkg
@@ -536,11 +535,10 @@ func (d *Driver) Create() (err error) {
 	rootSSHKey := d.SSHKey
 	if d.SSHUser != "root" {
 		rootSSHKey = ""
-		newUserData, err := d.addSSHUserToYaml()
+		d.UserData, err = d.addSSHUserToYaml()
 		if err != nil {
 			return err
 		}
-		d.UserData = "#cloud-config\n" + string(newUserData)
 	}
 
 	result, err := d.getImageId(d.Image)
@@ -762,7 +760,7 @@ func (d *Driver) Create() (err error) {
 		lans := *nat.Properties.Lans
 		gs := *lans[0].GatewayIps
 
-		ud, err := d.client().UpdateCloudInitFile([]byte(d.UserData), "runcmd", []interface{}{fmt.Sprintf("mkdir /home/Alex_was_here"), fmt.Sprintf("ip route add default %s", gs[0])})
+		ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("mkdir /home/Alex_was_here"), fmt.Sprintf("ip route add default %s", gs[0])})
 		if err != nil {
 			return err
 		}

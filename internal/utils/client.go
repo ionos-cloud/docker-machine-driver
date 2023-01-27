@@ -44,29 +44,29 @@ func New(ctx context.Context, name, password, token, url, httpUserAgent string) 
 	}
 }
 
-func (c *Client) UpdateCloudInitFile(cloudInitYAML []byte, key string, values []interface{}) ([]byte, error) {
+func (c *Client) UpdateCloudInitFile(cloudInitYAML string, key string, values []interface{}) (string, error) {
 	var cf map[string]interface{}
 	cf = make(map[string]interface{})
-	if err := yaml.Unmarshal(cloudInitYAML, &cf); err != nil {
-		return nil, err
+	if err := yaml.Unmarshal([]byte(cloudInitYAML), &cf); err != nil {
+		return "", err
 	}
 
 	fmt.Printf("client: Got cloundInit:\n%+v\n", cf)
 
 	if val, ok := cf[key]; ok {
 		u := val.([]interface{})
-		cf["users"] = append(u, values...)
+		cf[key] = append(u, values...)
 	} else {
-		val := make([]interface{}, len(values))
-		cf[key] = val
+		cf[key] = values
 	}
 
 	fmt.Printf("client: Set cloundInit:\n%+v\n", cf)
 
-	cloudInitYAML, err := yaml.Marshal(cf)
+	newCf, err := yaml.Marshal(cf)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
+	cloudInitYAML = "#cloud-config\n" + string(newCf)
 	return cloudInitYAML, nil
 }
 
