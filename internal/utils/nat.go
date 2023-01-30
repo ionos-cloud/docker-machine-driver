@@ -38,21 +38,26 @@ func NewNRM(publicIp, srcSubnet, targetSubnet string) NatRuleMaker {
 	}
 }
 
-func (nrm NatRuleMaker) Make() *[]sdkgo.NatGatewayRule {
+func (nrm *NatRuleMaker) Make() *[]sdkgo.NatGatewayRule {
 	return &nrm.rules
 }
 
-func (nrm NatRuleMaker) OpenPort(protocol string, port int32) NatRuleMaker {
+func (nrm *NatRuleMaker) OpenPort(protocol string, port int32) *NatRuleMaker {
 	return nrm.OpenPorts(protocol, port, port)
 }
 
-func (nrm NatRuleMaker) OpenPorts(protocol string, start int32, end int32) NatRuleMaker {
-	rule := sdkgo.NatGatewayRule{
-		Properties: &nrm.defaultProperties,
+func (nrm *NatRuleMaker) OpenPorts(protocol string, start int32, end int32) *NatRuleMaker {
+	properties := nrm.defaultProperties
+	properties.Protocol = (*sdkgo.NatGatewayRuleProtocol)(&protocol)
+	nameIdentifier := fmt.Sprintf("%s: ", protocol)
+	if protocol != "ALL" && protocol != "ICMP" {
+		properties.TargetPortRange = &sdkgo.TargetPortRange{Start: &start, End: &end}
+		nameIdentifier = fmt.Sprintf("%s (%d - %d): ", protocol, start, end)
 	}
-	rule.Properties.Protocol = (*sdkgo.NatGatewayRuleProtocol)(&protocol)
-	rule.Properties.TargetPortRange = &sdkgo.TargetPortRange{Start: &start, End: &end}
-	nrm.rules = append(nrm.rules, rule)
+	properties.Name = pointer.To(nameIdentifier + *properties.Name)
+	nrm.rules = append(nrm.rules, sdkgo.NatGatewayRule{
+		Properties: &properties,
+	})
 	return nrm
 }
 
