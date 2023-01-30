@@ -32,6 +32,12 @@ print-success:
 	@echo
 	@echo "To use it, either run 'make install' or set your PATH environment variable correctly."
 
+.PHONY: mock_update
+mock_update:
+	@echo "Update mock for tests"
+	@mockgen -source=internal/utils/client_service.go > internal/utils/mocks/ClientService.go
+	@echo "DONE"
+
 .PHONY: test
 test: mock_update test_unit
 
@@ -51,12 +57,6 @@ gofmt_check:
 gofmt_update:
 	@echo "Ensure code adheres to gofmt and change files accordingly (vendor directory excluded)"
 	@gofmt -w ${GOFILES_NOVENDOR}
-	@echo "DONE"
-
-.PHONY: mock_update
-mock_update:
-	@echo "Update mock for tests"
-	@mockgen -source=internal/utils/client_service.go > internal/utils/mocks/ClientService.go
 	@echo "DONE"
 
 .PHONY: vendor_status
