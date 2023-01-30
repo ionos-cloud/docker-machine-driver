@@ -158,7 +158,7 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 // GetCreateFlags returns list of create flags driver accepts.
 func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 	return []mcnflag.Flag{
-		mcnflag.StringSliceFlag{
+		mcnflag.StringFlag{
 			Name:   flagNatId,
 			EnvVar: extflag.KebabCaseToCamelCase(flagNatId),
 			//Value:  nil,
@@ -205,7 +205,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.IntFlag{
 			Name:   flagServerCores,
 			EnvVar: extflag.KebabCaseToCamelCase(flagServerCores),
-			Value:  2,
+			Value:  4,
 			Usage:  "Ionos Cloud Server Cores (2, 3, 4, 5, 6, etc.)",
 		},
 		mcnflag.IntFlag{

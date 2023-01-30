@@ -33,7 +33,7 @@ print-success:
 	@echo "To use it, either run 'make install' or set your PATH environment variable correctly."
 
 .PHONY: test
-test: test_unit
+test: mock_update test_unit
 
 .PHONY: test_unit
 test_unit:
