@@ -192,7 +192,7 @@ func (c *Client) CreateServer(datacenterId string, server sdkgo.Server) (*sdkgo.
 }
 
 func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error) {
-	server, resp, err := c.ServersApi.DatacentersServersFindById(c.ctx, datacenterId, serverId).Execute()
+	server, resp, err := c.ServersApi.DatacentersServersFindById(c.ctx, datacenterId, serverId).Depth(1).Execute()
 	if err != nil {
 		return nil, sdk_utils.ShortenOpenApiErr(err)
 	}

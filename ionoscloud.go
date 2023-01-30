@@ -583,19 +583,14 @@ func (d *Driver) Create() error {
 		log.Debugf("Server ID: %v", d.ServerId)
 	}
 
-	// volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, &properties)
-	// if err != nil {
-	// 	// TODO: Export to a func. Duplicated
-	// 	log.Warn(rollingBackNotice)
-	// 	if removeErr := d.Remove(); removeErr != nil {
-	// 		return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", fmt.Errorf("error attaching volume to server: %w", err), removeErr)
-	// 	}
-	// 	return err
-	// }
-	// if volumeId, ok := volume.GetIdOk(); ok && volumeId != nil {
-	// 	d.VolumeId = *volumeId
-	// 	log.Debugf("Volume ID: %v", d.VolumeId)
-	// }
+	server, err = d.client().GetServer(d.DatacenterId, d.ServerId)
+	if err != nil {
+		return fmt.Errorf("error getting server by id: %w", err)
+	}
+
+	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
+
+	log.Debugf("Volume ID: %v", d.VolumeId)
 
 	l, _ := strconv.Atoi(d.LanId)
 	ips := &[]string{}
