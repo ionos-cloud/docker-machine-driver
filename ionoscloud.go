@@ -198,7 +198,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.IntFlag{
 			Name:   flagServerCores,
 			EnvVar: extflag.KebabCaseToCamelCase(flagServerCores),
-			Value:  4,
+			Value:  2,
 			Usage:  "Ionos Cloud Server Cores (2, 3, 4, 5, 6, etc.)",
 		},
 		mcnflag.IntFlag{
@@ -487,27 +487,6 @@ func (d *Driver) addSSHUserToYaml() (string, error) {
 	return d.client().UpdateCloudInitFile(d.UserData, "users", []interface{}{commonUser})
 }
 
-// TODO: Extract addFirstBootCommands and addSSHUserToYaml into a cloud-config handler pkg
-func (d *Driver) addIpRouteCommand(gatewayIp string) (string, error) {
-	type CloudConfig struct {
-		Runcmd []string `yaml:"runcmd"`
-	}
-	var cf CloudConfig
-	if err := yaml.Unmarshal([]byte(d.UserData), &cf); err != nil {
-		return "", err
-	}
-
-	cf.Runcmd = append(cf.Runcmd, fmt.Sprintf("ip route add default via %s", gatewayIp))
-	cf.Runcmd = append(cf.Runcmd, fmt.Sprintf("mkdir Alex_Was_Here"))
-	//config.Runcmd = append(config.Runcmd, []string{"ls", "-l", "/"})
-
-	yaml, err := yaml.Marshal(cf)
-	if err != nil {
-		return "", err
-	}
-	return string(yaml), nil
-}
-
 func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
 	if p1 == empty {
 		return p2
@@ -760,7 +739,7 @@ func (d *Driver) Create() (err error) {
 		lans := *nat.Properties.Lans
 		gs := *lans[0].GatewayIps
 
-		ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("mkdir /home/Alex_was_here"), fmt.Sprintf("ip route add default %s", gs[0])})
+		ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("mkdir /home/Alex_was_here"), fmt.Sprintf("ip route add default via %s", gs[0])})
 		if err != nil {
 			return err
 		}
