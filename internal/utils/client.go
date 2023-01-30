@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	b64 "encoding/base64"
 	"fmt"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	"gopkg.in/yaml.v3"
@@ -48,10 +49,6 @@ func (c *Client) UpdateCloudInitFile(cloudInitYAML string, key string, values []
 		return "", err
 	}
 
-	//someExistingCinit := "I2Nsb3VkLWNvbmZpZwp1c2VyczoKICAtIG5hbWU6IGRlbW8KICAgIHNzaC1hdXRob3JpemVkLWtleXM6CiAgICAgIC0gc3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFDdjYwV2p4b00zOUxnUERiaVc3bmUzZ3UxOHEwTklWdjBSRTZyRExOYWwxcXVYWjNucUFsQU5wbDVxbWhEUStHUy9zT3R5Z1NHNC85YWlPQTR2WE81NGsxbUhXTDJpcmp1QjlYYlhyMDArNDR2U2QycS92dFhkR1hoZFNNVGY0L1hLMTdmaktTRy85eTN5RDZubWw2cTlYZ1F4eDlWZi9Ja2FLZGxLMGhiQzFkczArOGg4M1BUYjlkRjNMN2hmM0NoL2dodmo1Kyt0V0pGZEZlRytWSTdFRHVLTkE0ekw4QzVGZFlZV0ZBODhZQW1NOG5kakE1cUNqWlhJSWVadlovejlLcHk2REwwUVo4VDNOc3hSS2FwRVUzbnlpSXVFQW1uOGZibm9zV2Nzb3Z3MElTMUh6NkhzallvNGJ1L2dBODJMV3Qzc2RSVUJaLzdac1ZEM0VMaXAgdXNlckBleGFtcGxlLmNvbQogICAgc3VkbzogWydBTEw9KEFMTCkgTk9QQVNTV0Q6QUxMJ10KICAgIGdyb3Vwczogc3VkbwogICAgc2hlbGw6IC9iaW4vYmFzaApydW5jbWQ6CiAgLSBzZWQgLWkgLWUgJy9eUG9ydC9zL14uKiQvUG9ydCA0NDQ0LycgZXRjL3NzaC9zc2hkX2NvbmZpZw=="
-
-	fmt.Printf("client: Got cloundInit:\n%+v\n", cf)
-
 	if val, ok := cf[key]; ok {
 		u := val.([]interface{})
 		cf[key] = append(u, values...)
@@ -64,8 +61,7 @@ func (c *Client) UpdateCloudInitFile(cloudInitYAML string, key string, values []
 		return "", err
 	}
 	cloudInitYAML = "#cloud-config\n" + string(newCf)
-
-	fmt.Printf("client: Set cloundInit:\n%+v\n", cloudInitYAML)
+	log.Infof("Modified cloudinit: ", b64.StdEncoding.EncodeToString([]byte(cloudInitYAML)))
 
 	return cloudInitYAML, nil
 }
@@ -464,7 +460,6 @@ func (c *Client) GetImageById(imageId string) (*sdkgo.Image, error) {
 }
 
 func (c *Client) waitTillProvisioned(path string) error {
-	fmt.Printf("Waiting till provisioned for %s\n", path)
 	for i := 0; i < waitCount; i++ {
 		requestStatus, _, err := c.RequestsApi.RequestsStatusGet(c.ctx, getRequestId(path)).Execute()
 		if err != nil {

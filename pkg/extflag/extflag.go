@@ -1,7 +1,6 @@
 package extflag
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -34,8 +33,6 @@ func ToCustomMapOfStringToStringSlice(val, sliceSep, mapEntrySep, assignOperator
 			continue
 		}
 	}
-
-	fmt.Printf("ToMapOfStringToStringSlice => %+v", m)
 
 	return m
 }

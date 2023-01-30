@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"github.com/docker/machine/libmachine/log"
 	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
@@ -63,7 +64,6 @@ func (nrm *NatRuleMaker) OpenPorts(protocol string, start int32, end int32) *Nat
 
 func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGateways map[string][]string, subnet string) (*sdkgo.NatGateway, error) {
 	var lans []sdkgo.NatGatewayLanProperties
-	fmt.Printf("CreateNat(publicIps = %+v, lansMap = %+v, subnet = %s)\n", publicIps, lansToGateways, subnet)
 
 	err := c.createLansIfNotExist(datacenterId, maps.Keys(lansToGateways))
 	if err != nil {
@@ -82,7 +82,6 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 			ptrGatewayIps = &gatewayIps
 		}
 		lans = append(lans, sdkgo.NatGatewayLanProperties{Id: pointer.To(int32(id)), GatewayIps: ptrGatewayIps})
-		fmt.Printf("Created a NatGatewayLanProperties obj with Id: %d, GatewayIps: %+v\n", id, gatewayIps)
 	}
 
 	nrm := NewNRM(publicIps[0], subnet, subnet)
@@ -128,7 +127,6 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("created nat: %+v\n", nat)
 
 	err = c.waitTillProvisioned(resp.Header.Get("location"))
 	return &nat, err
@@ -138,8 +136,8 @@ func (c *Client) createLansIfNotExist(datacenterId string, lanIds []string) erro
 	for _, lanid := range lanIds {
 		_, resp, err := c.LANsApi.DatacentersLansFindById(c.ctx, datacenterId, lanid).Execute()
 		if resp.StatusCode == 404 {
-			// Run this before err check, as 404s throws an err.
-			fmt.Printf("Creating LAN %s for NAT\n", lanid)
+			// Before err check as 404s throw an err.
+			log.Infof("Creating LAN %s for NAT\n", lanid)
 			_, err := c.CreateLan(datacenterId, "Docker Machine LAN (NAT)", false)
 			if err != nil {
 				return err

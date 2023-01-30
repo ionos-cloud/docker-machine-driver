@@ -19,6 +19,7 @@ import (
 	"github.com/docker/machine/libmachine/state"
 	"github.com/hashicorp/go-multierror"
 	"github.com/ionos-cloud/docker-machine-driver/internal/utils"
+	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 )
 
@@ -380,17 +381,16 @@ func (d *Driver) PreCreateCheck() error {
 	if d.NatId != "" {
 		// Pre-configured NAT checks
 		if !d.PrivateLan {
-			return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable [%s | %s]",
-				flagPrivateLan, extflag.KebabCaseToCamelCase(flagPrivateLan))
+			return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable %s", flagPrivateLan)
 		}
 		if d.NatPublicIps != nil {
-			log.Infof("both NAT Gateway ID and NAT Config found. Prioritizing NAT Gateway ID...")
+			return fmt.Errorf("both NAT Gateway ID and NAT Config found. Please set only one of: (%s | %s)",
+				flagNatId, flagNatPublicIps)
 		}
 	} else if d.NatPublicIps != nil {
 		// Provisioning a new NAT checks
 		if !d.PrivateLan {
-			return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable [%s | %s]",
-				flagPrivateLan, extflag.KebabCaseToCamelCase(flagPrivateLan))
+			return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable %s", flagPrivateLan)
 		}
 		if d.NatLansToGateways == nil {
 			log.Infof("missing map of LANs to Gateway IPs. Choosing default Lan and obtaining a Gateway IP via API...")
@@ -744,25 +744,7 @@ func (d *Driver) Create() (err error) {
 
 	// --- NAT ---
 	nicIps := *ips
-	if d.NatId != "" {
-		// Pre-configured NAT
-		nat, err := d.client().GetNat(d.DatacenterId, d.NatId)
-		if err != nil {
-			return err
-		}
-		if !nat.HasProperties() || !nat.Properties.HasPublicIps() {
-			return fmt.Errorf("failed getting public IPs of provided NAT")
-		}
-		publicIps := *nat.Properties.PublicIps
-		d.IPAddress = publicIps[0]
-		log.Infof("Public IP: %s", d.IPAddress)
-		log.Infof("Local VM IP: %s", nicIps[0])
-	} else if d.NatPublicIps != nil {
-		// New NAT
-		d.IPAddress = d.NatPublicIps[0]
-		log.Infof("Public IP: %s", d.IPAddress)
-		log.Infof("Local VM IP: %s", nicIps[0])
-
+	if d.NatPublicIps != nil {
 		nat, err := d.client().CreateNat(d.DatacenterId, d.NatPublicIps, d.NatLansToGateways, net.ParseIP(nicIps[0]).Mask(net.CIDRMask(24, 32)).String()+"/24")
 		if err != nil {
 			return err
@@ -774,26 +756,26 @@ func (d *Driver) Create() (err error) {
 			return err
 		}
 
-		lans := *nat.Properties.Lans
-		gs := *lans[0].GatewayIps
-		ip, _, err := net.ParseCIDR(gs[0])
-		if err != nil {
-			return err
-		}
-		ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("mkdir /run/mydir"), fmt.Sprintf("ip route add default via %s", ip)})
-		if err != nil {
-			return err
-		}
-		d.UserData = ud
-	} else {
-		// No NAT at all.
-		// IMPORTANT NOTE: It seems that if the NIC is in a Public LAN, it receives public IPs for the ips field.
-		// In a Private LAN, it behaves as expected and receives a local IP, corresponding to the VM in that LAN.
-		d.IPAddress = nicIps[0]
-		log.Infof("Public IP: %s", d.IPAddress)
+		// TODO: -->
+		// Try to automatically add IP Routing to the new NAT Gateway by updating cloudinit config
+
+		//lans := *nat.Properties.Lans
+		//gs := *lans[0].GatewayIps
+		//ip, _, err := net.ParseCIDR(gs[0])
+		//if err != nil {
+		//	return err
+		//}
+		//ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("ip route add default via %s", ip)})
+		//if err != nil {
+		//	return err
+		//}
+		//d.UserData = ud
+
+		// TODO: <---
 	}
+
 	d.UserData = b64.StdEncoding.EncodeToString([]byte(d.UserData))
-	fmt.Printf("Sending b64 ud: %s\n", d.UserData)
+	log.Infof("User Data (b64): %s\n", d.UserData)
 
 	properties := utils.ClientVolumeProperties{
 		DiskType:      d.DiskType,
@@ -879,10 +861,7 @@ func (d *Driver) Remove() error {
 		result = multierror.Append(result, fmt.Errorf("error deleting ipblock: %w", err))
 	}
 
-	if result != nil {
-		return result.ErrorOrNil()
-	}
-	return nil
+	return result.ErrorOrNil()
 }
 
 // Start issues a power on for the machine instance.
@@ -960,13 +939,26 @@ func (d *Driver) GetURL() (string, error) {
 
 // GetIP returns public IP address or hostname of the machine instance.
 func (d *Driver) GetIP() (string, error) {
-	if d.PrivateLan && d.NatPublicIps != nil {
-		return d.NatPublicIps[0], nil
+	if d.NatId != "" {
+		nat, err := d.client().GetNat(d.DatacenterId, d.NatId)
+		if err != nil {
+			return "", sdk_utils.ShortenOpenApiErr(err)
+		}
+		if !nat.HasProperties() || !nat.Properties.HasPublicIps() {
+			return "", fmt.Errorf("failed getting public IPs of provided NAT")
+		}
+		publicIps := *nat.Properties.PublicIps
+		d.IPAddress = publicIps[0]
+		return d.IPAddress, nil
+	}
+	if d.NatPublicIps != nil {
+		d.IPAddress = d.NatPublicIps[0]
+		return d.IPAddress, nil
 	}
 
 	server, err := d.client().GetServer(d.DatacenterId, d.ServerId)
 	if err != nil {
-		return "", fmt.Errorf("error getting server by id: %w", err)
+		return "", sdk_utils.ShortenOpenApiErr(err)
 	}
 
 	if serverEntities, ok := server.GetEntitiesOk(); ok && serverEntities != nil {
