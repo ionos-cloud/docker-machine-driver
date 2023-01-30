@@ -738,12 +738,15 @@ func (d *Driver) Create() (err error) {
 
 		lans := *nat.Properties.Lans
 		gs := *lans[0].GatewayIps
-
-		ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("mkdir /home/Alex_was_here"), fmt.Sprintf("ip route add default via %s", gs[0])})
+		ip, _, err := net.ParseCIDR(gs[0])
 		if err != nil {
 			return err
 		}
-		d.UserData = string(ud)
+		ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("mkdir /run/mydir"), fmt.Sprintf("ip route add default via %s", ip)})
+		if err != nil {
+			return err
+		}
+		d.UserData = ud
 
 	} else {
 		// IMPORTANT NOTE: It seems that if the NIC is in a Public LAN, it receives public IPs for the ips field.

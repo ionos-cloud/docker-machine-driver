@@ -18,6 +18,12 @@ func (c *Client) GetNat(datacenterId, natId string) (*sdkgo.NatGateway, error) {
 	return &nat, nil
 }
 
+// NatRuleMaker 's objective is to easily create many NatGatewayRules with similar properties but different open ports
+type NatRuleMaker struct {
+	rules             []sdkgo.NatGatewayRule
+	defaultProperties sdkgo.NatGatewayRuleProperties
+}
+
 func NewNRM(publicIp, srcSubnet, targetSubnet string) NatRuleMaker {
 	return NatRuleMaker{
 		rules: make([]sdkgo.NatGatewayRule, 0),
@@ -121,11 +127,6 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 
 	err = c.waitTillProvisioned(resp.Header.Get("location"))
 	return &nat, err
-}
-
-type NatRuleMaker struct {
-	rules             []sdkgo.NatGatewayRule
-	defaultProperties sdkgo.NatGatewayRuleProperties
 }
 
 func (c *Client) createLansIfNotExist(datacenterId string, lanIds []string) error {
