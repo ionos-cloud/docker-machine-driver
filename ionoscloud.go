@@ -174,9 +174,9 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagNatLansToGateways,
 			EnvVar: extflag.KebabCaseToCamelCase(flagNatLansToGateways),
 			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=10.0.0.1,10.0.0.2:2=10.0.0.10\"",
+			Value:  "1=",
 		},
 		mcnflag.BoolFlag{
-			// A string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10" . Lans MUST be separated by `:`. IPs MUST be separated by `,`
 			Name:   flagPrivateLan,
 			EnvVar: extflag.KebabCaseToCamelCase(flagPrivateLan),
 			Usage:  "Should the created LAN be private? Does nothing if LAN ID is provided",
@@ -378,26 +378,6 @@ func (d *Driver) PreCreateCheck() error {
 		}
 	}
 
-	if d.NatId != "" {
-		// Pre-configured NAT checks
-		if !d.PrivateLan {
-			return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable %s", flagPrivateLan)
-		}
-		if d.NatPublicIps != nil {
-			return fmt.Errorf("both NAT Gateway ID and NAT Config found. Please set only one of: (%s | %s)",
-				flagNatId, flagNatPublicIps)
-		}
-	} else if d.NatPublicIps != nil {
-		// Provisioning a new NAT checks
-		if !d.PrivateLan {
-			return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable %s", flagPrivateLan)
-		}
-		if d.NatLansToGateways == nil {
-			log.Infof("missing map of LANs to Gateway IPs. Choosing default Lan and obtaining a Gateway IP via API...")
-			d.NatLansToGateways = map[string][]string{"1": nil} // According to CloudAPI docs, an empty "lan to IPs" entry receives a Gateway IP on creation
-		}
-	}
-
 	d.DCExists = false
 	d.LanExists = false
 
@@ -459,6 +439,7 @@ func (d *Driver) PreCreateCheck() error {
 				return fmt.Errorf("error getting LAN: %w", err)
 			}
 			log.Info("Creating machine under LAN " + *lan.GetId())
+			d.PrivateLan = !*lan.GetProperties().GetPublic()
 		}
 		dc, err := d.client().GetDatacenter(d.DatacenterId)
 		if err != nil {
@@ -478,6 +459,15 @@ func (d *Driver) PreCreateCheck() error {
 	}
 	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
+	}
+
+	if d.NatId != "" && d.NatPublicIps != nil {
+		return fmt.Errorf("both NAT Gateway ID and NAT Config found. Please set only one of: (%s | %s)",
+			flagNatId, flagNatPublicIps)
+	}
+
+	if !d.PrivateLan && (d.NatId != "" || d.NatPublicIps != nil) {
+		return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable %s or provide a Private Lan ID for %s", flagPrivateLan, flagLanId)
 	}
 
 	return nil
