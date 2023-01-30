@@ -58,7 +58,7 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 	if err != nil {
 		return nil, err
 	}
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 	for lanId, gatewayIps := range lansToGateways {
 		id, err := strconv.ParseInt(lanId, 10, 32)
 		if err != nil {
@@ -76,29 +76,29 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 
 	nrm := NewNRM(publicIps[0], subnet, subnet)
 	nrm.
-		OpenPort("TCP", 22). // SSH
-		OpenPort("TCP", 80). // HTTP
-		OpenPort("TCP", 179). // Calico BGP Port
-		OpenPort("TCP", 443). //
-		OpenPort("TCP", 2376). // Node driver Docker daemon TLS port
-		OpenPort("UDP", 4789). // Flannel VXLAN overlay networking on Windows cluster
-		OpenPort("TCP", 6443).
-		OpenPort("TCP", 6783). // Weave Port
-		OpenPort("TCP", 8443). // Rancher webhook
-		OpenPort("UDP", 8472). // Canal/Flannel VXLAN overlay networking
-		OpenPort("TCP", 9099). // Canal/Flannel livenessProbe/readinessProbe
-		OpenPort("TCP", 9100). // Default port required by Monitoring to scrape metrics from Linux node-exporters
-		OpenPort("TCP", 9443). // Rancher webhook
-		OpenPort("TCP", 9796). // Default port required by Monitoring to scrape metrics from Windows node-exporters
-		OpenPort("TCP", 10254). // Ingress controller livenessProbe/readinessProbe
-		OpenPort("TCP", 10256). //
-		OpenPorts("TCP", 2379, 2380). // etcd
-		OpenPorts("UDP", 6783, 6784). // Weave Port (UDP)
+		OpenPort("TCP", 22).            // SSH
+		OpenPort("UDP", 53).            // DNS
+		OpenPort("TCP", 80).            // HTTP
+		OpenPort("TCP", 179).           // Calico BGP Port
+		OpenPort("TCP", 443).           //
+		OpenPort("TCP", 2376).          // Node driver Docker daemon TLS port
+		OpenPort("UDP", 4789).          // Flannel VXLAN overlay networking on Windows cluster
+		OpenPort("TCP", 6443).          // Rancher Webhook
+		OpenPort("TCP", 6783).          // Weave Port
+		OpenPort("TCP", 8443).          // Rancher webhook
+		OpenPort("UDP", 8472).          // Canal/Flannel VXLAN overlay networking
+		OpenPort("TCP", 9099).          // Canal/Flannel livenessProbe/readinessProbe
+		OpenPort("TCP", 9100).          // Default port required by Monitoring to scrape metrics from Linux node-exporters
+		OpenPort("TCP", 9443).          // Rancher webhook
+		OpenPort("TCP", 9796).          // Default port required by Monitoring to scrape metrics from Windows node-exporters
+		OpenPort("TCP", 10254).         // Ingress controller livenessProbe/readinessProbe
+		OpenPort("TCP", 10256).         //
+		OpenPorts("TCP", 2379, 2380).   // etcd
+		OpenPorts("UDP", 6783, 6784).   // Weave Port (UDP)
 		OpenPorts("TCP", 10250, 10252). // Metrics server communication with all nodes API
 		OpenPorts("TCP", 30000, 32767). //
 		OpenPorts("UDP", 30000, 32767). //
-		OpenPort("ALL", 0) // Outbound
-
+		OpenPort("ALL", 0)              // Outbound
 	rules := nrm.Make()
 
 	nat, resp, err := c.NATGatewaysApi.DatacentersNatgatewaysPost(c.ctx, datacenterId).NatGateway(
@@ -114,15 +114,12 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 			},
 		},
 	).Execute()
-
 	if err != nil {
 		return nil, err
 	}
-
 	fmt.Printf("created nat: %+v\n", nat)
 
 	err = c.waitTillProvisioned(resp.Header.Get("location"))
-
 	return &nat, err
 }
 

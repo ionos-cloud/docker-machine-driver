@@ -65,7 +65,7 @@ func (c *Client) UpdateCloudInitFile(cloudInitYAML string, key string, values []
 	}
 	cloudInitYAML = "#cloud-config\n" + string(newCf)
 
-	fmt.Printf("client: Set cloundInit:\n\n%+v\n", cloudInitYAML)
+	fmt.Printf("client: Set cloundInit:\n%+v\n", cloudInitYAML)
 
 	return cloudInitYAML, nil
 }
