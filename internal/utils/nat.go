@@ -18,6 +18,38 @@ func (c *Client) GetNat(datacenterId, natId string) (*sdkgo.NatGateway, error) {
 	return &nat, nil
 }
 
+func NewNRM(publicIp, srcSubnet, targetSubnet string) NatRuleMaker {
+	return NatRuleMaker{
+		rules: make([]sdkgo.NatGatewayRule, 0),
+		defaultProperties: sdkgo.NatGatewayRuleProperties{
+			Name: pointer.To("Docker Machine NAT Rule"),
+			Type: pointer.To(sdkgo.NatGatewayRuleType("SNAT")),
+			//Protocol:     pointer.To(sdkgo.NatGatewayRuleProtocol("ALL")),
+			SourceSubnet: &srcSubnet,
+			TargetSubnet: &targetSubnet,
+			PublicIp:     &publicIp,
+		},
+	}
+}
+
+func (nrm NatRuleMaker) Make() *[]sdkgo.NatGatewayRule {
+	return &nrm.rules
+}
+
+func (nrm NatRuleMaker) OpenPort(protocol string, port int32) NatRuleMaker {
+	return nrm.OpenPorts(protocol, port, port)
+}
+
+func (nrm NatRuleMaker) OpenPorts(protocol string, start int32, end int32) NatRuleMaker {
+	rule := sdkgo.NatGatewayRule{
+		Properties: &nrm.defaultProperties,
+	}
+	rule.Properties.Protocol = (*sdkgo.NatGatewayRuleProtocol)(&protocol)
+	rule.Properties.TargetPortRange = &sdkgo.TargetPortRange{Start: &start, End: &end}
+	nrm.rules = append(nrm.rules, rule)
+	return nrm
+}
+
 func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGateways map[string][]string, subnet string) (*sdkgo.NatGateway, error) {
 	var lans []sdkgo.NatGatewayLanProperties
 	fmt.Printf("CreateNat(publicIps = %+v, lansMap = %+v, subnet = %s)\n", publicIps, lansToGateways, subnet)
@@ -43,12 +75,29 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 	}
 
 	nrm := NewNRM(publicIps[0], subnet, subnet)
-	nrm.OpenPort("TCP", 22, 22). // SSH
-		OpenPort("TCP", 80, 80). // HTTP
-		OpenPort("TCP", 443, 443).
-		OpenPort("TCP", 2376, 2376).
-		OpenPort("TCP", 2379, 2380).
-		OpenPort("UDP", 4789, 4789)
+	nrm.
+		OpenPort("TCP", 22). // SSH
+		OpenPort("TCP", 80). // HTTP
+		OpenPort("TCP", 179). // Calico BGP Port
+		OpenPort("TCP", 443). //
+		OpenPort("TCP", 2376). // Node driver Docker daemon TLS port
+		OpenPort("UDP", 4789). // Flannel VXLAN overlay networking on Windows cluster
+		OpenPort("TCP", 6443).
+		OpenPort("TCP", 6783). // Weave Port
+		OpenPort("TCP", 8443). // Rancher webhook
+		OpenPort("UDP", 8472). // Canal/Flannel VXLAN overlay networking
+		OpenPort("TCP", 9099). // Canal/Flannel livenessProbe/readinessProbe
+		OpenPort("TCP", 9100). // Default port required by Monitoring to scrape metrics from Linux node-exporters
+		OpenPort("TCP", 9443). // Rancher webhook
+		OpenPort("TCP", 9796). // Default port required by Monitoring to scrape metrics from Windows node-exporters
+		OpenPort("TCP", 10254). // Ingress controller livenessProbe/readinessProbe
+		OpenPort("TCP", 10256). //
+		OpenPorts("TCP", 2379, 2380). // etcd
+		OpenPorts("UDP", 6783, 6784). // Weave Port (UDP)
+		OpenPorts("TCP", 10250, 10252). // Metrics server communication with all nodes API
+		OpenPorts("TCP", 30000, 32767). //
+		OpenPorts("UDP", 30000, 32767). //
+		OpenPort("ALL", 0) // Outbound
 
 	rules := nrm.Make()
 
@@ -80,34 +129,6 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 type NatRuleMaker struct {
 	rules             []sdkgo.NatGatewayRule
 	defaultProperties sdkgo.NatGatewayRuleProperties
-}
-
-func NewNRM(publicIp, srcSubnet, targetSubnet string) NatRuleMaker {
-	return NatRuleMaker{
-		rules: make([]sdkgo.NatGatewayRule, 0),
-		defaultProperties: sdkgo.NatGatewayRuleProperties{
-			Name: pointer.To("Docker Machine NAT Rule"),
-			Type: pointer.To(sdkgo.NatGatewayRuleType("SNAT")),
-			//Protocol:     pointer.To(sdkgo.NatGatewayRuleProtocol("ALL")),
-			SourceSubnet: &srcSubnet,
-			TargetSubnet: &targetSubnet,
-			PublicIp:     &publicIp,
-		},
-	}
-}
-
-func (nrm NatRuleMaker) Make() *[]sdkgo.NatGatewayRule {
-	return &nrm.rules
-}
-
-func (nrm NatRuleMaker) OpenPort(protocol string, start int32, end int32) NatRuleMaker {
-	rule := sdkgo.NatGatewayRule{
-		Properties: &nrm.defaultProperties,
-	}
-	rule.Properties.Protocol = (*sdkgo.NatGatewayRuleProtocol)(&protocol)
-	rule.Properties.TargetPortRange = &sdkgo.TargetPortRange{Start: &start, End: &end}
-	nrm.rules = append(nrm.rules, rule)
-	return nrm
 }
 
 func (c *Client) createLansIfNotExist(datacenterId string, lanIds []string) error {
