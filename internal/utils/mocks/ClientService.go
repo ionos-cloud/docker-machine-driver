@@ -111,18 +111,18 @@ func (mr *MockClientServiceMockRecorder) CreateLan(datacenterId, name, public in
 }
 
 // CreateNat mocks base method.
-func (m *MockClientService) CreateNat(datacenterId string, publicIps []string, lansToGateways map[string][]string) (*ionoscloud.NatGateway, error) {
+func (m *MockClientService) CreateNat(datacenterId string, publicIps []string, lansToGateways map[string][]string, subnet string) (*ionoscloud.NatGateway, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateNat", datacenterId, publicIps, lansToGateways)
+	ret := m.ctrl.Call(m, "CreateNat", datacenterId, publicIps, lansToGateways, subnet)
 	ret0, _ := ret[0].(*ionoscloud.NatGateway)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateNat indicates an expected call of CreateNat.
-func (mr *MockClientServiceMockRecorder) CreateNat(datacenterId, publicIps, lansToGateways interface{}) *gomock.Call {
+func (mr *MockClientServiceMockRecorder) CreateNat(datacenterId, publicIps, lansToGateways, subnet interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNat", reflect.TypeOf((*MockClientService)(nil).CreateNat), datacenterId, publicIps, lansToGateways)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNat", reflect.TypeOf((*MockClientService)(nil).CreateNat), datacenterId, publicIps, lansToGateways, subnet)
 }
 
 // CreateServer mocks base method.
@@ -258,6 +258,21 @@ func (m *MockClientService) GetLocationById(regionId, locationId string) (*ionos
 func (mr *MockClientServiceMockRecorder) GetLocationById(regionId, locationId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocationById", reflect.TypeOf((*MockClientService)(nil).GetLocationById), regionId, locationId)
+}
+
+// GetNat mocks base method.
+func (m *MockClientService) GetNat(datacenterId, natId string) (*ionoscloud.NatGateway, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNat", datacenterId, natId)
+	ret0, _ := ret[0].(*ionoscloud.NatGateway)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNat indicates an expected call of GetNat.
+func (mr *MockClientServiceMockRecorder) GetNat(datacenterId, natId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNat", reflect.TypeOf((*MockClientService)(nil).GetNat), datacenterId, natId)
 }
 
 // GetNic mocks base method.
