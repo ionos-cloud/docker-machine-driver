@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/extflag"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net"
 	"strconv"
@@ -48,6 +47,7 @@ const (
 	flagSSHUser                = "ionoscloud-ssh-user"
 	flagUserDataB64            = "ionoscloud-user-data-b64"
 	// NAT Gatway flags
+	flagNatId             = "ionoscloud-nat-id"
 	flagNatPublicIps      = "ionoscloud-nat-public-ips"
 	flagNatLansToGateways = "ionoscloud-nat-lans-to-gateways"
 	flagPrivateLan        = "ionoscloud-private-lan"
@@ -115,6 +115,7 @@ type Driver struct {
 	NicId                  string
 	ServerId               string
 	IpBlockId              string
+	NatId                  string
 	UserData               string
 	UserDataB64            string
 	NatPublicIps           []string
@@ -157,10 +158,15 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 	return []mcnflag.Flag{
 		mcnflag.StringSliceFlag{
+			Name:   flagNatId,
+			EnvVar: extflag.KebabCaseToCamelCase(flagNatId),
+			//Value:  nil,
+			Usage: "Ionos Cloud existing and configured NAT Gateway",
+		},
+		mcnflag.StringSliceFlag{
 			Name:   flagNatPublicIps,
 			EnvVar: extflag.KebabCaseToCamelCase(flagNatPublicIps),
-			//Value:  nil,
-			Usage: "Ionos Cloud NAT Gateway public IPs",
+			Usage:  "Ionos Cloud NAT Gateway public IPs",
 		},
 		mcnflag.StringFlag{
 			// A string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10" . Lans MUST be separated by `:`. IPs MUST be separated by `,`
@@ -310,6 +316,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 
 // SetConfigFromFlags initializes driver values from the command line values.
 func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
+	d.NatId = opts.String(flagNatId)
 	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
 	d.NatLansToGateways = extflag.ToMapOfStringToStringSlice(opts.String(flagNatLansToGateways))
 	d.URL = opts.String(flagEndpoint)
@@ -367,6 +374,27 @@ func (d *Driver) PreCreateCheck() error {
 		}
 		if d.Password == "" {
 			return fmt.Errorf("please provide password as parameter --ionoscloud-password or as environment variable $IONOSCLOUD_PASSWORD")
+		}
+	}
+
+	if d.NatId != "" {
+		// Pre-configured NAT checks
+		if !d.PrivateLan {
+			return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable [%s | %s]",
+				flagPrivateLan, extflag.KebabCaseToCamelCase(flagPrivateLan))
+		}
+		if d.NatPublicIps != nil {
+			log.Infof("both NAT Gateway ID and NAT Config found. Prioritizing NAT Gateway ID...")
+		}
+	} else if d.NatPublicIps != nil {
+		// Provisioning a new NAT checks
+		if !d.PrivateLan {
+			return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable [%s | %s]",
+				flagPrivateLan, extflag.KebabCaseToCamelCase(flagPrivateLan))
+		}
+		if d.NatLansToGateways == nil {
+			log.Infof("missing map of LANs to Gateway IPs. Choosing default Lan and obtaining a Gateway IP via API...")
+			d.NatLansToGateways = map[string][]string{"1": nil} // According to CloudAPI docs, an empty "lan to IPs" entry receives a Gateway IP on creation
 		}
 	}
 
@@ -451,11 +479,6 @@ func (d *Driver) PreCreateCheck() error {
 	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}
-
-	//if !d.CreateDefaultNat && d.NatPublicIps == nil {
-	//	// If d.CreateDefaultNat -> then we should provide d.NatPublicIps with the created / got IPBlock as soon as it is availableE
-	//	fmt.Printf("Running with Public IPs: %+v", d.NatPublicIps)
-	//}
 
 	return nil
 }
@@ -719,8 +742,23 @@ func (d *Driver) Create() (err error) {
 		}
 	}
 
+	// --- NAT ---
 	nicIps := *ips
-	if d.PrivateLan && d.NatPublicIps != nil {
+	if d.NatId != "" {
+		// Pre-configured NAT
+		nat, err := d.client().GetNat(d.DatacenterId, d.NatId)
+		if err != nil {
+			return err
+		}
+		if !nat.HasProperties() || !nat.Properties.HasPublicIps() {
+			return fmt.Errorf("failed getting public IPs of provided NAT")
+		}
+		publicIps := *nat.Properties.PublicIps
+		d.IPAddress = publicIps[0]
+		log.Infof("Public IP: %s", d.IPAddress)
+		log.Infof("Local VM IP: %s", nicIps[0])
+	} else if d.NatPublicIps != nil {
+		// New NAT
 		d.IPAddress = d.NatPublicIps[0]
 		log.Infof("Public IP: %s", d.IPAddress)
 		log.Infof("Local VM IP: %s", nicIps[0])
@@ -747,8 +785,8 @@ func (d *Driver) Create() (err error) {
 			return err
 		}
 		d.UserData = ud
-
 	} else {
+		// No NAT at all.
 		// IMPORTANT NOTE: It seems that if the NIC is in a Public LAN, it receives public IPs for the ips field.
 		// In a Private LAN, it behaves as expected and receives a local IP, corresponding to the VM in that LAN.
 		d.IPAddress = nicIps[0]
