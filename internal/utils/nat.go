@@ -42,58 +42,15 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 		fmt.Printf("Created a NatGatewayLanProperties obj with Id: %d, GatewayIps: %+v\n", id, gatewayIps)
 	}
 
-	// Configure default NAT Rules
-	rules, err := c.MakeNatRules(
-		publicIps[0],
-		subnet,
-		subnet,
-		[]sdkgo.TargetPortRange{ // TODO: Investigate if rancher/rke/issues/212 is a complete list
-			{
-				Start: pointer.To(int32(22)),
-				End:   pointer.To(int32(22)),
-			},
-			{
-				Start: pointer.To(int32(53)), // DNS
-				End:   pointer.To(int32(53)),
-			},
-			{
-				Start: pointer.To(int32(6443)),
-				End:   pointer.To(int32(6443)),
-			},
-			{
-				Start: pointer.To(int32(2376)),
-				End:   pointer.To(int32(2376)),
-			},
-			{
-				Start: pointer.To(int32(2379)),
-				End:   pointer.To(int32(2380)),
-			},
-			{
-				Start: pointer.To(int32(10250)),
-				End:   pointer.To(int32(10252)),
-			},
-			{
-				Start: pointer.To(int32(10255)), // Investigate 10255 if needed
-				End:   pointer.To(int32(10256)),
-			},
-			{
-				Start: pointer.To(int32(8472)),
-				End:   pointer.To(int32(8472)),
-			},
-			{
-				Start: pointer.To(int32(30000)), // Worker Nodes ports. Maybe worker nodes should have different port config than others?
-				End:   pointer.To(int32(32767)),
-			},
-			//{
-			//	Start: pointer.To(int32(21)),
-			//	End:   pointer.To(int32(40000)),
-			//},
-		},
-	)
+	nrm := NewNRM(publicIps[0], subnet, subnet)
+	nrm.OpenPort("TCP", 22, 22). // SSH
+		OpenPort("TCP", 80, 80). // HTTP
+		OpenPort("TCP", 443, 443).
+		OpenPort("TCP", 2376, 2376).
+		OpenPort("TCP", 2379, 2380).
+		OpenPort("UDP", 4789, 4789)
 
-	if err != nil {
-		return nil, err
-	}
+	rules := nrm.Make()
 
 	nat, resp, err := c.NATGatewaysApi.DatacentersNatgatewaysPost(c.ctx, datacenterId).NatGateway(
 		sdkgo.NatGateway{
@@ -120,33 +77,37 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 	return &nat, err
 }
 
-// MakeNatRules returns uncreated NatGatewayRules, which are meant to be sent as "entities" for the NAT Post request
-func (c *Client) MakeNatRules(publicIp, srcSubnet, targetSubnet string, portRanges []sdkgo.TargetPortRange) (*[]sdkgo.NatGatewayRule, error) {
-	properties := &sdkgo.NatGatewayRuleProperties{
-		Name: pointer.To("Docker Machine NAT Rule"),
-		Type: pointer.To(sdkgo.NatGatewayRuleType("SNAT")),
-		//Protocol:     pointer.To(sdkgo.NatGatewayRuleProtocol("ALL")),
-		SourceSubnet: &srcSubnet,
-		TargetSubnet: &targetSubnet,
-		PublicIp:     &publicIp,
-	}
+type NatRuleMaker struct {
+	rules             []sdkgo.NatGatewayRule
+	defaultProperties sdkgo.NatGatewayRuleProperties
+}
 
-	rules := make([]sdkgo.NatGatewayRule, 0)
-	for _, portRange := range portRanges {
-		properties.TargetPortRange = &portRange
-		properties.Protocol = pointer.To(sdkgo.NatGatewayRuleProtocol("TCP"))
-		rule := sdkgo.NatGatewayRule{Properties: properties}
-		rules = append(rules, rule)
+func NewNRM(publicIp, srcSubnet, targetSubnet string) NatRuleMaker {
+	return NatRuleMaker{
+		rules: make([]sdkgo.NatGatewayRule, 0),
+		defaultProperties: sdkgo.NatGatewayRuleProperties{
+			Name: pointer.To("Docker Machine NAT Rule"),
+			Type: pointer.To(sdkgo.NatGatewayRuleType("SNAT")),
+			//Protocol:     pointer.To(sdkgo.NatGatewayRuleProtocol("ALL")),
+			SourceSubnet: &srcSubnet,
+			TargetSubnet: &targetSubnet,
+			PublicIp:     &publicIp,
+		},
 	}
+}
 
-	for _, portRange := range portRanges {
-		properties.TargetPortRange = &portRange
-		properties.Protocol = pointer.To(sdkgo.NatGatewayRuleProtocol("UDP"))
-		rule := sdkgo.NatGatewayRule{Properties: properties}
-		rules = append(rules, rule)
+func (nrm NatRuleMaker) Make() *[]sdkgo.NatGatewayRule {
+	return &nrm.rules
+}
+
+func (nrm NatRuleMaker) OpenPort(protocol string, start int32, end int32) NatRuleMaker {
+	rule := sdkgo.NatGatewayRule{
+		Properties: &nrm.defaultProperties,
 	}
-
-	return &rules, nil
+	rule.Properties.Protocol = (*sdkgo.NatGatewayRuleProtocol)(&protocol)
+	rule.Properties.TargetPortRange = &sdkgo.TargetPortRange{Start: &start, End: &end}
+	nrm.rules = append(nrm.rules, rule)
+	return nrm
 }
 
 func (c *Client) createLansIfNotExist(datacenterId string, lanIds []string) error {
