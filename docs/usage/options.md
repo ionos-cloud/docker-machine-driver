@@ -30,6 +30,8 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-image`                    | Ionos Cloud Image Id or Alias \(ubuntu:latest, ubuntu:20.04\). If Image Id is set, please make sure the disk type supports the image type.                                                    |
 | `--ionoscloud-image-password`           | Ionos Cloud Image Password to be able to access the server from DCD platform                                                                                                                  |
 | `--ionoscloud-location`                 | Ionos Cloud Location                                                                                                                                                                          |
+| `--ionoscloud-server-type`                 | Ionos Cloud Server Type (ENTERPRISE or CUBE)                                                                                                                                                                          |
+| `--ionoscloud-template`                 | Ionos Cloud Template name (CUBES XS, CUBES S, etc.)                                                                                                                                                                          |
 | `--ionoscloud-server-availability-zone` | Ionos Cloud Server Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\)                                                                                                                      |
 | `--ionoscloud-cores`                    | Ionos Cloud Server Cores \(2, 3, 4, 5, 6, etc.\)                                                                                                                                              |
 | `--ionoscloud-cpu-family`               | Ionos Cloud Server CPU families \(AMD\_OPTERON,INTEL\_XEON, INTEL\_SKYLAKE\)                                                                                                                  |
@@ -72,6 +74,8 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-disk-type`                | `IONOSCLOUD_DISK_TYPE`      |
 | `--ionoscloud-image`                    | `IONOSCLOUD_IMAGE`          |
 | `--ionoscloud-image-password`           | `IONOSCLOUD_IMAGE_PASSWORD` |
+| `--ionoscloud-server-type`              | `IONOSCLOUD_SERVER_TYPE`    |
+| `--ionoscloud-template`                 | `IONOSCLOUD_TEMPLATE`       |
 | `--ionoscloud-location`                 | `IONOSCLOUD_LOCATION`       |
 | `--ionoscloud-server-availability-zone` | `IONOSCLOUD_SERVER_ZONE`    |
 | `--ionoscloud-cores`                    | `IONOSCLOUD_CORES`          |
