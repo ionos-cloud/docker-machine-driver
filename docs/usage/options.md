@@ -24,7 +24,9 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-token`                    | Ionos Cloud Token                                                                                                                                                                             |
 | `--ionoscloud-endpoint`                 | Ionos Cloud API Endpoint. It is recommended to be set to `https://api.ionos.com` or `https://api.ionos.com/cloudapi/v6`. The SDK will automatically put the `/cloudapi/v6` suffix if not set. |
 | `--ionoscloud-datacenter-id`            | Existing Ionos Cloud Virtual Data Center ID (UUID-4) in which to create the Docker Host                                                                                                       |
+| `--ionoscloud-datacenter-name`          | Existing Ionos Cloud Virtual Data Center Name (string) in which to create the Docker Host                                                                                                       |
 | `--ionoscloud-lan-id`                   | Existing Ionos Cloud LAN ID (numeric) in which to create the Docker Host                                                                                                                      |
+| `--ionoscloud-lan-name`                 | Existing Ionos Cloud LAN Name (string) in which to create the Docker Host                                                                                                                      |
 | `--ionoscloud-disk-size`                | Ionos Cloud Volume Disk-Size in GB \(10, 50, 100, 200, 400\)                                                                                                                                  |
 | `--ionoscloud-disk-type`                | Ionos Cloud Volume Disk-Type \(HDD, SSD\)                                                                                                                                                     |
 | `--ionoscloud-image`                    | Ionos Cloud Image Id or Alias \(ubuntu:latest, ubuntu:20.04\). If Image Id is set, please make sure the disk type supports the image type.                                                    |
@@ -60,24 +62,26 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 
 Environment variables are also supported for setting options. This is a list of the environment variables available for Docker Machine Driver.
 
-| Option                                  | Environment variable        |
-|:----------------------------------------|:----------------------------|
-| `--ionoscloud-username`                 | `IONOSCLOUD_USERNAME`       |
-| `--ionoscloud-password`                 | `IONOSCLOUD_PASSWORD`       |
-| `--ionoscloud-token`                    | `IONOSCLOUD_TOKEN`          |
-| `--ionoscloud-endpoint`                 | `IONOSCLOUD_ENDPOINT`       |
-| `--ionoscloud-datacenter-id`            | `IONOSCLOUD_DATACENTER_ID`  |
-| `--ionoscloud-lan-id`                   | `IONOSCLOUD_LAN_ID`         |
-| `--ionoscloud-disk-size`                | `IONOSCLOUD_DISK_SIZE`      |
-| `--ionoscloud-disk-type`                | `IONOSCLOUD_DISK_TYPE`      |
-| `--ionoscloud-image`                    | `IONOSCLOUD_IMAGE`          |
-| `--ionoscloud-image-password`           | `IONOSCLOUD_IMAGE_PASSWORD` |
-| `--ionoscloud-location`                 | `IONOSCLOUD_LOCATION`       |
-| `--ionoscloud-server-availability-zone` | `IONOSCLOUD_SERVER_ZONE`    |
-| `--ionoscloud-cores`                    | `IONOSCLOUD_CORES`          |
-| `--ionoscloud-cpu-family`               | `IONOSCLOUD_CPU_FAMILY`     |
-| `--ionoscloud-ram`                      | `IONOSCLOUD_RAM`            |
-| `--ionoscloud-volume-availability-zone` | `IONOSCLOUD_VOLUME_ZONE`    |
-| `--ionoscloud-user-data`                | `IONOSCLOUD_USER_DATA`      |
-| `--ionoscloud-user-data-b64`            | `IONOSCLOUD_USER_DATA_B64`  |
-| `--ionoscloud-ssh-user`                 | `IONOSCLOUD_SSH_USER`       |
+| Option                                  | Environment variable         |
+|:----------------------------------------|:-----------------------------|
+| `--ionoscloud-username`                 | `IONOSCLOUD_USERNAME`        |
+| `--ionoscloud-password`                 | `IONOSCLOUD_PASSWORD`        |
+| `--ionoscloud-token`                    | `IONOSCLOUD_TOKEN`           |
+| `--ionoscloud-endpoint`                 | `IONOSCLOUD_ENDPOINT`        |
+| `--ionoscloud-datacenter-id`            | `IONOSCLOUD_DATACENTER_ID`   |
+| `--ionoscloud-datacenter-name`          | `IONOSCLOUD_DATACENTER_NAME` |
+| `--ionoscloud-lan-id`                   | `IONOSCLOUD_LAN_ID`          |
+| `--ionoscloud-lan-name`                 | `IONOSCLOUD_LAN_NAME`        |
+| `--ionoscloud-disk-size`                | `IONOSCLOUD_DISK_SIZE`       |
+| `--ionoscloud-disk-type`                | `IONOSCLOUD_DISK_TYPE`       |
+| `--ionoscloud-image`                    | `IONOSCLOUD_IMAGE`           |
+| `--ionoscloud-image-password`           | `IONOSCLOUD_IMAGE_PASSWORD`  |
+| `--ionoscloud-location`                 | `IONOSCLOUD_LOCATION`        |
+| `--ionoscloud-server-availability-zone` | `IONOSCLOUD_SERVER_ZONE`     |
+| `--ionoscloud-cores`                    | `IONOSCLOUD_CORES`           |
+| `--ionoscloud-cpu-family`               | `IONOSCLOUD_CPU_FAMILY`      |
+| `--ionoscloud-ram`                      | `IONOSCLOUD_RAM`             |
+| `--ionoscloud-volume-availability-zone` | `IONOSCLOUD_VOLUME_ZONE`     |
+| `--ionoscloud-user-data`                | `IONOSCLOUD_USER_DATA`       |
+| `--ionoscloud-user-data-b64`            | `IONOSCLOUD_USER_DATA_B64`   |
+| `--ionoscloud-ssh-user`                 | `IONOSCLOUD_SSH_USER`        |
