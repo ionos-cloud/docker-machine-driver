@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
@@ -238,39 +237,5 @@ func getTestClient() *Client {
 				},
 			}}),
 		ctx: context.TODO(),
-	}
-}
-
-func TestClient_UpdateCloudInitFile(t *testing.T) {
-	type fields struct {
-		APIClient *sdkgo.APIClient
-		ctx       context.Context
-	}
-	type args struct {
-		cloudInitYAML string
-		key           string
-		values        []interface{}
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    string
-		wantErr assert.ErrorAssertionFunc
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Client{
-				APIClient: tt.fields.APIClient,
-				ctx:       tt.fields.ctx,
-			}
-			got, err := c.UpdateCloudInitFile(tt.args.cloudInitYAML, tt.args.key, tt.args.values)
-			if !tt.wantErr(t, err, fmt.Sprintf("UpdateCloudInitFile(%v, %v, %v)", tt.args.cloudInitYAML, tt.args.key, tt.args.values)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "UpdateCloudInitFile(%v, %v, %v)", tt.args.cloudInitYAML, tt.args.key, tt.args.values)
-		})
 	}
 }
