@@ -3,13 +3,10 @@ package ionoscloud
 import (
 	"context"
 	"encoding/base64"
-	b64 "encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
-
-	"gopkg.in/yaml.v2"
 
 	"github.com/docker/machine/libmachine/drivers"
 	"github.com/docker/machine/libmachine/log"
@@ -335,39 +332,16 @@ func (d *Driver) PreCreateCheck() error {
 }
 
 func (d *Driver) addSSHUserToYaml() (string, error) {
-	var (
-		sshUser     = d.SSHUser
-		sshkey      = d.SSHKey
-		yamlcontent = d.UserData
-	)
-	cf := make(map[interface{}]interface{})
-	if err := yaml.Unmarshal([]byte(yamlcontent), &cf); err != nil {
-		return "", err
-	}
-
 	commonUser := map[interface{}]interface{}{
-		"name":                sshUser,
+		"name":                d.SSHUser,
 		"lock_passwd":         true,
 		"sudo":                "ALL=(ALL) NOPASSWD:ALL",
 		"create_groups":       false,
 		"no_user_group":       true,
-		"ssh_authorized_keys": []string{sshkey},
+		"ssh_authorized_keys": []string{d.SSHKey},
 	}
 
-	if val, ok := cf["users"]; ok {
-		u := val.([]interface{})
-		cf["users"] = append(u, commonUser)
-	} else {
-		users := make([]interface{}, 1)
-		users[0] = commonUser
-		cf["users"] = users
-	}
-
-	yaml, err := yaml.Marshal(cf)
-	if err != nil {
-		return "", err
-	}
-	return string(yaml), nil
+	return d.client().UpdateCloudInitFile(d.UserData, "users", []interface{}{commonUser})
 }
 
 func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
@@ -390,24 +364,20 @@ func (d *Driver) Create() error {
 		log.Debugf("SSH Key generated in file: %v", d.publicSSHKeyPath())
 	}
 
-	rootSSHKey := d.SSHKey
-
 	givenB64Userdata, _ := base64.StdEncoding.DecodeString(d.UserDataB64)
-
-	if ud := getPropertyWithFallback(d.UserData, string(givenB64Userdata), ""); ud != "" {
-		log.Infof("Using user data: %s", ud)
+	if ud := getPropertyWithFallback(string(givenB64Userdata), d.UserData, ""); ud != "" {
+		// Provided B64 User Data has priority over UI provided User Data
 		d.UserData = ud
 	}
 
+	rootSSHKey := d.SSHKey
 	if d.SSHUser != "root" {
 		rootSSHKey = ""
-		if d.UserData == "" {
-			d.UserData = "#cloud-config\n" + d.UserData
+		d.UserData, err = d.addSSHUserToYaml()
+		if err != nil {
+			return err
 		}
-		newUserData, _ := d.addSSHUserToYaml()
-		d.UserData += newUserData
 	}
-	d.UserData = b64.StdEncoding.EncodeToString([]byte(d.UserData))
 
 	result, err := d.getImageId(d.Image)
 	if err != nil {
@@ -491,6 +461,8 @@ func (d *Driver) Create() error {
 		log.Debugf("Server ID: %v", d.ServerId)
 	}
 
+	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
+	log.Infof("Using user data: %s", ud)
 	properties := utils.ClientVolumeProperties{
 		DiskType:      d.DiskType,
 		Name:          d.MachineName,
@@ -498,7 +470,7 @@ func (d *Driver) Create() error {
 		Zone:          d.VolumeAvailabilityZone,
 		SshKey:        rootSSHKey,
 		DiskSize:      float32(d.DiskSize),
-		UserData:      d.UserData,
+		UserData:      ud,
 	}
 
 	if !d.UseAlias {

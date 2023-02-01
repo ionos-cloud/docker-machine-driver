@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
@@ -36,6 +37,71 @@ var (
 		},
 	}
 )
+
+func TestUpdateCloudInitFile(t *testing.T) {
+	tests := []struct {
+		name          string
+		cloudInitYAML string
+		key           string
+		values        []interface{}
+		expectedYAML  string
+		wantErr       bool
+	}{
+		{
+			name:          "Unmarshal error",
+			cloudInitYAML: "invalid yaml",
+			key:           "key",
+			values:        []interface{}{1, 2, 3},
+			wantErr:       true,
+		},
+		{
+			name:          "Key not found in cloud-init YAML",
+			cloudInitYAML: `foo: bar`,
+			key:           "key",
+			values:        []interface{}{1, 2, 3},
+			expectedYAML: `#cloud-config
+foo: bar
+key:
+    - 1
+    - 2
+    - 3
+`,
+			wantErr: false,
+		},
+		{
+			name: "Key found in cloud-init YAML",
+			cloudInitYAML: `foo: bar
+key:
+    - 1
+    - 2
+`,
+			key:    "key",
+			values: []interface{}{3, 4},
+			expectedYAML: `#cloud-config
+foo: bar
+key:
+    - 1
+    - 2
+    - 3
+    - 4
+`,
+			wantErr: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := &Client{}
+			yamlStr, err := c.UpdateCloudInitFile(test.cloudInitYAML, test.key, test.values)
+			if !test.wantErr && err != nil {
+				t.Errorf("Did not expect error: %v", err)
+			}
+			if yamlStr != test.expectedYAML {
+				t.Errorf("Expected yaml to be %s, got %s", test.expectedYAML, yamlStr)
+			}
+		})
+	}
+}
 
 func TestClientNew(t *testing.T) {
 	New(context.Background(), testName, testName, testName, testName, testName)
@@ -172,5 +238,39 @@ func getTestClient() *Client {
 				},
 			}}),
 		ctx: context.TODO(),
+	}
+}
+
+func TestClient_UpdateCloudInitFile(t *testing.T) {
+	type fields struct {
+		APIClient *sdkgo.APIClient
+		ctx       context.Context
+	}
+	type args struct {
+		cloudInitYAML string
+		key           string
+		values        []interface{}
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    string
+		wantErr assert.ErrorAssertionFunc
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &Client{
+				APIClient: tt.fields.APIClient,
+				ctx:       tt.fields.ctx,
+			}
+			got, err := c.UpdateCloudInitFile(tt.args.cloudInitYAML, tt.args.key, tt.args.values)
+			if !tt.wantErr(t, err, fmt.Sprintf("UpdateCloudInitFile(%v, %v, %v)", tt.args.cloudInitYAML, tt.args.key, tt.args.values)) {
+				return
+			}
+			assert.Equalf(t, tt.want, got, "UpdateCloudInitFile(%v, %v, %v)", tt.args.cloudInitYAML, tt.args.key, tt.args.values)
+		})
 	}
 }

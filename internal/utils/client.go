@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
+	"gopkg.in/yaml.v3"
 	"strings"
 	"time"
 
@@ -37,6 +38,30 @@ func New(ctx context.Context, name, password, token, url, httpUserAgent string) 
 		APIClient: sdkgo.NewAPIClient(clientConfig),
 		ctx:       ctx,
 	}
+}
+
+// UpdateCloudInitFile will try to unmarshal the cloud config YAML string, append the given values to the selected key, and then marshal it back into a YAML string which is returned
+func (c *Client) UpdateCloudInitFile(cloudInitYAML string, key string, values []interface{}) (string, error) {
+	var cf map[string]interface{}
+	cf = make(map[string]interface{})
+	if err := yaml.Unmarshal([]byte(cloudInitYAML), &cf); err != nil {
+		return "", err
+	}
+
+	if val, ok := cf[key]; ok {
+		u := val.([]interface{})
+		cf[key] = append(u, values...)
+	} else {
+		cf[key] = values
+	}
+
+	newCf, err := yaml.Marshal(cf)
+	if err != nil {
+		return "", err
+	}
+	cloudInitYAML = "#cloud-config\n" + string(newCf)
+
+	return cloudInitYAML, nil
 }
 
 func (c *Client) CreateIpBlock(size int32, location string) (*sdkgo.IpBlock, error) {
