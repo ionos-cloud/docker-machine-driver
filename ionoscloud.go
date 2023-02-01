@@ -764,9 +764,8 @@ func (d *Driver) Create() (err error) {
 		// TODO: <---
 	}
 
-	d.UserData = b64.StdEncoding.EncodeToString([]byte(d.UserData))
-	log.Infof("User Data (b64): %s\n", d.UserData)
-
+	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
+	log.Infof("Using cloudinit: %s\n", ud)
 	properties := utils.ClientVolumeProperties{
 		DiskType:      d.DiskType,
 		Name:          d.MachineName,
@@ -774,7 +773,7 @@ func (d *Driver) Create() (err error) {
 		Zone:          d.VolumeAvailabilityZone,
 		SshKey:        rootSSHKey,
 		DiskSize:      float32(d.DiskSize),
-		UserData:      d.UserData,
+		UserData:      ud,
 	}
 
 	if !d.UseAlias {
