@@ -3,13 +3,13 @@ package utils
 import (
 	"context"
 	"fmt"
-	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
-	"gopkg.in/yaml.v3"
 	"strings"
 	"time"
 
 	"github.com/docker/machine/libmachine/log"
+	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
+	"gopkg.in/yaml.v3"
 )
 
 const waitCount = 1000
@@ -143,6 +143,14 @@ func (c *Client) GetDatacenter(datacenterId string) (*sdkgo.Datacenter, error) {
 	return &datacenter, nil
 }
 
+func (c *Client) GetDatacenters() (*sdkgo.Datacenters, error) {
+	datacenters, _, err := c.DataCentersApi.DatacentersGet(c.ctx).Depth(1).Execute()
+	if err != nil {
+		return nil, fmt.Errorf("error getting datacenter: %v", err)
+	}
+	return &datacenters, nil
+}
+
 func (c *Client) RemoveDatacenter(datacenterId string) error {
 	resp, err := c.DataCentersApi.DatacentersDelete(c.ctx, datacenterId).Execute()
 	if err != nil {
@@ -249,6 +257,18 @@ func (c *Client) GetLan(datacenterId, LanId string) (*sdkgo.Lan, error) {
 	}
 	log.Info("Got existing LAN!")
 	return &lan, nil
+}
+
+func (c *Client) GetLans(datacenterId string) (*sdkgo.Lans, error) {
+	lans, resp, err := c.LANsApi.DatacentersLansGet(c.ctx, datacenterId).Depth(1).Execute()
+	if err != nil {
+		return nil, sdk_utils.ShortenOpenApiErr(err)
+	}
+	err = sdk_utils.SanitizeStatusCode(resp.StatusCode, resp.Message)
+	if err != nil {
+		return nil, err
+	}
+	return &lans, nil
 }
 
 func (c *Client) GetNic(datacenterId, ServerId, NicId string) (*sdkgo.Nic, error) {
