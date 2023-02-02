@@ -3,6 +3,7 @@ package utils
 import ionoscloud "github.com/ionos-cloud/sdk-go/v6"
 
 type ClientService interface {
+	UpdateCloudInitFile(cloudInitYAML string, key string, value []interface{}) (string, error)
 	CreateIpBlock(size int32, location string) (*ionoscloud.IpBlock, error)
 	GetIpBlockIps(ipBlock *ionoscloud.IpBlock) (*[]string, error)
 	RemoveIpBlock(ipBlockId string) error

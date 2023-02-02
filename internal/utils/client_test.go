@@ -50,6 +50,71 @@ var (
 	}
 )
 
+func TestUpdateCloudInitFile(t *testing.T) {
+	tests := []struct {
+		name          string
+		cloudInitYAML string
+		key           string
+		values        []interface{}
+		expectedYAML  string
+		wantErr       bool
+	}{
+		{
+			name:          "Unmarshal error",
+			cloudInitYAML: "invalid yaml",
+			key:           "key",
+			values:        []interface{}{1, 2, 3},
+			wantErr:       true,
+		},
+		{
+			name:          "Key not found in cloud-init YAML",
+			cloudInitYAML: `foo: bar`,
+			key:           "key",
+			values:        []interface{}{1, 2, 3},
+			expectedYAML: `#cloud-config
+foo: bar
+key:
+    - 1
+    - 2
+    - 3
+`,
+			wantErr: false,
+		},
+		{
+			name: "Key found in cloud-init YAML",
+			cloudInitYAML: `foo: bar
+key:
+    - 1
+    - 2
+`,
+			key:    "key",
+			values: []interface{}{3, 4},
+			expectedYAML: `#cloud-config
+foo: bar
+key:
+    - 1
+    - 2
+    - 3
+    - 4
+`,
+			wantErr: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := &Client{}
+			yamlStr, err := c.UpdateCloudInitFile(test.cloudInitYAML, test.key, test.values)
+			if !test.wantErr && err != nil {
+				t.Errorf("Did not expect error: %v", err)
+			}
+			if yamlStr != test.expectedYAML {
+				t.Errorf("Expected yaml to be %s, got %s", test.expectedYAML, yamlStr)
+			}
+		})
+	}
+}
+
 func TestClientNew(t *testing.T) {
 	New(context.Background(), testName, testName, testName, testName, testName)
 }

@@ -415,3 +415,18 @@ func (mr *MockClientServiceMockRecorder) StopServer(datacenterId, serverId inter
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StopServer", reflect.TypeOf((*MockClientService)(nil).StopServer), datacenterId, serverId)
 }
+
+// UpdateCloudInitFile mocks base method.
+func (m *MockClientService) UpdateCloudInitFile(cloudInitYAML, key string, value []interface{}) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateCloudInitFile", cloudInitYAML, key, value)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateCloudInitFile indicates an expected call of UpdateCloudInitFile.
+func (mr *MockClientServiceMockRecorder) UpdateCloudInitFile(cloudInitYAML, key, value interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCloudInitFile", reflect.TypeOf((*MockClientService)(nil).UpdateCloudInitFile), cloudInitYAML, key, value)
+}
