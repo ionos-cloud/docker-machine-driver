@@ -111,18 +111,18 @@ func (mr *MockClientServiceMockRecorder) CreateLan(datacenterId, name, public in
 }
 
 // CreateServer mocks base method.
-func (m *MockClientService) CreateServer(datacenterId, name, cpufamily, zone string, ram, cores int32) (*ionoscloud.Server, error) {
+func (m *MockClientService) CreateServer(datacenterId string, server ionoscloud.Server) (*ionoscloud.Server, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateServer", datacenterId, name, cpufamily, zone, ram, cores)
+	ret := m.ctrl.Call(m, "CreateServer", datacenterId, server)
 	ret0, _ := ret[0].(*ionoscloud.Server)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateServer indicates an expected call of CreateServer.
-func (mr *MockClientServiceMockRecorder) CreateServer(datacenterId, name, cpufamily, zone, ram, cores interface{}) *gomock.Call {
+func (mr *MockClientServiceMockRecorder) CreateServer(datacenterId, server interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateServer", reflect.TypeOf((*MockClientService)(nil).CreateServer), datacenterId, name, cpufamily, zone, ram, cores)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateServer", reflect.TypeOf((*MockClientService)(nil).CreateServer), datacenterId, server)
 }
 
 // GetDatacenter mocks base method.
@@ -273,6 +273,21 @@ func (m *MockClientService) GetServer(datacenterId, serverId string) (*ionosclou
 func (mr *MockClientServiceMockRecorder) GetServer(datacenterId, serverId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServer", reflect.TypeOf((*MockClientService)(nil).GetServer), datacenterId, serverId)
+}
+
+// GetTemplates mocks base method.
+func (m *MockClientService) GetTemplates() (*ionoscloud.Templates, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTemplates")
+	ret0, _ := ret[0].(*ionoscloud.Templates)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTemplates indicates an expected call of GetTemplates.
+func (mr *MockClientServiceMockRecorder) GetTemplates() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplates", reflect.TypeOf((*MockClientService)(nil).GetTemplates))
 }
 
 // RemoveDatacenter mocks base method.

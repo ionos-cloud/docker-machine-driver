@@ -31,6 +31,8 @@ const (
 	flagServerAvailabilityZone = "ionoscloud-server-availability-zone"
 	flagDiskSize               = "ionoscloud-disk-size"
 	flagDiskType               = "ionoscloud-disk-type"
+	flagServerType             = "ionoscloud-server-type"
+	flagTemplate               = "ionoscloud-template"
 	flagImage                  = "ionoscloud-image"
 	flagImagePassword          = "ionoscloud-image-password"
 	flagLocation               = "ionoscloud-location"
@@ -48,9 +50,11 @@ const (
 	defaultRegion           = "us/las"
 	defaultImageAlias       = "ubuntu:20.04"
 	defaultImagePassword    = "abcde12345" // Must contain both letters and numbers, at least 8 characters
-	defaultCpuFamily        = "AMD_OPTERON"
+	defaultCpuFamily        = "INTEL_SKYLAKE"
 	defaultAvailabilityZone = "AUTO"
 	defaultDiskType         = "HDD"
+	defaultServerType       = "ENTERPRISE"
+	defaultTemplate         = "CUBES XS"
 	defaultSSHUser          = "root"
 	defaultDatacenterName   = "docker-machine-data-center"
 	defaultLanName          = "docker-machine-lan"
@@ -88,6 +92,8 @@ type Driver struct {
 	Size                   int
 	Location               string
 	CpuFamily              string
+	ServerType             string
+	Template               string
 	DCExists               bool
 	LanExists              bool
 	UseAlias               bool
@@ -203,6 +209,18 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Volume Disk-Type (HDD, SSD)",
 		},
 		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_SERVER_TYPE",
+			Name:   flagServerType,
+			Value:  defaultServerType,
+			Usage:  "Ionos Cloud Server Type(ENTERPRISE or CUBE). CUBE servers are only available in certain locations.",
+		},
+		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_TEMPLATE",
+			Name:   flagTemplate,
+			Value:  defaultTemplate,
+			Usage:  "Ionos Cloud CUBE Template, only used for CUBE servers.",
+		},
+		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_CPU_FAMILY",
 			Name:   flagServerCpuFamily,
 			Value:  defaultCpuFamily,
@@ -274,6 +292,8 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.Ram = opts.Int(flagServerRam)
 	d.Location = opts.String(flagLocation)
 	d.DiskType = opts.String(flagDiskType)
+	d.ServerType = opts.String(flagServerType)
+	d.Template = opts.String(flagTemplate)
 	d.CpuFamily = opts.String(flagServerCpuFamily)
 	d.DatacenterId = opts.String(flagDatacenterId)
 	d.DatacenterName = opts.String(flagDatacenterName)
@@ -402,6 +422,20 @@ func (d *Driver) PreCreateCheck() error {
 	return nil
 }
 
+func (d *Driver) getCubeTemplateUuid() (string, error) {
+	templates, err := d.client().GetTemplates()
+	if err != nil {
+		return "", err
+	}
+
+	for _, template := range *templates.Items {
+		if *template.Properties.Name == d.Template {
+			return *template.Id, nil
+		}
+	}
+	return "", err
+}
+
 func (d *Driver) addSSHUserToYaml() (string, error) {
 	commonUser := map[interface{}]interface{}{
 		"name":                d.SSHUser,
@@ -518,7 +552,68 @@ func (d *Driver) Create() error {
 		}
 	}
 
-	server, err := d.client().CreateServer(d.DatacenterId, d.MachineName, d.CpuFamily, d.ServerAvailabilityZone, int32(d.Ram), int32(d.Cores))
+	server_to_create := sdkgo.Server{}
+
+	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
+	log.Infof("Using user data: %s", ud)
+
+	floatDiskSize := float32(d.DiskSize)
+	volume_properties := sdkgo.VolumeProperties{
+		Type:          &d.DiskType,
+		Name:          &d.MachineName,
+		ImagePassword: &d.ImagePassword,
+		SshKeys:       &[]string{rootSSHKey},
+		UserData:      &ud,
+	}
+
+	if !d.UseAlias {
+		log.Infof("Image Id: %v", result)
+		volume_properties.Image = &result
+	} else {
+		log.Infof("Image Alias: %v", alias)
+		volume_properties.ImageAlias = &alias
+	}
+
+	intRam := int32(d.Ram)
+	intCores := int32(d.Cores)
+
+	if d.ServerType == "ENTERPRISE" {
+		server_to_create.Properties = &sdkgo.ServerProperties{
+			Name:             &d.MachineName,
+			Ram:              &intRam,
+			Cores:            &intCores,
+			CpuFamily:        &d.CpuFamily,
+			AvailabilityZone: &d.ServerAvailabilityZone,
+		}
+
+		volume_properties.Size = &floatDiskSize
+		volume_properties.AvailabilityZone = &d.VolumeAvailabilityZone
+	} else {
+		TemplateUuid, err := d.getCubeTemplateUuid()
+
+		if err != nil {
+			return fmt.Errorf("error getting CUBE Template UUID from Template %s: %w", d.Template, err)
+		}
+		server_to_create.Properties = &sdkgo.ServerProperties{
+			Name:         &d.MachineName,
+			Type:         &d.ServerType,
+			TemplateUuid: &TemplateUuid,
+		}
+
+		dasType := "DAS"
+
+		volume_properties.Type = &dasType
+	}
+
+	volume := sdkgo.Volume{
+		Properties: &volume_properties,
+	}
+	attached_volumes := sdkgo.NewAttachedVolumesWithDefaults()
+	attached_volumes.Items = &[]sdkgo.Volume{volume}
+	server_to_create.Entities = sdkgo.NewServerEntitiesWithDefaults()
+	server_to_create.Entities.SetVolumes(*attached_volumes)
+
+	server, err := d.client().CreateServer(d.DatacenterId, server_to_create)
 	if err != nil {
 		// TODO: Export to a func
 		log.Warn(rollingBackNotice)
@@ -532,38 +627,14 @@ func (d *Driver) Create() error {
 		log.Debugf("Server ID: %v", d.ServerId)
 	}
 
-	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
-	log.Infof("Using user data: %s", ud)
-	properties := utils.ClientVolumeProperties{
-		DiskType:      d.DiskType,
-		Name:          d.MachineName,
-		ImagePassword: d.ImagePassword,
-		Zone:          d.VolumeAvailabilityZone,
-		SshKey:        rootSSHKey,
-		DiskSize:      float32(d.DiskSize),
-		UserData:      ud,
+	server, err = d.client().GetServer(d.DatacenterId, d.ServerId)
+	if err != nil {
+		return fmt.Errorf("error getting server by id: %w", err)
 	}
 
-	if !d.UseAlias {
-		log.Infof("Image Id: %v", result)
-		properties.ImageId = result
-	} else {
-		log.Infof("Image Alias: %v", alias)
-		properties.ImageAlias = alias
-	}
-	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, &properties)
-	if err != nil {
-		// TODO: Export to a func. Duplicated
-		log.Warn(rollingBackNotice)
-		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", fmt.Errorf("error attaching volume to server: %w", err), removeErr)
-		}
-		return err
-	}
-	if volumeId, ok := volume.GetIdOk(); ok && volumeId != nil {
-		d.VolumeId = *volumeId
-		log.Debugf("Volume ID: %v", d.VolumeId)
-	}
+	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
+
+	log.Debugf("Volume ID: %v", d.VolumeId)
 
 	l, _ := strconv.Atoi(d.LanId)
 	ips := &[]string{}

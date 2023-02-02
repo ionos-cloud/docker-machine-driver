@@ -11,10 +11,14 @@ import (
 // These tests check if Client returns error on wrong credentials
 
 var (
-	testLocation = "us/las"
-	testName     = "test-name"
-	testIpAddr   = "x.x.x.x"
-	ipBlock      = &sdkgo.IpBlock{
+	testLocation        = "us/las"
+	testName            = "test-name"
+	testRam       int32 = 1024
+	testCores     int32 = 1
+	testCpuFamily       = "INTEL_SKYLAKE"
+	testZone            = "AUTO"
+	testIpAddr          = "x.x.x.x"
+	ipBlock             = &sdkgo.IpBlock{
 		Id: &testName,
 		Properties: &sdkgo.IpBlockProperties{
 			Ips:      &[]string{testIpAddr},
@@ -33,6 +37,15 @@ var (
 	ipBlocks = &sdkgo.IpBlocks{
 		Items: &[]sdkgo.IpBlock{
 			*ipBlock,
+		},
+	}
+	testServer = sdkgo.Server{
+		Properties: &sdkgo.ServerProperties{
+			Name:             &testName,
+			Ram:              &testRam,
+			Cores:            &testCores,
+			CpuFamily:        &testCpuFamily,
+			AvailabilityZone: &testZone,
 		},
 	}
 )
@@ -152,7 +165,7 @@ func TestClientRemoveLanErr(t *testing.T) {
 }
 
 func TestClientCreateServerErr(t *testing.T) {
-	_, err := getTestClient().CreateServer(testName, testName, testName, testName, 2048, 1)
+	_, err := getTestClient().CreateServer(testName, testServer)
 	assert.Error(t, err)
 }
 
