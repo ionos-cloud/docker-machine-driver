@@ -52,6 +52,7 @@ const (
 	flagNatPublicIps      = "ionoscloud-nat-public-ips"
 	flagNatLansToGateways = "ionoscloud-nat-lans-to-gateways"
 	flagPrivateLan        = "ionoscloud-private-lan"
+	flagNatAsDefaultRoute = "ionoscloud-nat-as-default-route"
 	// ---
 )
 
@@ -116,6 +117,7 @@ type Driver struct {
 	NicId                  string
 	ServerId               string
 	IpBlockId              string
+	NatAsDefaultRoute      bool
 	NatId                  string
 	UserData               string
 	UserDataB64            string
@@ -163,6 +165,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			EnvVar: extflag.KebabCaseToCamelCase(flagNatId),
 			//Value:  nil,
 			Usage: "Ionos Cloud existing and configured NAT Gateway",
+		},
+		mcnflag.BoolFlag{
+			Name:   flagNatAsDefaultRoute,
+			EnvVar: extflag.KebabCaseToCamelCase(flagNatAsDefaultRoute),
+			Usage:  "If set, will update cloudinit so that gateway IP of NAT is set as default route. Only used if building NAT with the ionoscloud-nat-public-ips flag",
 		},
 		mcnflag.StringSliceFlag{
 			Name:   flagNatPublicIps,
@@ -317,6 +324,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 
 // SetConfigFromFlags initializes driver values from the command line values.
 func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
+	d.NatAsDefaultRoute = opts.Bool(flagNatAsDefaultRoute)
 	d.NatId = opts.String(flagNatId)
 	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
 	d.NatLansToGateways = extflag.ToMapOfStringToStringSlice(opts.String(flagNatLansToGateways))
@@ -746,22 +754,20 @@ func (d *Driver) Create() (err error) {
 			return err
 		}
 
-		// TODO: -->
-		// Try to automatically add IP Routing to the new NAT Gateway by updating cloudinit config
-
-		//lans := *nat.Properties.Lans
-		//gs := *lans[0].GatewayIps
-		//ip, _, err := net.ParseCIDR(gs[0])
-		//if err != nil {
-		//	return err
-		//}
-		//ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("ip route add default via %s", ip)})
-		//if err != nil {
-		//	return err
-		//}
-		//d.UserData = ud
-
-		// TODO: <---
+		if d.NatAsDefaultRoute {
+			// Add gateway IP of NAT via cloud config
+			lans := *nat.Properties.Lans
+			gs := *lans[0].GatewayIps
+			ip, _, err := net.ParseCIDR(gs[0])
+			if err != nil {
+				return err
+			}
+			ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("ip route add default via %s", ip)})
+			if err != nil {
+				return err
+			}
+			d.UserData = ud
+		}
 	}
 
 	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
