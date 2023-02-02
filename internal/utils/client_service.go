@@ -8,12 +8,14 @@ type ClientService interface {
 	RemoveIpBlock(ipBlockId string) error
 	CreateDatacenter(name, location string) (*ionoscloud.Datacenter, error)
 	GetDatacenter(datacenterId string) (*ionoscloud.Datacenter, error)
+	GetDatacenters() (*ionoscloud.Datacenters, error)
 	RemoveDatacenter(datacenterId string) error
 	CreateLan(datacenterId, name string, public bool) (*ionoscloud.LanPost, error)
 	RemoveLan(datacenterId, lanId string) error
 	CreateServer(datacenterId, name, cpufamily, zone string, ram, cores int32) (*ionoscloud.Server, error)
 	GetServer(datacenterId, serverId string) (*ionoscloud.Server, error)
 	GetLan(datacenterId, LanId string) (*ionoscloud.Lan, error)
+	GetLans(datacenterId string) (*ionoscloud.Lans, error)
 	GetNic(datacenterId, ServerId, NicId string) (*ionoscloud.Nic, error)
 	StartServer(datacenterId, serverId string) error
 	StopServer(datacenterId, serverId string) error

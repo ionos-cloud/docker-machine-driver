@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
+	"unicode"
 
 	"gopkg.in/yaml.v2"
 
@@ -36,7 +38,9 @@ const (
 	flagImagePassword          = "ionoscloud-image-password"
 	flagLocation               = "ionoscloud-location"
 	flagDatacenterId           = "ionoscloud-datacenter-id"
+	flagDatacenterName         = "ionoscloud-datacenter-name"
 	flagLanId                  = "ionoscloud-lan-id"
+	flagLanName                = "ionoscloud-lan-name"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
 	flagSSHUser                = "ionoscloud-ssh-user"
@@ -51,6 +55,8 @@ const (
 	defaultAvailabilityZone = "AUTO"
 	defaultDiskType         = "HDD"
 	defaultSSHUser          = "root"
+	defaultDatacenterName   = "docker-machine-data-center"
+	defaultLanName          = "docker-machine-lan"
 	defaultSize             = 10
 	driverName              = "ionoscloud"
 )
@@ -91,7 +97,9 @@ type Driver struct {
 	VolumeAvailabilityZone string
 	ServerAvailabilityZone string
 	LanId                  string
+	LanName                string
 	DatacenterId           string
+	DatacenterName         string
 	VolumeId               string
 	NicId                  string
 	ServerId               string
@@ -209,9 +217,21 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Virtual Data Center Id",
 		},
 		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_DATACENTER_NAME",
+			Name:   flagDatacenterName,
+			Value:  defaultDatacenterName,
+			Usage:  "Ionos Cloud Virtual Data Center Name",
+		},
+		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_LAN_ID",
 			Name:   flagLanId,
 			Usage:  "Ionos Cloud LAN Id",
+		},
+		mcnflag.StringFlag{
+			EnvVar: "IONOSCLOUD_LAN_Name",
+			Name:   flagLanName,
+			Value:  defaultLanName,
+			Usage:  "Ionos Cloud LAN Name",
 		},
 		mcnflag.StringFlag{
 			EnvVar: "IONOSCLOUD_VOLUME_ZONE",
@@ -259,7 +279,9 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.DiskType = opts.String(flagDiskType)
 	d.CpuFamily = opts.String(flagServerCpuFamily)
 	d.DatacenterId = opts.String(flagDatacenterId)
+	d.DatacenterName = opts.String(flagDatacenterName)
 	d.LanId = opts.String(flagLanId)
+	d.LanName = opts.String(flagLanName)
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.UserData = opts.String(flagUserData)
@@ -301,8 +323,58 @@ func (d *Driver) PreCreateCheck() error {
 
 	d.DCExists = false
 	d.LanExists = false
+
+	for i := len(d.MachineName) - 1; i >= 0; i-- {
+		if !unicode.IsNumber(rune(d.MachineName[i])) {
+			if d.MachineName[i+1:] != "1" {
+				time.Sleep(60 * time.Second)
+			}
+			break
+		}
+	}
+	if d.DatacenterId == "" {
+		datacenters, err := d.client().GetDatacenters()
+		if err != nil {
+			return err
+		}
+
+		foundDc := false
+		for _, dc := range *datacenters.Items {
+			if *dc.Properties.Name == d.DatacenterName {
+				if foundDc {
+					return fmt.Errorf("multiple Data Centers with name %v found", d.DatacenterName)
+				}
+				foundDc = true
+				if dcId, ok := dc.GetIdOk(); ok && dcId != nil {
+					d.DatacenterId = *dcId
+				}
+			}
+		}
+	}
+
 	if d.DatacenterId != "" {
 		d.DCExists = true
+
+		if d.LanId == "" {
+			lans, err := d.client().GetLans(d.DatacenterId)
+			if err != nil {
+				return err
+			}
+
+			foundLan := false
+			for _, lan := range *lans.Items {
+				if *lan.Properties.Name == d.LanName {
+					if foundLan {
+						return fmt.Errorf("multiple LANs with name %v found", d.LanName)
+					}
+					foundLan = true
+					if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
+						d.LanId = *lanId
+					}
+				}
+			}
+
+		}
 		if d.LanId != "" {
 			d.LanExists = true
 			lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
@@ -330,7 +402,6 @@ func (d *Driver) PreCreateCheck() error {
 	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}
-
 	return nil
 }
 
@@ -423,7 +494,7 @@ func (d *Driver) Create() error {
 		d.DCExists = false
 		var err error
 		log.Debugf("Creating datacenter...")
-		dc, err = d.client().CreateDatacenter(d.MachineName, d.Location)
+		dc, err = d.client().CreateDatacenter(d.DatacenterName, d.Location)
 		if err != nil {
 			return fmt.Errorf("error creating datacenter: %w", err)
 		}
@@ -441,7 +512,7 @@ func (d *Driver) Create() error {
 	}
 
 	if d.LanId == "" {
-		lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, true)
+		lan, err := d.client().CreateLan(d.DatacenterId, d.LanName, true)
 		if err != nil {
 			err = fmt.Errorf("error creating LAN: %w", err)
 			// TODO : export below to a func --->
