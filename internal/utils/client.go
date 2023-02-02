@@ -180,17 +180,7 @@ func (c *Client) RemoveLan(datacenterId, lanId string) error {
 	return c.waitTillProvisioned(resp.Header.Get("location"))
 }
 
-func (c *Client) CreateServer(datacenterId, name, cpufamily, zone string, ram, cores int32) (*sdkgo.Server, error) {
-	server := sdkgo.Server{
-		Properties: &sdkgo.ServerProperties{
-			Name:             &name,
-			Ram:              &ram,
-			Cores:            &cores,
-			CpuFamily:        &cpufamily,
-			AvailabilityZone: &zone,
-		},
-	}
-
+func (c *Client) CreateServer(datacenterId string, server sdkgo.Server) (*sdkgo.Server, error) {
 	svr, serverResp, err := c.ServersApi.DatacentersServersPost(c.ctx, datacenterId).Server(server).Execute()
 	if err != nil {
 		return nil, sdk_utils.ShortenOpenApiErr(err)
@@ -210,7 +200,7 @@ func (c *Client) CreateServer(datacenterId, name, cpufamily, zone string, ram, c
 }
 
 func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error) {
-	server, resp, err := c.ServersApi.DatacentersServersFindById(c.ctx, datacenterId, serverId).Execute()
+	server, resp, err := c.ServersApi.DatacentersServersFindById(c.ctx, datacenterId, serverId).Depth(1).Execute()
 	if err != nil {
 		return nil, sdk_utils.ShortenOpenApiErr(err)
 	}
@@ -218,7 +208,6 @@ func (c *Client) GetServer(datacenterId, serverId string) (*sdkgo.Server, error)
 	if err != nil {
 		return nil, err
 	}
-	log.Info("Got existing server!")
 	return &server, nil
 }
 
@@ -407,6 +396,18 @@ func (c *Client) GetLocationById(regionId, locationId string) (*sdkgo.Location, 
 		return nil, err
 	}
 	return &location, nil
+}
+
+func (c *Client) GetTemplates() (*sdkgo.Templates, error) {
+	templates, templatesResp, err := c.TemplatesApi.TemplatesGet(c.ctx).Depth(1).Execute()
+	if err != nil {
+		return nil, err
+	}
+	err = sdk_utils.SanitizeStatusCode(templatesResp.StatusCode, templatesResp.Message)
+	if err != nil {
+		return nil, err
+	}
+	return &templates, nil
 }
 
 func (c *Client) GetImages() (*sdkgo.Images, error) {
