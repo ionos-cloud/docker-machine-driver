@@ -62,7 +62,7 @@ func (nrm *NatRuleMaker) OpenPorts(protocol string, start int32, end int32) *Nat
 	return nrm
 }
 
-func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGateways map[string][]string, subnet string) (*sdkgo.NatGateway, error) {
+func (c *Client) CreateNat(name, datacenterId string, publicIps []string, lansToGateways map[string][]string, subnet string) (*sdkgo.NatGateway, error) {
 	var lans []sdkgo.NatGatewayLanProperties
 
 	err := c.createLansIfNotExist(datacenterId, maps.Keys(lansToGateways))
@@ -114,7 +114,7 @@ func (c *Client) CreateNat(datacenterId string, publicIps []string, lansToGatewa
 	nat, resp, err := c.NATGatewaysApi.DatacentersNatgatewaysPost(c.ctx, datacenterId).NatGateway(
 		sdkgo.NatGateway{
 			Properties: &sdkgo.NatGatewayProperties{
-				Name:      pointer.To("NAT Docker Machine"),
+				Name:      &name,
 				PublicIps: &publicIps,
 				Lans:      &lans,
 			},

@@ -49,6 +49,7 @@ const (
 	flagUserDataB64            = "ionoscloud-user-data-b64"
 	// NAT Gatway flags
 	flagNatId             = "ionoscloud-nat-id"
+	flagNatName           = "ionoscloud-nat-name"
 	flagNatPublicIps      = "ionoscloud-nat-public-ips"
 	flagNatLansToGateways = "ionoscloud-nat-lans-to-gateways"
 	flagPrivateLan        = "ionoscloud-private-lan"
@@ -118,6 +119,7 @@ type Driver struct {
 	ServerId               string
 	IpBlockId              string
 	NatAsDefaultRoute      bool
+	NatName                string
 	NatId                  string
 	UserData               string
 	UserDataB64            string
@@ -160,6 +162,12 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 // GetCreateFlags returns list of create flags driver accepts.
 func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 	return []mcnflag.Flag{
+		mcnflag.StringFlag{
+			Name:   flagNatName,
+			EnvVar: extflag.KebabCaseToCamelCase(flagNatName),
+			//Value:  nil,
+			Usage: "Ionos Cloud NAT Gateway name. Note that setting this will NOT implicitly create a NAT, this flag will only be read if need be",
+		},
 		mcnflag.StringFlag{
 			Name:   flagNatId,
 			EnvVar: extflag.KebabCaseToCamelCase(flagNatId),
@@ -325,6 +333,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 // SetConfigFromFlags initializes driver values from the command line values.
 func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.NatAsDefaultRoute = opts.Bool(flagNatAsDefaultRoute)
+	d.NatName = opts.String(flagNatName)
 	d.NatId = opts.String(flagNatId)
 	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
 	d.NatLansToGateways = extflag.ToMapOfStringToStringSlice(opts.String(flagNatLansToGateways))
@@ -743,7 +752,7 @@ func (d *Driver) Create() (err error) {
 	// --- NAT ---
 	nicIps := *ips
 	if d.NatPublicIps != nil {
-		nat, err := d.client().CreateNat(d.DatacenterId, d.NatPublicIps, d.NatLansToGateways, net.ParseIP(nicIps[0]).Mask(net.CIDRMask(24, 32)).String()+"/24")
+		nat, err := d.client().CreateNat(d.NatName, d.DatacenterId, d.NatPublicIps, d.NatLansToGateways, net.ParseIP(nicIps[0]).Mask(net.CIDRMask(24, 32)).String()+"/24")
 		if err != nil {
 			return err
 		}
