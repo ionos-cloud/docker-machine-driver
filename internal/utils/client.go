@@ -11,7 +11,6 @@ import (
 
 	"github.com/docker/machine/libmachine/log"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
-	"gopkg.in/yaml.v3"
 )
 
 const waitCount = 1000

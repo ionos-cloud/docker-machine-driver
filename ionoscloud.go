@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/extflag"
 	"io/ioutil"
 	"net"
@@ -53,7 +54,7 @@ const (
 	flagNatPublicIps      = "ionoscloud-nat-public-ips"
 	flagNatLansToGateways = "ionoscloud-nat-lans-to-gateways"
 	flagPrivateLan        = "ionoscloud-private-lan"
-	flagNatAsDefaultRoute = "ionoscloud-nat-as-default-route"
+	flagCreateDefaultNat  = "ionoscloud-create-default-nat"
 	// ---
 )
 
@@ -118,7 +119,7 @@ type Driver struct {
 	NicId                  string
 	ServerId               string
 	IpBlockId              string
-	NatAsDefaultRoute      bool
+	CreateDefaultNat       bool
 	NatName                string
 	NatId                  string
 	UserData               string
@@ -175,9 +176,9 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage: "Ionos Cloud existing and configured NAT Gateway",
 		},
 		mcnflag.BoolFlag{
-			Name:   flagNatAsDefaultRoute,
-			EnvVar: extflag.KebabCaseToCamelCase(flagNatAsDefaultRoute),
-			Usage:  "If set, will update cloudinit so that gateway IP of NAT is set as default route. Only used if building NAT with the ionoscloud-nat-public-ips flag",
+			Name:   flagCreateDefaultNat,
+			EnvVar: extflag.KebabCaseToCamelCase(flagCreateDefaultNat),
+			Usage:  "If set, will create a default NAT. Requires private LAN",
 		},
 		mcnflag.StringSliceFlag{
 			Name:   flagNatPublicIps,
@@ -189,7 +190,6 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagNatLansToGateways,
 			EnvVar: extflag.KebabCaseToCamelCase(flagNatLansToGateways),
 			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=10.0.0.1,10.0.0.2:2=10.0.0.10\"",
-			Value:  "1=",
 		},
 		mcnflag.BoolFlag{
 			Name:   flagPrivateLan,
@@ -332,7 +332,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 
 // SetConfigFromFlags initializes driver values from the command line values.
 func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
-	d.NatAsDefaultRoute = opts.Bool(flagNatAsDefaultRoute)
+	d.CreateDefaultNat = opts.Bool(flagCreateDefaultNat)
 	d.NatName = opts.String(flagNatName)
 	d.NatId = opts.String(flagNatId)
 	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
@@ -667,18 +667,12 @@ func (d *Driver) Create() (err error) {
 			TemplateUuid: &TemplateUuid,
 		}
 
-		dasType := "DAS"
-
-		volume_properties.Type = &dasType
+		volume_properties.Type = pointer.To("DAS")
 	}
 
 	volume := sdkgo.Volume{
 		Properties: &volume_properties,
 	}
-	attached_volumes := sdkgo.NewAttachedVolumesWithDefaults()
-	attached_volumes.Items = &[]sdkgo.Volume{volume}
-	server_to_create.Entities = sdkgo.NewServerEntitiesWithDefaults()
-	server_to_create.Entities.SetVolumes(*attached_volumes)
 
 	server, err := d.client().CreateServer(d.DatacenterId, server_to_create)
 	if err != nil {
@@ -700,13 +694,12 @@ func (d *Driver) Create() (err error) {
 	}
 
 	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
-
 	log.Debugf("Volume ID: %v", d.VolumeId)
 
 	l, _ := strconv.Atoi(d.LanId)
 	ips := &[]string{}
 
-	if !isLanPrivate {
+	if !isLanPrivate || d.CreateDefaultNat {
 		ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
 		if err != nil {
 			return fmt.Errorf("error creating ipblock: %w", err)
@@ -751,8 +744,15 @@ func (d *Driver) Create() (err error) {
 
 	// --- NAT ---
 	nicIps := *ips
-	if d.NatPublicIps != nil {
-		nat, err := d.client().CreateNat(d.NatName, d.DatacenterId, d.NatPublicIps, d.NatLansToGateways, net.ParseIP(nicIps[0]).Mask(net.CIDRMask(24, 32)).String()+"/24")
+	if d.CreateDefaultNat || d.NatPublicIps != nil {
+		// TODO: Were CreateNat in a deeper scope, we wouldn't have the need of these variables (they are here to avoid function-wide side-effects)
+		natPublicIps := &d.NatPublicIps
+		natLansToGateways := &d.NatLansToGateways
+		if d.CreateDefaultNat {
+			natPublicIps = ips
+			natLansToGateways = &map[string][]string{"1": {"10.0.0.1"}}
+		}
+		nat, err := d.client().CreateNat(d.NatName, d.DatacenterId, *natPublicIps, *natLansToGateways, net.ParseIP(nicIps[0]).Mask(net.CIDRMask(24, 32)).String()+"/24")
 		if err != nil {
 			return err
 		}
@@ -762,54 +762,16 @@ func (d *Driver) Create() (err error) {
 		if err != nil {
 			return err
 		}
-
-		if d.NatAsDefaultRoute {
-			// Add gateway IP of NAT via cloud config
-			lans := *nat.Properties.Lans
-			gs := *lans[0].GatewayIps
-			ip, _, err := net.ParseCIDR(gs[0])
-			if err != nil {
-				return err
-			}
-			ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("ip route add default via %s", ip)})
-			if err != nil {
-				return err
-			}
-			d.UserData = ud
+		lans := *nat.Properties.Lans
+		gs := *lans[0].GatewayIps
+		ip, _, err := net.ParseCIDR(gs[0])
+		if err != nil {
+			return err
 		}
-	}
-
-	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
-	log.Infof("Using cloudinit: %s\n", ud)
-	properties := utils.ClientVolumeProperties{
-		DiskType:      d.DiskType,
-		Name:          d.MachineName,
-		ImagePassword: d.ImagePassword,
-		Zone:          d.VolumeAvailabilityZone,
-		SshKey:        rootSSHKey,
-		DiskSize:      float32(d.DiskSize),
-		UserData:      ud,
-	}
-
-	if !d.UseAlias {
-		log.Infof("Image Id: %v", result)
-		properties.ImageId = result
-	} else {
-		log.Infof("Image Alias: %v", alias)
-		properties.ImageAlias = alias
-	}
-	volume, err := d.client().CreateAttachVolume(d.DatacenterId, d.ServerId, &properties)
-	if err != nil {
-		// TODO: Export to a func. Duplicated
-		log.Warn(rollingBackNotice)
-		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", fmt.Errorf("error attaching volume to server: %w", err), removeErr)
+		ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("ip route add default via %s", ip)})
+		if err != nil {
+			return err
 		}
-		return err
-	}
-	if volumeId, ok := volume.GetIdOk(); ok && volumeId != nil {
-		d.VolumeId = *volumeId
-		log.Debugf("Volume ID: %v", d.VolumeId)
 	}
 
 	return nil
