@@ -738,7 +738,11 @@ func (d *Driver) Create() (err error) {
 		}
 	}
 
-	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(l), ips)
+	ipsForAttachedNic := ips
+	if d.PrivateLan {
+		ipsForAttachedNic = nil // Let CloudAPI generate an IP, which we can later use for the subnet
+	}
+	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(l), ipsForAttachedNic)
 	if err != nil {
 		// TODO: Duplicated
 		log.Warn(rollingBackNotice)
@@ -757,13 +761,18 @@ func (d *Driver) Create() (err error) {
 		return fmt.Errorf("error getting NIC: %w", err)
 	}
 
+	nicIps := &[]string{}
 	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
-		if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
+		if nicIps, ok = nicProp.GetIpsOk(); ok && nicIps != nil {
 			if len(*nicIps) == 0 {
 				return fmt.Errorf("NIC has no IPs")
 			}
-			ips = nicIps
 		}
+	}
+
+	if !isLanPrivate {
+		d.IPAddress = (*nicIps)[0]
+		log.Info(d.IPAddress)
 	}
 
 	// --- NAT ---
@@ -777,7 +786,7 @@ func (d *Driver) Create() (err error) {
 		if d.NatLansToGateways != nil {
 			natLansToGateways = &d.NatLansToGateways
 		}
-		subnet := net.ParseIP((*natLansToGateways)[d.LanId][0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
+		subnet := net.ParseIP((*nicIps)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
 		log.Debugf("Provisioning NAT with subnet: %s", subnet)
 		nat, err := d.client().CreateNat(d.NatName, d.DatacenterId, *natPublicIps, *natLansToGateways, subnet)
 		if err != nil {
