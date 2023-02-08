@@ -37,9 +37,8 @@ func NewNRM(publicIp, srcSubnet, targetSubnet string) NatRuleMaker {
 	return NatRuleMaker{
 		rules: make([]sdkgo.NatGatewayRule, 0),
 		defaultProperties: sdkgo.NatGatewayRuleProperties{
-			Name: pointer.To("Docker Machine NAT Rule"),
-			Type: pointer.To(sdkgo.NatGatewayRuleType("SNAT")),
-			//Protocol:     pointer.To(sdkgo.NatGatewayRuleProtocol("ALL")),
+			Name:         pointer.To("Docker Machine NAT Rule"),
+			Type:         pointer.To(sdkgo.NatGatewayRuleType("SNAT")),
 			SourceSubnet: &srcSubnet,
 			TargetSubnet: &targetSubnet,
 			PublicIp:     &publicIp,

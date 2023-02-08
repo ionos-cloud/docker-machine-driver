@@ -692,7 +692,6 @@ func (d *Driver) Create() (err error) {
 	serverToCreate.Entities = sdkgo.NewServerEntitiesWithDefaults()
 	serverToCreate.Entities.SetVolumes(*attachedVolumes)
 
-	fmt.Printf("Creating server: %+v\nwith attachedVolumes: %+v", serverToCreate, attachedVolumes)
 	server, err := d.client().CreateServer(d.DatacenterId, serverToCreate)
 	if err != nil {
 		// TODO: Export to a func
@@ -711,7 +710,6 @@ func (d *Driver) Create() (err error) {
 	if err != nil {
 		return fmt.Errorf("error getting server by id: %w", err)
 	}
-	fmt.Printf("Got server: %+v with entities volumes: %v", server, *server.Entities.Volumes)
 	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
 	log.Debugf("Volume ID: %v", d.VolumeId)
 
@@ -772,7 +770,7 @@ func (d *Driver) Create() (err error) {
 
 	if !isLanPrivate {
 		d.IPAddress = (*nicIps)[0]
-		log.Info(d.IPAddress)
+		log.Infof(d.IPAddress)
 	}
 
 	// --- NAT ---
@@ -787,13 +785,15 @@ func (d *Driver) Create() (err error) {
 			natLansToGateways = &d.NatLansToGateways
 		}
 		subnet := net.ParseIP((*nicIps)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
-		log.Debugf("Provisioning NAT with subnet: %s", subnet)
+		log.Infof("Provisioning NAT with subnet: %s", subnet)
 		nat, err := d.client().CreateNat(d.NatName, d.DatacenterId, *natPublicIps, *natLansToGateways, subnet)
 		if err != nil {
 			return err
 		}
 		log.Debugf("Nat ID: %s", *nat.Id)
 		d.NatId = *nat.Id // NatId is used later to retrieve public IP, etc.
+		d.IPAddress = (*natPublicIps)[0]
+		log.Infof(d.IPAddress)
 	}
 
 	return nil
