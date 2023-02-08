@@ -70,6 +70,7 @@ const (
 	defaultSSHUser          = "root"
 	defaultDatacenterName   = "docker-machine-data-center"
 	defaultLanName          = "docker-machine-lan"
+	defaultNatName          = "docker-machine-nat"
 	defaultSize             = 10
 	driverName              = "ionoscloud"
 )
@@ -166,8 +167,8 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.StringFlag{
 			Name:   flagNatName,
 			EnvVar: extflag.KebabCaseToCamelCase(flagNatName),
-			//Value:  nil,
-			Usage: "Ionos Cloud NAT Gateway name. Note that setting this will NOT implicitly create a NAT, this flag will only be read if need be",
+			Value:  defaultNatName,
+			Usage:  "Ionos Cloud NAT Gateway name. Note that setting this will NOT implicitly create a NAT, this flag will only be read if need be",
 		},
 		mcnflag.StringFlag{
 			Name:   flagNatId,
@@ -478,7 +479,7 @@ func (d *Driver) PreCreateCheck() error {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}
 
-	if d.NatId == "" {
+	if d.NatId != "" && d.DatacenterId != "" {
 		nats, err := d.client().GetNats(d.DatacenterId)
 		if err != nil {
 			return err
@@ -562,9 +563,7 @@ func (d *Driver) Create() (err error) {
 		d.UserData = ud
 	}
 
-	rootSSHKey := d.SSHKey
 	if d.SSHUser != "root" {
-		rootSSHKey = ""
 		d.UserData, err = d.addSSHUserToYaml()
 		if err != nil {
 			return err
@@ -648,7 +647,7 @@ func (d *Driver) Create() (err error) {
 		Type:          &d.DiskType,
 		Name:          &d.MachineName,
 		ImagePassword: &d.ImagePassword,
-		SshKeys:       &[]string{rootSSHKey},
+		SshKeys:       &[]string{d.SSHKey},
 		UserData:      &ud,
 	}
 
@@ -673,7 +672,6 @@ func (d *Driver) Create() (err error) {
 		volumeProperties.AvailabilityZone = &d.VolumeAvailabilityZone
 	} else {
 		TemplateUuid, err := d.getCubeTemplateUuid()
-
 		if err != nil {
 			return fmt.Errorf("error getting CUBE Template UUID from Template %s: %w", d.Template, err)
 		}
@@ -686,13 +684,15 @@ func (d *Driver) Create() (err error) {
 	}
 
 	attachedVolumes := sdkgo.NewAttachedVolumesWithDefaults()
-	serverToCreate.Entities = sdkgo.NewServerEntitiesWithDefaults()
-	serverToCreate.Entities.SetVolumes(*attachedVolumes)
 	attachedVolumes.Items = &[]sdkgo.Volume{
 		{
 			Properties: &volumeProperties,
 		},
 	}
+	serverToCreate.Entities = sdkgo.NewServerEntitiesWithDefaults()
+	serverToCreate.Entities.SetVolumes(*attachedVolumes)
+
+	fmt.Printf("Creating server: %+v\nwith attachedVolumes: %+v", serverToCreate, attachedVolumes)
 	server, err := d.client().CreateServer(d.DatacenterId, serverToCreate)
 	if err != nil {
 		// TODO: Export to a func
@@ -711,15 +711,20 @@ func (d *Driver) Create() (err error) {
 	if err != nil {
 		return fmt.Errorf("error getting server by id: %w", err)
 	}
-
+	fmt.Printf("Got server: %+v with entities volumes: %v", server, *server.Entities.Volumes)
 	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
 	log.Debugf("Volume ID: %v", d.VolumeId)
 
 	l, _ := strconv.Atoi(d.LanId)
 	ips := &[]string{}
 
-	if !isLanPrivate || (d.CreateNat && d.NatPublicIps == nil) {
-		ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
+	if !isLanPrivate || d.CreateNat {
+		ipsToReserve := 1 // for NIC
+		if d.CreateNat && d.NatPublicIps == nil {
+			ipsToReserve += 1 // for NAT
+		}
+		log.Debugf("Reserving %d ips", ipsToReserve)
+		ipBlock, err := d.client().CreateIpBlock(int32(ipsToReserve), d.Location)
 		if err != nil {
 			return fmt.Errorf("error creating ipblock: %w", err)
 		}
@@ -764,7 +769,7 @@ func (d *Driver) Create() (err error) {
 	// --- NAT ---
 	if d.CreateNat {
 		// TODO: Were CreateNat in a deeper scope, we wouldn't have the need of these variables (they are here to avoid function-wide side-effects)
-		natPublicIps := ips
+		natPublicIps := &[]string{(*ips)[1]}
 		natLansToGateways := &map[string][]string{"1": {"10.0.0.1"}} // User has to add this ip route to their cloud config if he doesn't set a custom gateway IP
 		if d.NatPublicIps != nil {
 			natPublicIps = &d.NatPublicIps
@@ -772,7 +777,7 @@ func (d *Driver) Create() (err error) {
 		if d.NatLansToGateways != nil {
 			natLansToGateways = &d.NatLansToGateways
 		}
-		subnet := net.ParseIP((*ips)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
+		subnet := net.ParseIP((*natLansToGateways)[d.LanId][0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
 		log.Debugf("Provisioning NAT with subnet: %s", subnet)
 		nat, err := d.client().CreateNat(d.NatName, d.DatacenterId, *natPublicIps, *natLansToGateways, subnet)
 		if err != nil {

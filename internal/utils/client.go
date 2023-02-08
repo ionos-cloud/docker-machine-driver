@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	b64 "encoding/base64"
 	"fmt"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	"gopkg.in/yaml.v3"
@@ -60,7 +59,6 @@ func (c *Client) UpdateCloudInitFile(cloudInitYAML string, key string, values []
 		return "", err
 	}
 	cloudInitYAML = "#cloud-config\n" + string(newCf)
-	log.Infof("Modified cloudinit: ", b64.StdEncoding.EncodeToString([]byte(cloudInitYAML)))
 
 	return cloudInitYAML, nil
 }

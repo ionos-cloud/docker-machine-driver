@@ -12,7 +12,7 @@ import (
 )
 
 func (c *Client) GetNats(datacenterId string) (*sdkgo.NatGateways, error) {
-	nats, _, err := c.NATGatewaysApi.DatacentersNatgatewaysGet(c.ctx, datacenterId).Execute()
+	nats, _, err := c.NATGatewaysApi.DatacentersNatgatewaysGet(c.ctx, datacenterId).Depth(1).Execute()
 	if err != nil {
 		return nil, sdk_utils.ShortenOpenApiErr(err)
 	}
