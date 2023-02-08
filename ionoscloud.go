@@ -478,8 +478,28 @@ func (d *Driver) PreCreateCheck() error {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}
 
+	if d.NatId == "" {
+		nats, err := d.client().GetNats(d.DatacenterId)
+		if err != nil {
+			return err
+		}
+
+		foundNat := false
+		for _, nat := range *nats.Items {
+			if *nat.Properties.Name == d.NatName {
+				if foundNat {
+					return fmt.Errorf("multiple Nat Gateways with name %v found", d.NatName)
+				}
+				foundNat = true
+				if id, ok := nat.GetIdOk(); ok && id != nil {
+					d.NatId = *id
+				}
+			}
+		}
+	}
+
 	if d.NatId != "" && d.CreateNat {
-		return fmt.Errorf("both NAT Gateway ID and NAT creation found. Please set only one of: (%s | %s)",
+		return fmt.Errorf("both NAT Gateway ID and NAT creation directive found. Please set only one of: (%s | %s)",
 			flagNatId, flagCreateNat)
 	}
 

@@ -11,6 +11,14 @@ import (
 	"time"
 )
 
+func (c *Client) GetNats(datacenterId string) (*sdkgo.NatGateways, error) {
+	nats, _, err := c.NATGatewaysApi.DatacentersNatgatewaysGet(c.ctx, datacenterId).Execute()
+	if err != nil {
+		return nil, sdk_utils.ShortenOpenApiErr(err)
+	}
+	return &nats, nil
+}
+
 func (c *Client) GetNat(datacenterId, natId string) (*sdkgo.NatGateway, error) {
 	nat, _, err := c.NATGatewaysApi.DatacentersNatgatewaysFindByNatGatewayId(c.ctx, datacenterId, natId).Execute()
 	if err != nil {
