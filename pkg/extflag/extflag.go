@@ -8,6 +8,7 @@ import (
 // its equivalent map[string][]string object: { 1: [10.0.0.1, 10.0.0.2], 2: [10.0.0.10] }
 // Map entries MUST be separated by `:`. Slice entries MUST be separated by `,`
 // Slices can be null, for example "1:2:3=foo,bar" would return { "1": nil, "2": nil, "3": ['foo' 'bar'] }
+// An empty val will return nil
 func ToMapOfStringToStringSlice(val string) map[string][]string {
 	return ToCustomMapOfStringToStringSlice(val, ",", ":", "=")
 }

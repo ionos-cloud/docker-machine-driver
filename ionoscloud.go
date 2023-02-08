@@ -619,13 +619,11 @@ func (d *Driver) Create() (err error) {
 		}
 	}
 
-	server_to_create := sdkgo.Server{}
-
 	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
 	log.Infof("Using user data: %s", ud)
 
 	floatDiskSize := float32(d.DiskSize)
-	volume_properties := sdkgo.VolumeProperties{
+	volumeProperties := sdkgo.VolumeProperties{
 		Type:          &d.DiskType,
 		Name:          &d.MachineName,
 		ImagePassword: &d.ImagePassword,
@@ -635,46 +633,46 @@ func (d *Driver) Create() (err error) {
 
 	if !d.UseAlias {
 		log.Infof("Image Id: %v", result)
-		volume_properties.Image = &result
+		volumeProperties.Image = &result
 	} else {
 		log.Infof("Image Alias: %v", alias)
-		volume_properties.ImageAlias = &alias
+		volumeProperties.ImageAlias = &alias
 	}
 
-	intRam := int32(d.Ram)
-	intCores := int32(d.Cores)
-
+	serverToCreate := sdkgo.Server{}
 	if d.ServerType == "ENTERPRISE" {
-		server_to_create.Properties = &sdkgo.ServerProperties{
+		serverToCreate.Properties = &sdkgo.ServerProperties{
 			Name:             &d.MachineName,
-			Ram:              &intRam,
-			Cores:            &intCores,
+			Ram:              pointer.To(int32(d.Ram)),
+			Cores:            pointer.To(int32(d.Cores)),
 			CpuFamily:        &d.CpuFamily,
 			AvailabilityZone: &d.ServerAvailabilityZone,
 		}
-
-		volume_properties.Size = &floatDiskSize
-		volume_properties.AvailabilityZone = &d.VolumeAvailabilityZone
+		volumeProperties.Size = &floatDiskSize
+		volumeProperties.AvailabilityZone = &d.VolumeAvailabilityZone
 	} else {
 		TemplateUuid, err := d.getCubeTemplateUuid()
 
 		if err != nil {
 			return fmt.Errorf("error getting CUBE Template UUID from Template %s: %w", d.Template, err)
 		}
-		server_to_create.Properties = &sdkgo.ServerProperties{
+		serverToCreate.Properties = &sdkgo.ServerProperties{
 			Name:         &d.MachineName,
 			Type:         &d.ServerType,
 			TemplateUuid: &TemplateUuid,
 		}
-
-		volume_properties.Type = pointer.To("DAS")
+		volumeProperties.Type = pointer.To("DAS")
 	}
 
-	volume := sdkgo.Volume{
-		Properties: &volume_properties,
+	attachedVolumes := sdkgo.NewAttachedVolumesWithDefaults()
+	serverToCreate.Entities = sdkgo.NewServerEntitiesWithDefaults()
+	serverToCreate.Entities.SetVolumes(*attachedVolumes)
+	attachedVolumes.Items = &[]sdkgo.Volume{
+		{
+			Properties: &volumeProperties,
+		},
 	}
-
-	server, err := d.client().CreateServer(d.DatacenterId, server_to_create)
+	server, err := d.client().CreateServer(d.DatacenterId, serverToCreate)
 	if err != nil {
 		// TODO: Export to a func
 		log.Warn(rollingBackNotice)
@@ -743,35 +741,23 @@ func (d *Driver) Create() (err error) {
 	}
 
 	// --- NAT ---
-	nicIps := *ips
 	if d.CreateDefaultNat || d.NatPublicIps != nil {
 		// TODO: Were CreateNat in a deeper scope, we wouldn't have the need of these variables (they are here to avoid function-wide side-effects)
-		natPublicIps := &d.NatPublicIps
-		natLansToGateways := &d.NatLansToGateways
-		if d.CreateDefaultNat {
-			natPublicIps = ips
-			natLansToGateways = &map[string][]string{"1": {"10.0.0.1"}}
+		natPublicIps := ips
+		natLansToGateways := &map[string][]string{"1": {"10.0.0.1"}} // User has to add this ip route to their cloud config if he doesn't set a custom gateway IP
+		if d.NatPublicIps != nil {
+			natPublicIps = &d.NatPublicIps
 		}
-		nat, err := d.client().CreateNat(d.NatName, d.DatacenterId, *natPublicIps, *natLansToGateways, net.ParseIP(nicIps[0]).Mask(net.CIDRMask(24, 32)).String()+"/24")
+		if d.NatLansToGateways != nil {
+			natLansToGateways = &d.NatLansToGateways
+		}
+		subnet := net.ParseIP((*ips)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
+		log.Debugf("Provisioning NAT with subnet: %s", subnet)
+		nat, err := d.client().CreateNat(d.NatName, d.DatacenterId, *natPublicIps, *natLansToGateways, subnet)
 		if err != nil {
 			return err
 		}
 		log.Debugf("Nat ID: %s", *nat.Id)
-
-		nat, err = d.client().GetNat(d.DatacenterId, *nat.Id)
-		if err != nil {
-			return err
-		}
-		lans := *nat.Properties.Lans
-		gs := *lans[0].GatewayIps
-		ip, _, err := net.ParseCIDR(gs[0])
-		if err != nil {
-			return err
-		}
-		ud, err := d.client().UpdateCloudInitFile(d.UserData, "runcmd", []interface{}{fmt.Sprintf("ip route add default via %s", ip)})
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
