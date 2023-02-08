@@ -54,7 +54,7 @@ const (
 	flagNatPublicIps      = "ionoscloud-nat-public-ips"
 	flagNatLansToGateways = "ionoscloud-nat-lans-to-gateways"
 	flagPrivateLan        = "ionoscloud-private-lan"
-	flagCreateDefaultNat  = "ionoscloud-create-default-nat"
+	flagCreateNat         = "ionoscloud-create-nat"
 	// ---
 )
 
@@ -119,7 +119,7 @@ type Driver struct {
 	NicId                  string
 	ServerId               string
 	IpBlockId              string
-	CreateDefaultNat       bool
+	CreateNat              bool
 	NatName                string
 	NatId                  string
 	UserData               string
@@ -176,8 +176,8 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage: "Ionos Cloud existing and configured NAT Gateway",
 		},
 		mcnflag.BoolFlag{
-			Name:   flagCreateDefaultNat,
-			EnvVar: extflag.KebabCaseToCamelCase(flagCreateDefaultNat),
+			Name:   flagCreateNat,
+			EnvVar: extflag.KebabCaseToCamelCase(flagCreateNat),
 			Usage:  "If set, will create a default NAT. Requires private LAN",
 		},
 		mcnflag.StringSliceFlag{
@@ -332,7 +332,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 
 // SetConfigFromFlags initializes driver values from the command line values.
 func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
-	d.CreateDefaultNat = opts.Bool(flagCreateDefaultNat)
+	d.CreateNat = opts.Bool(flagCreateNat)
 	d.NatName = opts.String(flagNatName)
 	d.NatId = opts.String(flagNatId)
 	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
@@ -478,12 +478,13 @@ func (d *Driver) PreCreateCheck() error {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}
 
-	if d.NatId != "" && d.NatPublicIps != nil {
-		return fmt.Errorf("both NAT Gateway ID and NAT Config found. Please set only one of: (%s | %s)",
-			flagNatId, flagNatPublicIps)
+	if d.NatId != "" && d.CreateNat {
+		return fmt.Errorf("both NAT Gateway ID and NAT creation found. Please set only one of: (%s | %s)",
+			flagNatId, flagCreateNat)
 	}
 
-	if !d.PrivateLan && (d.NatId != "" || d.NatPublicIps != nil) {
+	// d.PrivateLan is set above to false as a side effect if the LAN with the given ID is private. If concerns are separated in this func, be aware of this!
+	if !d.PrivateLan && (d.NatId != "" || d.CreateNat) {
 		return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable %s or provide a Private Lan ID for %s", flagPrivateLan, flagLanId)
 	}
 
@@ -697,7 +698,7 @@ func (d *Driver) Create() (err error) {
 	l, _ := strconv.Atoi(d.LanId)
 	ips := &[]string{}
 
-	if !isLanPrivate || d.CreateDefaultNat {
+	if !isLanPrivate || (d.CreateNat && d.NatPublicIps == nil) {
 		ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
 		if err != nil {
 			return fmt.Errorf("error creating ipblock: %w", err)
@@ -741,7 +742,7 @@ func (d *Driver) Create() (err error) {
 	}
 
 	// --- NAT ---
-	if d.CreateDefaultNat || d.NatPublicIps != nil {
+	if d.CreateNat {
 		// TODO: Were CreateNat in a deeper scope, we wouldn't have the need of these variables (they are here to avoid function-wide side-effects)
 		natPublicIps := ips
 		natLansToGateways := &map[string][]string{"1": {"10.0.0.1"}} // User has to add this ip route to their cloud config if he doesn't set a custom gateway IP
@@ -758,6 +759,7 @@ func (d *Driver) Create() (err error) {
 			return err
 		}
 		log.Debugf("Nat ID: %s", *nat.Id)
+		d.NatId = *nat.Id // NatId is used later to retrieve public IP, etc.
 	}
 
 	return nil
