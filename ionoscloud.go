@@ -764,11 +764,7 @@ func (d *Driver) Create() (err error) {
 		if nicIps, ok = nicProp.GetIpsOk(); ok && nicIps != nil {
 		}
 	}
-	if len(*nicIps) == 0 {
-		return fmt.Errorf("NIC has no IPs")
-	}
-
-	if !isLanPrivate {
+	if len(*nicIps) > 0 && !isLanPrivate {
 		d.IPAddress = (*nicIps)[0]
 		log.Infof(d.IPAddress)
 	}

@@ -92,6 +92,9 @@ var (
 	}
 	nic = &sdkgo.Nic{
 		Id: &testVar,
+		Properties: &sdkgo.NicProperties{
+			Ips: &[]string{"x.x.x.x"},
+		},
 	}
 	dcs = &sdkgo.Datacenters{
 		Items: &[]sdkgo.Datacenter{},
