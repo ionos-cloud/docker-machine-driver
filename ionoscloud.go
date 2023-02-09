@@ -475,9 +475,7 @@ func (d *Driver) Create() error {
 		d.UserData = ud
 	}
 
-	rootSSHKey := d.SSHKey
 	if d.SSHUser != "root" {
-		rootSSHKey = ""
 		d.UserData, err = d.addSSHUserToYaml()
 		if err != nil {
 			return err
@@ -562,7 +560,7 @@ func (d *Driver) Create() error {
 		Type:          &d.DiskType,
 		Name:          &d.MachineName,
 		ImagePassword: &d.ImagePassword,
-		SshKeys:       &[]string{rootSSHKey},
+		SshKeys:       &[]string{d.SSHKey},
 		UserData:      &ud,
 	}
 
