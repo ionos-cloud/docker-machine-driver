@@ -142,7 +142,7 @@ func (c *Client) CreateNat(name, datacenterId string, publicIps []string, lansTo
 func (c *Client) createLansIfNotExist(datacenterId string, lanIds []string) error {
 	for _, lanid := range lanIds {
 		_, resp, err := c.LANsApi.DatacentersLansFindById(c.ctx, datacenterId, lanid).Execute()
-		if resp.StatusCode == 404 {
+		if resp.HttpNotFound() {
 			// Before err check as 404s throw an err.
 			log.Infof("Creating LAN %s for NAT\n", lanid)
 			_, err := c.CreateLan(datacenterId, "Docker Machine LAN (NAT)", false)
