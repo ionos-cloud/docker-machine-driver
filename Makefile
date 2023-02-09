@@ -39,7 +39,7 @@ mock_update:
 	@echo "DONE"
 
 .PHONY: test
-test: mock_update test_unit
+test: test_unit
 
 .PHONY: test_unit
 test_unit:
