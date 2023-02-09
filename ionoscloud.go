@@ -663,8 +663,8 @@ func (d *Driver) Create() (err error) {
 	if d.ServerType == "ENTERPRISE" {
 		serverToCreate.Properties = &sdkgo.ServerProperties{
 			Name:             &d.MachineName,
-			Ram:              pointer.To(int32(d.Ram)),
-			Cores:            pointer.To(int32(d.Cores)),
+			Ram:              pointer.From(int32(d.Ram)),
+			Cores:            pointer.From(int32(d.Cores)),
 			CpuFamily:        &d.CpuFamily,
 			AvailabilityZone: &d.ServerAvailabilityZone,
 		}
@@ -680,7 +680,7 @@ func (d *Driver) Create() (err error) {
 			Type:         &d.ServerType,
 			TemplateUuid: &TemplateUuid,
 		}
-		volumeProperties.Type = pointer.To("DAS")
+		volumeProperties.Type = pointer.From("DAS")
 	}
 
 	attachedVolumes := sdkgo.NewAttachedVolumesWithDefaults()
