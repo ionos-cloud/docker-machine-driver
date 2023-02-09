@@ -38,8 +38,8 @@ func ToCustomMapOfStringToStringSlice(val, sliceSep, mapEntrySep, assignOperator
 	return m
 }
 
-// KebabCaseToCamelCase converts kebab-style-strings to CAMEL_CASE_STRINGS,
+// KebabCaseToEnvVarCase converts kebab-style-strings to SCREAMING_SNAKE_CASE_STRINGS,
 // useful in binding flags to their equivalent environment variable name
-func KebabCaseToCamelCase(kebab string) string {
+func KebabCaseToEnvVarCase(kebab string) string {
 	return strings.ToUpper(strings.ReplaceAll(kebab, "-", "_"))
 }

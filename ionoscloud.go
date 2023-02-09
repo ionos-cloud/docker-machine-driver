@@ -166,132 +166,132 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 	return []mcnflag.Flag{
 		mcnflag.StringFlag{
 			Name:   flagNatName,
-			EnvVar: extflag.KebabCaseToCamelCase(flagNatName),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatName),
 			Value:  defaultNatName,
 			Usage:  "Ionos Cloud NAT Gateway name. Note that setting this will NOT implicitly create a NAT, this flag will only be read if need be",
 		},
 		mcnflag.StringFlag{
 			Name:   flagNatId,
-			EnvVar: extflag.KebabCaseToCamelCase(flagNatId),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatId),
 			//Value:  nil,
 			Usage: "Ionos Cloud existing and configured NAT Gateway",
 		},
 		mcnflag.BoolFlag{
 			Name:   flagCreateNat,
-			EnvVar: extflag.KebabCaseToCamelCase(flagCreateNat),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagCreateNat),
 			Usage:  "If set, will create a default NAT. Requires private LAN",
 		},
 		mcnflag.StringSliceFlag{
 			Name:   flagNatPublicIps,
-			EnvVar: extflag.KebabCaseToCamelCase(flagNatPublicIps),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatPublicIps),
 			Usage:  "Ionos Cloud NAT Gateway public IPs",
 		},
 		mcnflag.StringFlag{
 			// A string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10" . Lans MUST be separated by `:`. IPs MUST be separated by `,`
 			Name:   flagNatLansToGateways,
-			EnvVar: extflag.KebabCaseToCamelCase(flagNatLansToGateways),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatLansToGateways),
 			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=10.0.0.1,10.0.0.2:2=10.0.0.10\"",
 		},
 		mcnflag.BoolFlag{
 			Name:   flagPrivateLan,
-			EnvVar: extflag.KebabCaseToCamelCase(flagPrivateLan),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagPrivateLan),
 			Usage:  "Should the created LAN be private? Does nothing if LAN ID is provided",
 		},
 		mcnflag.StringFlag{
 			Name:   flagEndpoint,
-			EnvVar: extflag.KebabCaseToCamelCase(flagEndpoint),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagEndpoint),
 			Value:  sdkgo.DefaultIonosServerUrl,
 			Usage:  "Ionos Cloud API Endpoint",
 		},
 		mcnflag.StringFlag{
 			Name:   flagUsername,
-			EnvVar: extflag.KebabCaseToCamelCase(flagUsername),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagUsername),
 			Usage:  "Ionos Cloud Username",
 		},
 		mcnflag.StringFlag{
 			Name:   flagPassword,
-			EnvVar: extflag.KebabCaseToCamelCase(flagPassword),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagPassword),
 			Usage:  "Ionos Cloud Password",
 		},
 		mcnflag.StringFlag{
 			Name:   flagToken,
-			EnvVar: extflag.KebabCaseToCamelCase(flagToken),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagToken),
 			Usage:  "Ionos Cloud Token",
 		},
 		mcnflag.IntFlag{
 			Name:   flagServerCores,
-			EnvVar: extflag.KebabCaseToCamelCase(flagServerCores),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerCores),
 			Value:  4,
 			Usage:  "Ionos Cloud Server Cores (2, 3, 4, 5, 6, etc.)",
 		},
 		mcnflag.IntFlag{
 			Name:   flagServerRam,
-			EnvVar: extflag.KebabCaseToCamelCase(flagServerRam),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerRam),
 			Value:  2048,
 			Usage:  "Ionos Cloud Server Ram in MB(1024, 2048, 3072, 4096, etc.)",
 		},
 		mcnflag.IntFlag{
 			Name:   flagDiskSize,
-			EnvVar: extflag.KebabCaseToCamelCase(flagDiskSize),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagDiskSize),
 			Value:  50,
 			Usage:  "Ionos Cloud Volume Disk-Size in GB(10, 50, 100, 200, 400)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagImage,
-			EnvVar: extflag.KebabCaseToCamelCase(flagImage),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagImage),
 			Value:  defaultImageAlias,
 			Usage:  "Ionos Cloud Image Id or Alias (ubuntu:latest, ubuntu:20.04)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagImagePassword,
-			EnvVar: extflag.KebabCaseToCamelCase(flagImagePassword),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagImagePassword),
 			Value:  defaultImagePassword,
 			Usage:  "Ionos Cloud Image Password to be able to access the server from DCD platform",
 		},
 		mcnflag.StringFlag{
 			Name:   flagLocation,
-			EnvVar: extflag.KebabCaseToCamelCase(flagLocation),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagLocation),
 			Value:  defaultRegion,
 			Usage:  "Ionos Cloud Location",
 		},
 		mcnflag.StringFlag{
 			Name:   flagDiskType,
-			EnvVar: extflag.KebabCaseToCamelCase(flagDiskType),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagDiskType),
 			Value:  defaultDiskType,
 			Usage:  "Ionos Cloud Volume Disk-Type (HDD, SSD)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagServerType,
-			EnvVar: extflag.KebabCaseToCamelCase(flagServerType),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerType),
 			Value:  defaultServerType,
 			Usage:  "Ionos Cloud Server Type(ENTERPRISE or CUBE). CUBE servers are only available in certain locations.",
 		},
 		mcnflag.StringFlag{
 			Name:   flagTemplate,
-			EnvVar: extflag.KebabCaseToCamelCase(flagTemplate),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagTemplate),
 			Value:  defaultTemplate,
 			Usage:  "Ionos Cloud CUBE Template, only used for CUBE servers.",
 		},
 		mcnflag.StringFlag{
 			Name:   flagServerCpuFamily,
-			EnvVar: extflag.KebabCaseToCamelCase(flagServerCpuFamily),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerCpuFamily),
 			Value:  defaultCpuFamily,
 			Usage:  "Ionos Cloud Server CPU families (AMD_OPTERON, INTEL_XEON, INTEL_SKYLAKE)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagDatacenterId,
-			EnvVar: extflag.KebabCaseToCamelCase(flagDatacenterId),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagDatacenterId),
 			Usage:  "Ionos Cloud Virtual Data Center Id",
 		},
 		mcnflag.StringFlag{
 			Name:   flagDatacenterName,
-			EnvVar: extflag.KebabCaseToCamelCase(flagDatacenterName),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagDatacenterName),
 			Value:  defaultDatacenterName,
 			Usage:  "Ionos Cloud Virtual Data Center Name",
 		},
 		mcnflag.StringFlag{
 			Name:   flagLanId,
-			EnvVar: extflag.KebabCaseToCamelCase(flagLanId),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagLanId),
 			Usage:  "Ionos Cloud LAN Id",
 		},
 		mcnflag.StringFlag{
@@ -302,29 +302,29 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		},
 		mcnflag.StringFlag{
 			Name:   flagVolumeAvailabilityZone,
-			EnvVar: extflag.KebabCaseToCamelCase(flagVolumeAvailabilityZone),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagVolumeAvailabilityZone),
 			Value:  defaultAvailabilityZone,
 			Usage:  "Ionos Cloud Volume Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagServerAvailabilityZone,
-			EnvVar: extflag.KebabCaseToCamelCase(flagServerAvailabilityZone),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerAvailabilityZone),
 			Value:  defaultAvailabilityZone,
 			Usage:  "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagUserData,
-			EnvVar: extflag.KebabCaseToCamelCase(flagUserData),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagUserData),
 			Usage:  "The cloud-init configuration for the volume as a multi-line string",
 		},
 		mcnflag.StringFlag{
 			Name:   flagUserDataB64,
-			EnvVar: extflag.KebabCaseToCamelCase(flagUserDataB64),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagUserDataB64),
 			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
 		mcnflag.StringFlag{
 			Name:   flagSSHUser,
-			EnvVar: extflag.KebabCaseToCamelCase(flagSSHUser),
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagSSHUser),
 			Value:  defaultSSHUser,
 			Usage:  "The name of the user the driver will use for ssh",
 		},
@@ -558,8 +558,8 @@ func (d *Driver) Create() (err error) {
 	}
 
 	givenB64Userdata, _ := base64.StdEncoding.DecodeString(d.UserDataB64)
-	if ud := getPropertyWithFallback(d.UserData, string(givenB64Userdata), ""); ud != "" {
-		log.Infof("Using user data: %s", ud)
+	if ud := getPropertyWithFallback(string(givenB64Userdata), d.UserData, ""); ud != "" {
+		// Provided B64 User Data has priority over UI provided User Data
 		d.UserData = ud
 	}
 
@@ -602,7 +602,7 @@ func (d *Driver) Create() (err error) {
 	}
 
 	if d.LanId == "" {
-		lan, err := d.client().CreateLan(d.DatacenterId, d.MachineName, !d.PrivateLan)
+		lan, err := d.client().CreateLan(d.DatacenterId, d.LanName, !d.PrivateLan)
 		if err != nil {
 			err = fmt.Errorf("error creating LAN: %w", err)
 			// TODO : export below to a func --->
@@ -762,10 +762,10 @@ func (d *Driver) Create() (err error) {
 	nicIps := &[]string{}
 	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
 		if nicIps, ok = nicProp.GetIpsOk(); ok && nicIps != nil {
-			if len(*nicIps) == 0 {
-				return fmt.Errorf("NIC has no IPs")
-			}
 		}
+	}
+	if len(*nicIps) == 0 {
+		return fmt.Errorf("NIC has no IPs")
 	}
 
 	if !isLanPrivate {

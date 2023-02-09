@@ -332,12 +332,13 @@ func TestCreateLanProvided(t *testing.T) {
 	driver.SSHKey = testVar
 	driver.DatacenterId = testVar
 	driver.ServerId = testVar
-	driver.NicId = testVar
-	driver.VolumeId = testVar
+	//driver.NicId = testVar
+	//driver.VolumeId = testVar
 	driver.LanId = testVar
-	driver.IPAddress = testVar
+	driver.Image = "e20d97c2-38ae-11ed-be62-eec5f4d7ee1e"
+	//driver.IPAddress = testVar
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImageById("e20d97c2-38ae-11ed-be62-eec5f4d7ee1e").Return(&sdkgo.Image{}, nil)
 	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
