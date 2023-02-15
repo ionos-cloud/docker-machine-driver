@@ -500,7 +500,7 @@ func (d *Driver) PreCreateCheck() error {
 	}
 
 	if d.NatId != "" && d.CreateNat {
-		return fmt.Errorf("both NAT Gateway ID and NAT creation directive found. Please set only one of: (%s | %s)",
+		return fmt.Errorf("trying to create a NAT while also found an existing NAT. Please set only one of: (%s | %s), or try a different NAT name",
 			flagNatId, flagCreateNat)
 	}
 
