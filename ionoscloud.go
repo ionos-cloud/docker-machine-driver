@@ -20,7 +20,6 @@ import (
 	"github.com/docker/machine/libmachine/state"
 	"github.com/hashicorp/go-multierror"
 	"github.com/ionos-cloud/docker-machine-driver/internal/utils"
-	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 )
 
@@ -923,45 +922,10 @@ func (d *Driver) GetURL() (string, error) {
 
 // GetIP returns public IP address or hostname of the machine instance.
 func (d *Driver) GetIP() (string, error) {
-	if d.NatId != "" {
-		nat, err := d.client().GetNat(d.DatacenterId, d.NatId)
-		if err != nil {
-			return "", sdk_utils.ShortenOpenApiErr(err)
-		}
-		if !nat.HasProperties() || !nat.Properties.HasPublicIps() {
-			return "", fmt.Errorf("failed getting public IPs of provided NAT")
-		}
-		publicIps := *nat.Properties.PublicIps
-		d.IPAddress = publicIps[0]
-		return d.IPAddress, nil
-	}
-	if d.NatPublicIps != nil {
-		d.IPAddress = d.NatPublicIps[0]
-		return d.IPAddress, nil
-	}
-
-	server, err := d.client().GetServer(d.DatacenterId, d.ServerId)
-	if err != nil {
-		return "", sdk_utils.ShortenOpenApiErr(err)
-	}
-
-	if serverEntities, ok := server.GetEntitiesOk(); ok && serverEntities != nil {
-		if serverEntitiesNic, ok := serverEntities.GetNicsOk(); ok && serverEntitiesNic != nil {
-			if serverEntitiesNicItems, ok := serverEntitiesNic.GetItemsOk(); ok && serverEntitiesNicItems != nil {
-				entitiesNicItems := *serverEntitiesNicItems
-				entityNic := entitiesNicItems[0]
-				if nicProp, ok := entityNic.GetPropertiesOk(); ok && nicProp != nil {
-					if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
-						entityNicIps := *nicIps
-						d.IPAddress = entityNicIps[0]
-					}
-				}
-			}
-		}
-	}
 	if d.IPAddress == "" {
 		return "", fmt.Errorf("IP address is not set")
 	}
+	log.Infof("Using IP %s to connect", d.IPAddress)
 	return d.IPAddress, nil
 }
 
