@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
+	"github.com/ionos-cloud/docker-machine-driver/pkg/extflag"
 	"io/ioutil"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -44,6 +47,14 @@ const (
 	flagUserData               = "ionoscloud-user-data"
 	flagSSHUser                = "ionoscloud-ssh-user"
 	flagUserDataB64            = "ionoscloud-user-data-b64"
+	// NAT Gatway flags
+	flagNatId             = "ionoscloud-nat-id"
+	flagNatName           = "ionoscloud-nat-name"
+	flagNatPublicIps      = "ionoscloud-nat-public-ips"
+	flagNatLansToGateways = "ionoscloud-nat-lans-to-gateways"
+	flagPrivateLan        = "ionoscloud-private-lan"
+	flagCreateNat         = "ionoscloud-create-nat"
+	// ---
 )
 
 const (
@@ -58,6 +69,7 @@ const (
 	defaultSSHUser          = "root"
 	defaultDatacenterName   = "docker-machine-data-center"
 	defaultLanName          = "docker-machine-lan"
+	defaultNatName          = "docker-machine-nat"
 	defaultSize             = 10
 	driverName              = "ionoscloud"
 )
@@ -107,8 +119,14 @@ type Driver struct {
 	NicId                  string
 	ServerId               string
 	IpBlockId              string
+	CreateNat              bool
+	NatName                string
+	NatId                  string
 	UserData               string
 	UserDataB64            string
+	NatPublicIps           []string
+	NatLansToGateways      map[string][]string
+	PrivateLan             bool
 
 	// Driver Version
 	Version string
@@ -146,100 +164,133 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 	return []mcnflag.Flag{
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_ENDPOINT",
+			Name:   flagNatName,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatName),
+			Value:  defaultNatName,
+			Usage:  "Ionos Cloud NAT Gateway name. Note that setting this will NOT implicitly create a NAT, this flag will only be read if need be",
+		},
+		mcnflag.StringFlag{
+			Name:   flagNatId,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatId),
+			//Value:  nil,
+			Usage: "Ionos Cloud existing and configured NAT Gateway",
+		},
+		mcnflag.BoolFlag{
+			Name:   flagCreateNat,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagCreateNat),
+			Usage:  "If set, will create a default NAT. Requires private LAN",
+		},
+		mcnflag.StringSliceFlag{
+			Name:   flagNatPublicIps,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatPublicIps),
+			Usage:  "Ionos Cloud NAT Gateway public IPs",
+		},
+		mcnflag.StringFlag{
+			// A string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10" . Lans MUST be separated by `:`. IPs MUST be separated by `,`
+			Name:   flagNatLansToGateways,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatLansToGateways),
+			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=10.0.0.1,10.0.0.2:2=10.0.0.10\"",
+		},
+		mcnflag.BoolFlag{
+			Name:   flagPrivateLan,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagPrivateLan),
+			Usage:  "Should the created LAN be private? Does nothing if LAN ID is provided",
+		},
+		mcnflag.StringFlag{
 			Name:   flagEndpoint,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagEndpoint),
 			Value:  sdkgo.DefaultIonosServerUrl,
 			Usage:  "Ionos Cloud API Endpoint",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_USERNAME",
 			Name:   flagUsername,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagUsername),
 			Usage:  "Ionos Cloud Username",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_PASSWORD",
 			Name:   flagPassword,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagPassword),
 			Usage:  "Ionos Cloud Password",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_TOKEN",
 			Name:   flagToken,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagToken),
 			Usage:  "Ionos Cloud Token",
 		},
 		mcnflag.IntFlag{
-			EnvVar: "IONOSCLOUD_CORES",
 			Name:   flagServerCores,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerCores),
 			Value:  4,
 			Usage:  "Ionos Cloud Server Cores (2, 3, 4, 5, 6, etc.)",
 		},
 		mcnflag.IntFlag{
-			EnvVar: "IONOSCLOUD_RAM",
 			Name:   flagServerRam,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerRam),
 			Value:  2048,
 			Usage:  "Ionos Cloud Server Ram in MB(1024, 2048, 3072, 4096, etc.)",
 		},
 		mcnflag.IntFlag{
-			EnvVar: "IONOSCLOUD_DISK_SIZE",
 			Name:   flagDiskSize,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagDiskSize),
 			Value:  50,
 			Usage:  "Ionos Cloud Volume Disk-Size in GB(10, 50, 100, 200, 400)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_IMAGE",
 			Name:   flagImage,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagImage),
 			Value:  defaultImageAlias,
 			Usage:  "Ionos Cloud Image Id or Alias (ubuntu:latest, ubuntu:20.04)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_IMAGE_PASSWORD",
 			Name:   flagImagePassword,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagImagePassword),
 			Value:  defaultImagePassword,
 			Usage:  "Ionos Cloud Image Password to be able to access the server from DCD platform",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_LOCATION",
 			Name:   flagLocation,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagLocation),
 			Value:  defaultRegion,
 			Usage:  "Ionos Cloud Location",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_DISK_TYPE",
 			Name:   flagDiskType,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagDiskType),
 			Value:  defaultDiskType,
 			Usage:  "Ionos Cloud Volume Disk-Type (HDD, SSD)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_SERVER_TYPE",
 			Name:   flagServerType,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerType),
 			Value:  defaultServerType,
 			Usage:  "Ionos Cloud Server Type(ENTERPRISE or CUBE). CUBE servers are only available in certain locations.",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_TEMPLATE",
 			Name:   flagTemplate,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagTemplate),
 			Value:  defaultTemplate,
 			Usage:  "Ionos Cloud CUBE Template, only used for CUBE servers.",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_CPU_FAMILY",
 			Name:   flagServerCpuFamily,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerCpuFamily),
 			Value:  defaultCpuFamily,
 			Usage:  "Ionos Cloud Server CPU families (AMD_OPTERON, INTEL_XEON, INTEL_SKYLAKE)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_DATACENTER_ID",
 			Name:   flagDatacenterId,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagDatacenterId),
 			Usage:  "Ionos Cloud Virtual Data Center Id",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_DATACENTER_NAME",
 			Name:   flagDatacenterName,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagDatacenterName),
 			Value:  defaultDatacenterName,
 			Usage:  "Ionos Cloud Virtual Data Center Name",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_LAN_ID",
 			Name:   flagLanId,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagLanId),
 			Usage:  "Ionos Cloud LAN Id",
 		},
 		mcnflag.StringFlag{
@@ -249,30 +300,30 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud LAN Name",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_VOLUME_ZONE",
 			Name:   flagVolumeAvailabilityZone,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagVolumeAvailabilityZone),
 			Value:  defaultAvailabilityZone,
 			Usage:  "Ionos Cloud Volume Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_SERVER_ZONE",
 			Name:   flagServerAvailabilityZone,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerAvailabilityZone),
 			Value:  defaultAvailabilityZone,
 			Usage:  "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_USER_DATA",
 			Name:   flagUserData,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagUserData),
 			Usage:  "The cloud-init configuration for the volume as a multi-line string",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_USER_DATA_B64",
 			Name:   flagUserDataB64,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagUserDataB64),
 			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "IONOSCLOUD_SSH_USER",
 			Name:   flagSSHUser,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagSSHUser),
 			Value:  defaultSSHUser,
 			Usage:  "The name of the user the driver will use for ssh",
 		},
@@ -281,6 +332,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 
 // SetConfigFromFlags initializes driver values from the command line values.
 func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
+	d.CreateNat = opts.Bool(flagCreateNat)
+	d.NatName = opts.String(flagNatName)
+	d.NatId = opts.String(flagNatId)
+	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
+	d.NatLansToGateways = extflag.ToMapOfStringToStringSlice(opts.String(flagNatLansToGateways))
 	d.URL = opts.String(flagEndpoint)
 	d.Username = opts.String(flagUsername)
 	d.Password = opts.String(flagPassword)
@@ -304,6 +360,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.UserData = opts.String(flagUserData)
 	d.SSHUser = opts.String(flagSSHUser)
 	d.UserDataB64 = opts.String(flagUserDataB64)
+	d.PrivateLan = opts.Bool(flagPrivateLan)
 
 	d.SwarmMaster = opts.Bool("swarm-master")
 	d.SwarmHost = opts.String("swarm-host")
@@ -399,6 +456,7 @@ func (d *Driver) PreCreateCheck() error {
 				return fmt.Errorf("error getting LAN: %w", err)
 			}
 			log.Info("Creating machine under LAN " + *lan.GetId())
+			d.PrivateLan = !*lan.GetProperties().GetPublic()
 		}
 		dc, err := d.client().GetDatacenter(d.DatacenterId)
 		if err != nil {
@@ -419,6 +477,37 @@ func (d *Driver) PreCreateCheck() error {
 	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}
+
+	if d.NatId != "" && d.DatacenterId != "" {
+		nats, err := d.client().GetNats(d.DatacenterId)
+		if err != nil {
+			return err
+		}
+
+		foundNat := false
+		for _, nat := range *nats.Items {
+			if *nat.Properties.Name == d.NatName {
+				if foundNat {
+					return fmt.Errorf("multiple Nat Gateways with name %v found", d.NatName)
+				}
+				foundNat = true
+				if id, ok := nat.GetIdOk(); ok && id != nil {
+					d.NatId = *id
+				}
+			}
+		}
+	}
+
+	if d.NatId != "" && d.CreateNat {
+		return fmt.Errorf("trying to create a NAT while also found an existing NAT. Please set only one of: (%s | %s), or try a different NAT name",
+			flagNatId, flagCreateNat)
+	}
+
+	// d.PrivateLan is set above to false as a side effect if the LAN with the given ID is private. If concerns are separated in this func, be aware of this!
+	if !d.PrivateLan && (d.NatId != "" || d.CreateNat) {
+		return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable %s or provide a Private Lan ID for %s", flagPrivateLan, flagLanId)
+	}
+
 	return nil
 }
 
@@ -457,9 +546,7 @@ func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
 }
 
 // Create creates the machine.
-func (d *Driver) Create() error {
-	var err error
-	var isLanPrivate bool
+func (d *Driver) Create() (err error) {
 	log.Infof("Creating SSH key...")
 	if d.SSHKey == "" {
 		d.SSHKey, err = d.createSSHKey()
@@ -514,7 +601,7 @@ func (d *Driver) Create() error {
 	}
 
 	if d.LanId == "" {
-		lan, err := d.client().CreateLan(d.DatacenterId, d.LanName, true)
+		lan, err := d.client().CreateLan(d.DatacenterId, d.LanName, !d.PrivateLan)
 		if err != nil {
 			err = fmt.Errorf("error creating LAN: %w", err)
 			// TODO : export below to a func --->
@@ -544,19 +631,18 @@ func (d *Driver) Create() error {
 		return err
 	}
 
+	var isLanPrivate bool
 	if lanProp, ok := lan.GetPropertiesOk(); ok && lanProp != nil {
 		if public, ok := lanProp.GetPublicOk(); ok && public != nil {
 			isLanPrivate = !*public
 		}
 	}
 
-	server_to_create := sdkgo.Server{}
-
 	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
 	log.Infof("Using user data: %s", ud)
 
 	floatDiskSize := float32(d.DiskSize)
-	volume_properties := sdkgo.VolumeProperties{
+	volumeProperties := sdkgo.VolumeProperties{
 		Type:          &d.DiskType,
 		Name:          &d.MachineName,
 		ImagePassword: &d.ImagePassword,
@@ -566,52 +652,46 @@ func (d *Driver) Create() error {
 
 	if !d.UseAlias {
 		log.Infof("Image Id: %v", result)
-		volume_properties.Image = &result
+		volumeProperties.Image = &result
 	} else {
 		log.Infof("Image Alias: %v", alias)
-		volume_properties.ImageAlias = &alias
+		volumeProperties.ImageAlias = &alias
 	}
 
-	intRam := int32(d.Ram)
-	intCores := int32(d.Cores)
-
+	serverToCreate := sdkgo.Server{}
 	if d.ServerType == "ENTERPRISE" {
-		server_to_create.Properties = &sdkgo.ServerProperties{
+		serverToCreate.Properties = &sdkgo.ServerProperties{
 			Name:             &d.MachineName,
-			Ram:              &intRam,
-			Cores:            &intCores,
+			Ram:              pointer.From(int32(d.Ram)),
+			Cores:            pointer.From(int32(d.Cores)),
 			CpuFamily:        &d.CpuFamily,
 			AvailabilityZone: &d.ServerAvailabilityZone,
 		}
-
-		volume_properties.Size = &floatDiskSize
-		volume_properties.AvailabilityZone = &d.VolumeAvailabilityZone
+		volumeProperties.Size = &floatDiskSize
+		volumeProperties.AvailabilityZone = &d.VolumeAvailabilityZone
 	} else {
 		TemplateUuid, err := d.getCubeTemplateUuid()
-
 		if err != nil {
 			return fmt.Errorf("error getting CUBE Template UUID from Template %s: %w", d.Template, err)
 		}
-		server_to_create.Properties = &sdkgo.ServerProperties{
+		serverToCreate.Properties = &sdkgo.ServerProperties{
 			Name:         &d.MachineName,
 			Type:         &d.ServerType,
 			TemplateUuid: &TemplateUuid,
 		}
-
-		dasType := "DAS"
-
-		volume_properties.Type = &dasType
+		volumeProperties.Type = pointer.From("DAS")
 	}
 
-	volume := sdkgo.Volume{
-		Properties: &volume_properties,
+	attachedVolumes := sdkgo.NewAttachedVolumesWithDefaults()
+	attachedVolumes.Items = &[]sdkgo.Volume{
+		{
+			Properties: &volumeProperties,
+		},
 	}
-	attached_volumes := sdkgo.NewAttachedVolumesWithDefaults()
-	attached_volumes.Items = &[]sdkgo.Volume{volume}
-	server_to_create.Entities = sdkgo.NewServerEntitiesWithDefaults()
-	server_to_create.Entities.SetVolumes(*attached_volumes)
+	serverToCreate.Entities = sdkgo.NewServerEntitiesWithDefaults()
+	serverToCreate.Entities.SetVolumes(*attachedVolumes)
 
-	server, err := d.client().CreateServer(d.DatacenterId, server_to_create)
+	server, err := d.client().CreateServer(d.DatacenterId, serverToCreate)
 	if err != nil {
 		// TODO: Export to a func
 		log.Warn(rollingBackNotice)
@@ -629,16 +709,19 @@ func (d *Driver) Create() error {
 	if err != nil {
 		return fmt.Errorf("error getting server by id: %w", err)
 	}
-
 	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
-
 	log.Debugf("Volume ID: %v", d.VolumeId)
 
 	l, _ := strconv.Atoi(d.LanId)
 	ips := &[]string{}
 
-	if !isLanPrivate {
-		ipBlock, err := d.client().CreateIpBlock(int32(1), d.Location)
+	if !isLanPrivate || d.CreateNat {
+		ipsToReserve := 1 // for NIC
+		if d.CreateNat && d.NatPublicIps == nil {
+			ipsToReserve += 1 // for NAT
+		}
+		log.Debugf("Reserving %d ips", ipsToReserve)
+		ipBlock, err := d.client().CreateIpBlock(int32(ipsToReserve), d.Location)
 		if err != nil {
 			return fmt.Errorf("error creating ipblock: %w", err)
 		}
@@ -652,7 +735,11 @@ func (d *Driver) Create() error {
 		}
 	}
 
-	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(l), ips)
+	ipsForAttachedNic := ips
+	if d.PrivateLan {
+		ipsForAttachedNic = nil // Let CloudAPI generate an IP, which we can later use for the subnet
+	}
+	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(l), ipsForAttachedNic)
 	if err != nil {
 		// TODO: Duplicated
 		log.Warn(rollingBackNotice)
@@ -671,16 +758,37 @@ func (d *Driver) Create() error {
 		return fmt.Errorf("error getting NIC: %w", err)
 	}
 
+	nicIps := &[]string{}
 	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
-		if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
-			ips = nicIps
+		if nicIps, ok = nicProp.GetIpsOk(); ok && nicIps != nil {
 		}
 	}
+	if len(*nicIps) > 0 && !isLanPrivate {
+		d.IPAddress = (*nicIps)[0]
+		log.Infof(d.IPAddress)
+	}
 
-	if len(*ips) > 0 {
-		ipBlockIps := *ips
-		d.IPAddress = ipBlockIps[0]
-		log.Info(d.IPAddress)
+	// --- NAT ---
+	if d.CreateNat {
+		// TODO: Were CreateNat in a deeper scope, we wouldn't have the need of these variables (they are here to avoid function-wide side-effects)
+		natPublicIps := &[]string{(*ips)[1]}
+		natLansToGateways := &map[string][]string{"1": {"10.0.0.1"}} // User has to add this ip route to their cloud config if he doesn't set a custom gateway IP
+		if d.NatPublicIps != nil {
+			natPublicIps = &d.NatPublicIps
+		}
+		if d.NatLansToGateways != nil {
+			natLansToGateways = &d.NatLansToGateways
+		}
+		subnet := net.ParseIP((*nicIps)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
+		log.Infof("Provisioning NAT with subnet: %s", subnet)
+		nat, err := d.client().CreateNat(d.NatName, d.DatacenterId, *natPublicIps, *natLansToGateways, subnet)
+		if err != nil {
+			return err
+		}
+		log.Debugf("Nat ID: %s", *nat.Id)
+		d.NatId = *nat.Id // NatId is used later to retrieve public IP, etc.
+		d.IPAddress = (*natPublicIps)[0]
+		log.Infof(d.IPAddress)
 	}
 
 	return nil
@@ -736,10 +844,7 @@ func (d *Driver) Remove() error {
 		result = multierror.Append(result, fmt.Errorf("error deleting ipblock: %w", err))
 	}
 
-	if result != nil {
-		return result.ErrorOrNil()
-	}
-	return nil
+	return result.ErrorOrNil()
 }
 
 // Start issues a power on for the machine instance.
@@ -812,33 +917,15 @@ func (d *Driver) GetURL() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("tcp://%s:2376", ip), nil
+	return fmt.Sprintf("tcp://%s:2376", ip), nil // TODO: Perhaps we can allow customization of the Docker Port: https://github.com/rancher/machine/blob/master/drivers/azure/azure.go#L619
 }
 
 // GetIP returns public IP address or hostname of the machine instance.
 func (d *Driver) GetIP() (string, error) {
-	server, err := d.client().GetServer(d.DatacenterId, d.ServerId)
-	if err != nil {
-		return "", fmt.Errorf("error getting server by id: %w", err)
-	}
-
-	if serverEntities, ok := server.GetEntitiesOk(); ok && serverEntities != nil {
-		if serverEntitiesNic, ok := serverEntities.GetNicsOk(); ok && serverEntitiesNic != nil {
-			if serverEntitiesNicItems, ok := serverEntitiesNic.GetItemsOk(); ok && serverEntitiesNicItems != nil {
-				entitiesNicItems := *serverEntitiesNicItems
-				entityNic := entitiesNicItems[0]
-				if nicProp, ok := entityNic.GetPropertiesOk(); ok && nicProp != nil {
-					if nicIps, ok := nicProp.GetIpsOk(); ok && nicIps != nil {
-						entityNicIps := *nicIps
-						d.IPAddress = entityNicIps[0]
-					}
-				}
-			}
-		}
-	}
 	if d.IPAddress == "" {
 		return "", fmt.Errorf("IP address is not set")
 	}
+	log.Infof("Using IP %s to connect", d.IPAddress)
 	return d.IPAddress, nil
 }
 

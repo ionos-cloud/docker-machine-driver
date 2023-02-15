@@ -32,6 +32,12 @@ print-success:
 	@echo
 	@echo "To use it, either run 'make install' or set your PATH environment variable correctly."
 
+.PHONY: mock_update
+mock_update:
+	@echo "Update mock for tests"
+	@mockgen -source=internal/utils/client_service.go > internal/utils/mocks/ClientService.go
+	@echo "DONE"
+
 .PHONY: test
 test: test_unit
 
@@ -53,12 +59,6 @@ gofmt_update:
 	@gofmt -w ${GOFILES_NOVENDOR}
 	@echo "DONE"
 
-.PHONY: mock_update
-mock_update:
-	@echo "Update mock for tests"
-	@mockgen -source=internal/utils/client_service.go > internal/utils/mocks/ClientService.go
-	@echo "DONE"
-
 .PHONY: vendor_status
 vendor_status:
 	@govendor status
@@ -77,4 +77,8 @@ clean:
 
 .PHONY: upload
 upload: clean compile
+ifdef to_clip
+	./scripts/publish_image.py -c True
+else
 	./scripts/publish_image.py
+endif

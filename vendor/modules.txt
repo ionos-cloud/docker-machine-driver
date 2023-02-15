@@ -67,6 +67,9 @@ golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/terminal
+# golang.org/x/exp v0.0.0-20230118134722-a68e582fa157
+## explicit; go 1.18
+golang.org/x/exp/maps
 # golang.org/x/net v0.2.0
 ## explicit; go 1.17
 golang.org/x/net/context
@@ -123,6 +126,8 @@ google.golang.org/protobuf/reflect/protoregistry
 google.golang.org/protobuf/runtime/protoiface
 google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/types/descriptorpb
+# gopkg.in/yaml.v2 v2.4.0
+## explicit
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
