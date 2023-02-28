@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
-	"github.com/ionos-cloud/docker-machine-driver/pkg/extflag"
 	"io/ioutil"
 	"net"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
+	"github.com/ionos-cloud/docker-machine-driver/pkg/extflag"
 
 	"github.com/docker/machine/libmachine/drivers"
 	"github.com/docker/machine/libmachine/log"
@@ -42,6 +43,8 @@ const (
 	flagDatacenterId           = "ionoscloud-datacenter-id"
 	flagDatacenterName         = "ionoscloud-datacenter-name"
 	flagLanId                  = "ionoscloud-lan-id"
+	flagNicDhcp                = "ionoscloud-nic-dhcp"
+	flagNicIps                 = "ionoscloud-nic-ips"
 	flagLanName                = "ionoscloud-lan-name"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
@@ -102,6 +105,8 @@ type Driver struct {
 	Image                  string
 	ImagePassword          string
 	Size                   int
+	NicDhcp                bool
+	NicIps                 []string
 	Location               string
 	CpuFamily              string
 	ServerType             string
@@ -195,6 +200,16 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagPrivateLan,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagPrivateLan),
 			Usage:  "Should the created LAN be private? Does nothing if LAN ID is provided",
+		},
+		mcnflag.BoolFlag{
+			Name:   flagNicDhcp,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNicDhcp),
+			Usage:  "Should the created NIC have DHCP set to true or false? Defaults to true",
+		},
+		mcnflag.StringSliceFlag{
+			Name:   flagNicIps,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNicIps),
+			Usage:  "Ionos Cloud NIC IPs",
 		},
 		mcnflag.StringFlag{
 			Name:   flagEndpoint,
@@ -355,6 +370,8 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.DatacenterName = opts.String(flagDatacenterName)
 	d.LanId = opts.String(flagLanId)
 	d.LanName = opts.String(flagLanName)
+	d.NicDhcp = opts.Bool(flagNicDhcp)
+	d.NicIps = opts.StringSlice(flagNicIps)
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.UserData = opts.String(flagUserData)
@@ -556,19 +573,6 @@ func (d *Driver) Create() (err error) {
 		log.Debugf("SSH Key generated in file: %v", d.publicSSHKeyPath())
 	}
 
-	givenB64Userdata, _ := base64.StdEncoding.DecodeString(d.UserDataB64)
-	if ud := getPropertyWithFallback(string(givenB64Userdata), d.UserData, ""); ud != "" {
-		// Provided B64 User Data has priority over UI provided User Data
-		d.UserData = ud
-	}
-
-	if d.SSHUser != "root" {
-		d.UserData, err = d.addSSHUserToYaml()
-		if err != nil {
-			return err
-		}
-	}
-
 	result, err := d.getImageId(d.Image)
 	if err != nil {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
@@ -577,6 +581,8 @@ func (d *Driver) Create() (err error) {
 	if d.UseAlias {
 		alias = result
 	}
+
+	// Creating Data Center if one was not provided
 
 	var dc *sdkgo.Datacenter
 	if d.DatacenterId == "" {
@@ -599,6 +605,8 @@ func (d *Driver) Create() (err error) {
 		d.DatacenterId = *dcId
 		log.Debugf("Datacenter ID: %v", d.DatacenterId)
 	}
+
+	// Creating LAN if one was not provided
 
 	if d.LanId == "" {
 		lan, err := d.client().CreateLan(d.DatacenterId, d.LanName, !d.PrivateLan)
@@ -638,9 +646,25 @@ func (d *Driver) Create() (err error) {
 		}
 	}
 
+	// Creating the server with the volume attached
+
+	// User Data for cloud init
+	givenB64Userdata, _ := base64.StdEncoding.DecodeString(d.UserDataB64)
+	if ud := getPropertyWithFallback(string(givenB64Userdata), d.UserData, ""); ud != "" {
+		// Provided B64 User Data has priority over UI provided User Data
+		d.UserData = ud
+	}
+
+	if d.SSHUser != "root" {
+		d.UserData, err = d.addSSHUserToYaml()
+		if err != nil {
+			return err
+		}
+	}
 	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
 	log.Infof("Using user data: %s", ud)
 
+	// Volume
 	floatDiskSize := float32(d.DiskSize)
 	volumeProperties := sdkgo.VolumeProperties{
 		Type:          &d.DiskType,
@@ -712,16 +736,14 @@ func (d *Driver) Create() (err error) {
 	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
 	log.Debugf("Volume ID: %v", d.VolumeId)
 
-	l, _ := strconv.Atoi(d.LanId)
-	ips := &[]string{}
+	// Reserve IP if needed
 
-	if !isLanPrivate || d.CreateNat {
-		ipsToReserve := 1 // for NIC
-		if d.CreateNat && d.NatPublicIps == nil {
-			ipsToReserve += 1 // for NAT
-		}
-		log.Debugf("Reserving %d ips", ipsToReserve)
-		ipBlock, err := d.client().CreateIpBlock(int32(ipsToReserve), d.Location)
+	providedNicIps := len(d.NicIps) == 0
+	reservedIps := &[]string{}
+
+	if !isLanPrivate && !providedNicIps ||
+		d.CreateNat && d.NatPublicIps == nil {
+		ipBlock, err := d.client().CreateIpBlock(1, d.Location)
 		if err != nil {
 			return fmt.Errorf("error creating ipblock: %w", err)
 		}
@@ -729,17 +751,25 @@ func (d *Driver) Create() (err error) {
 			d.IpBlockId = *ipBlockId
 			log.Debugf("IpBlock ID: %v", d.IpBlockId)
 		}
-		ips, err = d.client().GetIpBlockIps(ipBlock)
+		reservedIps, err = d.client().GetIpBlockIps(ipBlock)
 		if err != nil {
 			return err
 		}
 	}
 
-	ipsForAttachedNic := ips
-	if d.PrivateLan {
+	// Create NIC
+	var ipsForAttachedNic *[]string
+
+	if providedNicIps {
+		ipsForAttachedNic = &d.NicIps // If IPs are provided use those
+	} else if isLanPrivate {
 		ipsForAttachedNic = nil // Let CloudAPI generate an IP, which we can later use for the subnet
+	} else {
+		ipsForAttachedNic = reservedIps // For public NICs we use the generated IPs
 	}
-	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(l), ipsForAttachedNic)
+
+	lanId, _ := strconv.Atoi(d.LanId)
+	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, d.NicDhcp, int32(lanId), ipsForAttachedNic)
 	if err != nil {
 		// TODO: Duplicated
 		log.Warn(rollingBackNotice)
@@ -760,8 +790,7 @@ func (d *Driver) Create() (err error) {
 
 	nicIps := &[]string{}
 	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
-		if nicIps, ok = nicProp.GetIpsOk(); ok && nicIps != nil {
-		}
+		nicIps = nicProp.GetIps()
 	}
 	if len(*nicIps) > 0 && !isLanPrivate {
 		d.IPAddress = (*nicIps)[0]
@@ -771,11 +800,11 @@ func (d *Driver) Create() (err error) {
 	// --- NAT ---
 	if d.CreateNat {
 		// TODO: Were CreateNat in a deeper scope, we wouldn't have the need of these variables (they are here to avoid function-wide side-effects)
-		natPublicIps := &[]string{(*ips)[1]}
-		natLansToGateways := &map[string][]string{"1": {"10.0.0.1"}} // User has to add this ip route to their cloud config if he doesn't set a custom gateway IP
+		natPublicIps := reservedIps
 		if d.NatPublicIps != nil {
 			natPublicIps = &d.NatPublicIps
 		}
+		natLansToGateways := &map[string][]string{"1": {"10.0.0.1"}} // User has to add this ip route to their cloud config if he doesn't set a custom gateway IP
 		if d.NatLansToGateways != nil {
 			natLansToGateways = &d.NatLansToGateways
 		}
