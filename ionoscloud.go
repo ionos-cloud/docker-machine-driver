@@ -235,7 +235,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.IntFlag{
 			Name:   flagServerCores,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerCores),
-			Value:  4,
+			Value:  2,
 			Usage:  "Ionos Cloud Server Cores (2, 3, 4, 5, 6, etc.)",
 		},
 		mcnflag.IntFlag{
@@ -738,7 +738,7 @@ func (d *Driver) Create() (err error) {
 
 	// Reserve IP if needed
 
-	providedNicIps := len(d.NicIps) == 0
+	providedNicIps := len(d.NicIps) != 0
 	reservedIps := &[]string{}
 
 	if !isLanPrivate && !providedNicIps ||
