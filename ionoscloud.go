@@ -810,7 +810,7 @@ func (d *Driver) Create() (err error) {
 		}
 		subnet := net.ParseIP((*nicIps)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
 		log.Infof("Provisioning NAT with subnet: %s", subnet)
-		nat, err := d.client().CreateNat(d.NatName, d.DatacenterId, *natPublicIps, *natLansToGateways, subnet)
+		nat, err := d.client().CreateNat(d.DatacenterId, d.NatName, *natPublicIps, *natLansToGateways, subnet)
 		if err != nil {
 			return err
 		}
