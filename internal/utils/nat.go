@@ -2,13 +2,14 @@ package utils
 
 import (
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/docker/machine/libmachine/log"
 	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 	"golang.org/x/exp/maps"
-	"strconv"
-	"time"
 )
 
 func (c *Client) GetNats(datacenterId string) (*sdkgo.NatGateways, error) {
@@ -69,7 +70,7 @@ func (nrm *NatRuleMaker) OpenPorts(protocol string, start int32, end int32) *Nat
 	return nrm
 }
 
-func (c *Client) CreateNat(name, datacenterId string, publicIps []string, lansToGateways map[string][]string, subnet string) (*sdkgo.NatGateway, error) {
+func (c *Client) CreateNat(datacenterId, name string, publicIps []string, lansToGateways map[string][]string, subnet string) (*sdkgo.NatGateway, error) {
 	var lans []sdkgo.NatGatewayLanProperties
 
 	err := c.createLansIfNotExist(datacenterId, maps.Keys(lansToGateways))
