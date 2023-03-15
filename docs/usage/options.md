@@ -41,8 +41,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-volume-availability-zone` | Ionos Cloud Volume Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\)                                                                                                                      |
 | `--ionoscloud-user-data`                | The cloud-init configuration for the volume as multiline text                                                                                                                                 |
 | `--ionoscloud-user-data-b64`            | The cloud-init configuration for the volume as base64 encoded string. Prioritized                                                                                                             |
-| `--ionoscloud-nic-dhcp`                 | Wether the created NIC should have DHCP set, defaults to false
-                                                                                 |
+| `--ionoscloud-nic-dhcp`                 | Wether the created NIC should have DHCP set, defaults to false |
 | `--ionoscloud-nic-ips`                  | The ips used for the nic, optional                                                                                                                                                            |
 | `--ionoscloud-nat-id`                   | Use an existing NAT via its ID                                                                                                                                                                |
 | `--ionoscloud-nat-name`                 | Use an existing NAT via its name                                                                                                                                                              |
