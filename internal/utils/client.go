@@ -3,10 +3,11 @@ package utils
 import (
 	"context"
 	"fmt"
-	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
-	"gopkg.in/yaml.v3"
 	"strings"
 	"time"
+
+	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
+	"gopkg.in/yaml.v3"
 
 	"github.com/docker/machine/libmachine/log"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
@@ -40,7 +41,7 @@ func New(ctx context.Context, name, password, token, url, httpUserAgent string) 
 	}
 }
 
-func (c *Client) UpdateCloudInitFile(cloudInitYAML string, key string, values []interface{}) (string, error) {
+func (c *Client) UpdateCloudInitFile(cloudInitYAML string, key string, values []interface{}, single_value bool) (string, error) {
 	var cf map[string]interface{}
 	cf = make(map[string]interface{})
 	if err := yaml.Unmarshal([]byte(cloudInitYAML), &cf); err != nil {
@@ -51,7 +52,11 @@ func (c *Client) UpdateCloudInitFile(cloudInitYAML string, key string, values []
 		u := val.([]interface{})
 		cf[key] = append(u, values...)
 	} else {
-		cf[key] = values
+		if single_value {
+			cf[key] = values[0]
+		} else {
+			cf[key] = values
+		}
 	}
 
 	newCf, err := yaml.Marshal(cf)

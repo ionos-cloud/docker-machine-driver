@@ -552,7 +552,7 @@ func (d *Driver) addSSHUserToYaml() (string, error) {
 		"ssh_authorized_keys": []string{d.SSHKey},
 	}
 
-	return d.client().UpdateCloudInitFile(d.UserData, "users", []interface{}{commonUser})
+	return d.client().UpdateCloudInitFile(d.UserData, "users", []interface{}{commonUser}, false)
 }
 
 func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
@@ -660,6 +660,10 @@ func (d *Driver) Create() (err error) {
 		if err != nil {
 			return err
 		}
+	}
+	d.UserData, err = d.client().UpdateCloudInitFile(d.UserData, "hostname", []interface{}{d.MachineName}, true)
+	if err != nil {
+		return err
 	}
 	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
 	log.Infof("Using user data: %s", ud)
