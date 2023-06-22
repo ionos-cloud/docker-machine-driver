@@ -3,10 +3,11 @@ package utils
 import (
 	"context"
 	"fmt"
-	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
-	"gopkg.in/yaml.v3"
 	"strings"
 	"time"
+
+	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
+	"gopkg.in/yaml.v3"
 
 	"github.com/docker/machine/libmachine/log"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
@@ -478,4 +479,46 @@ func (c *Client) waitTillProvisioned(path string) error {
 func getRequestId(path string) string {
 	str := strings.Split(path, "/")
 	return str[len(str)-2]
+}
+
+func (c *Client) WaitForNicIpChange(datacenterId, serverId, nicId string, timeout int) error {
+	nic, err := c.GetNic(datacenterId, serverId, nicId)
+	if err != nil {
+		return err
+	}
+
+	nicIps := &[]string{}
+	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
+		nicIps = nicProp.GetIps()
+	}
+	initialIp := ""
+	if len(*nicIps) > 0 {
+		initialIp = (*nicIps)[0]
+	}
+
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	start := time.Now()
+
+	for range ticker.C {
+		if time.Since(start) > time.Second*time.Duration(timeout+5) {
+			break
+		}
+		nic, err = c.GetNic(datacenterId, serverId, nicId)
+		if err != nil {
+			return err
+		}
+
+		nicIps := &[]string{}
+		if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
+			nicIps = nicProp.GetIps()
+		}
+
+		if len(*nicIps) > 0 {
+			if initialIp != (*nicIps)[0] {
+				return nil
+			}
+		}
+	}
+	return fmt.Errorf("Timeout waiting for NIC IP to change.")
 }
