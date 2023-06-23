@@ -41,16 +41,20 @@ func New(ctx context.Context, name, password, token, url, httpUserAgent string) 
 	}
 }
 
-func (c *Client) UpdateCloudInitFile(cloudInitYAML string, key string, values []interface{}, single_value bool) (string, error) {
+func (c *Client) UpdateCloudInitFile(
+	cloudInitYAML string, key string, values []interface{}, single_value bool, behaviour string,
+) (string, error) {
 	var cf map[string]interface{}
 	cf = make(map[string]interface{})
 	if err := yaml.Unmarshal([]byte(cloudInitYAML), &cf); err != nil {
 		return "", err
 	}
 
-	if val, ok := cf[key]; ok {
-		u := val.([]interface{})
-		cf[key] = append(u, values...)
+	if val, ok := cf[key]; ok && behaviour != "replace" {
+		if behaviour == "append" {
+			u := val.([]interface{})
+			cf[key] = append(u, values...)
+		}
 	} else {
 		if single_value {
 			cf[key] = values[0]
