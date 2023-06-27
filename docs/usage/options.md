@@ -49,6 +49,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-nat-public-ips`           | If --ionoscloud-create-nat is set, change the NAT's public IPs to these values                                                                                                                |
 | `--ionoscloud-nat-lans-to-gateways`     | If --ionoscloud-create-nat is set, change the NAT's mappings of LANs to Gateway IPs to these values. Must respect format `1=10.0.0.1,10.0.0.2:2=10.0.0.10`                                    |
 | `--ionoscloud-ssh-user`                 | The user to connect to via SSH                                                                                                                                                                |
+| `--ionoscloud-skip-ionos-ssh`                 | Should the driver set the ssh key when creating the volume?(only works for public images)                                                                                                                                                                |
 | `--swarm`                               | Configure Machine to join a Swarm cluster                                                                                                                                                     |
 | `--swarm-addr`                          | addr to advertise for Swarm \(default: detect and use the machine IP\)                                                                                                                        |
 | `--swarm-discovery`                     | Discovery service to use with Swarm                                                                                                                                                           |
@@ -96,7 +97,7 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-volume-availability-zone` | `IONOSCLOUD_VOLUME_ZONE`          |
 | `--ionoscloud-user-data`                | `IONOSCLOUD_USER_DATA`            |
 | `--ionoscloud-user-data-b64`            | `IONOSCLOUD_USER_DATA_B64`        |
-| `--ionoscloud-nic-dhcp`                  | `IONOSCLOUD_NIC_DHCP`             |
+| `--ionoscloud-nic-dhcp`                 | `IONOSCLOUD_NIC_DHCP`             |
 | `--ionoscloud-nic-ips`                  | `IONOSCLOUD_NIC_IPS`              |
 | `--ionoscloud-create-nat`               | `IONOSCLOUD_CREATE_NAT`           |
 | `--ionoscloud-nat-name`                 | `IONOSCLOUD_NAT_NAME`             |
@@ -104,3 +105,4 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-nat-lans-to-gateways`     | `IONOSCLOUD_NAT_LANS_TO_GATEWAYS` |
 | `--ionoscloud-private-lan`              | `IONOSCLOUD_PRIVATE_LAN`          |
 | `--ionoscloud-ssh-user`                 | `IONOSCLOUD_SSH_USER`             |
+| `--ionoscloud-skip-ionos-ssh`           | `IONOSCLOUD_SKIP_IONOS_SSH`       |
