@@ -64,7 +64,7 @@ const (
 const (
 	defaultRegion           = "us/las"
 	defaultImageAlias       = "ubuntu:20.04"
-	defaultImagePassword    = "abcde12345" // Must contain both letters and numbers, at least 8 characters
+	defaultImagePassword    = "" // Must contain both letters and numbers, at least 8 characters
 	defaultCpuFamily        = "AMD_OPTERON"
 	defaultAvailabilityZone = "AUTO"
 	defaultDiskType         = "HDD"
@@ -347,7 +347,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.BoolFlag{
 			Name:   flagSkipIonosSSH,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagSkipIonosSSH),
-			Usage:  "Should the driver set the ssh key when creating the volume?(only works for public images)",
+			Usage:  "Should the driver skip sending ssh key when creating the volume? (it will be added in the user data instead)",
 		},
 	}
 }
@@ -677,11 +677,16 @@ func (d *Driver) Create() (err error) {
 	if !d.SkipIonosSSH {
 		sshKeys = &[]string{d.SSHKey}
 	}
+	imagePassword := &d.ImagePassword
+	if d.ImagePassword == "" {
+		imagePassword = nil
+	}
 	floatDiskSize := float32(d.DiskSize)
+
 	volumeProperties := sdkgo.VolumeProperties{
 		Type:          &d.DiskType,
 		Name:          &d.MachineName,
-		ImagePassword: &d.ImagePassword,
+		ImagePassword: imagePassword,
 		SshKeys:       sshKeys,
 		UserData:      &ud,
 	}
