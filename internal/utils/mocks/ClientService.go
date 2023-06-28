@@ -489,3 +489,17 @@ func (mr *MockClientServiceMockRecorder) UpdateCloudInitFile(cloudInitYAML, key,
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCloudInitFile", reflect.TypeOf((*MockClientService)(nil).UpdateCloudInitFile), cloudInitYAML, key, value)
 }
+
+// WaitForNicIpChange mocks base method.
+func (m *MockClientService) WaitForNicIpChange(datacenterId, ServerId, NicId string, timeout int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WaitForNicIpChange", datacenterId, ServerId, NicId, timeout)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WaitForNicIpChange indicates an expected call of WaitForNicIpChange.
+func (mr *MockClientServiceMockRecorder) WaitForNicIpChange(datacenterId, ServerId, NicId, timeout interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WaitForNicIpChange", reflect.TypeOf((*MockClientService)(nil).WaitForNicIpChange), datacenterId, ServerId, NicId, timeout)
+}
