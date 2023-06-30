@@ -51,6 +51,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-nat-public-ips`           | If --ionoscloud-create-nat is set, change the NAT's public IPs to these values                                                                                                                |
 | `--ionoscloud-nat-lans-to-gateways`     | If --ionoscloud-create-nat is set, change the NAT's mappings of LANs to Gateway IPs to these values. Must respect format `1=10.0.0.1,10.0.0.2:2=10.0.0.10`                                    |
 | `--ionoscloud-ssh-user`                 | The user to connect to via SSH                                                                                                                                                                |
+| `--ionoscloud-ssh-in-user-data`                 | Should the driver only add the SSH info in the user data? (required for custom images)                                                                                                                                                                |
 | `--swarm`                               | Configure Machine to join a Swarm cluster                                                                                                                                                     |
 | `--swarm-addr`                          | addr to advertise for Swarm \(default: detect and use the machine IP\)                                                                                                                        |
 | `--swarm-discovery`                     | Discovery service to use with Swarm                                                                                                                                                           |
@@ -108,3 +109,4 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-nat-lans-to-gateways`      | `IONOSCLOUD_NAT_LANS_TO_GATEWAYS`      |
 | `--ionoscloud-private-lan`               | `IONOSCLOUD_PRIVATE_LAN`               |
 | `--ionoscloud-ssh-user`                  | `IONOSCLOUD_SSH_USER`                  |
+| `--ionoscloud-ssh-in-user-data`          | `IONOSCLOUD_SSH_IN_USER_DATA`          |

@@ -48,6 +48,7 @@ const (
 	flagLanName                = "ionoscloud-lan-name"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
+	flagSSHInUserData          = "ionoscloud-ssh-in-user-data"
 	flagSSHUser                = "ionoscloud-ssh-user"
 	flagUserDataB64            = "ionoscloud-user-data-b64"
 	flagWaitForIpChange        = "ionoscloud-wait-for-ip-change"
@@ -135,6 +136,7 @@ type Driver struct {
 	NatPublicIps           []string
 	NatLansToGateways      map[string][]string
 	PrivateLan             bool
+	SSHInUSerData          bool
 	WaitForIpChange        bool
 	WaitForIpChangeTimeout int
 
@@ -220,7 +222,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.BoolFlag{
 			Name:   flagNicDhcp,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNicDhcp),
-			Usage:  "Should the created NIC have DHCP set to true or false? Defaults to true",
+			Usage:  "Should the created NIC have DHCP set to true or false?",
 		},
 		mcnflag.StringSliceFlag{
 			Name:   flagNicIps,
@@ -358,6 +360,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Value:  defaultSSHUser,
 			Usage:  "The name of the user the driver will use for ssh",
 		},
+		mcnflag.BoolFlag{
+			Name:   flagSSHInUserData,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagSSHInUserData),
+			Usage:  "Should the driver only add the SSH info in the user data? (required for custom images)",
+		},
 	}
 }
 
@@ -394,6 +401,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.UserData = opts.String(flagUserData)
 	d.SSHUser = opts.String(flagSSHUser)
+	d.SSHInUSerData = opts.Bool(flagSSHInUserData)
 	d.UserDataB64 = opts.String(flagUserDataB64)
 	d.PrivateLan = opts.Bool(flagPrivateLan)
 
@@ -673,7 +681,7 @@ func (d *Driver) Create() (err error) {
 		d.UserData = ud
 	}
 
-	if d.SSHUser != "root" {
+	if d.SSHUser != "root" || d.SSHInUSerData {
 		d.UserData, err = d.addSSHUserToYaml()
 		if err != nil {
 			return err
@@ -689,12 +697,21 @@ func (d *Driver) Create() (err error) {
 	log.Infof("Using user data: %s", ud)
 
 	// Volume
+	sshKeys := &[]string{}
+	if !d.SSHInUSerData {
+		sshKeys = &[]string{d.SSHKey}
+	}
+	imagePassword := &d.ImagePassword
+	if d.ImagePassword == "" {
+		imagePassword = nil
+	}
 	floatDiskSize := float32(d.DiskSize)
+
 	volumeProperties := sdkgo.VolumeProperties{
 		Type:          &d.DiskType,
 		Name:          &d.MachineName,
-		ImagePassword: &d.ImagePassword,
-		SshKeys:       &[]string{d.SSHKey},
+		ImagePassword: imagePassword,
+		SshKeys:       sshKeys,
 		UserData:      &ud,
 	}
 
