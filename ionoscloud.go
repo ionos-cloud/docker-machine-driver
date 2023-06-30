@@ -48,7 +48,7 @@ const (
 	flagLanName                = "ionoscloud-lan-name"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagUserData               = "ionoscloud-user-data"
-	flagSkipIonosSSH           = "ionoscloud-skip-ionos-ssh"
+	flagSSHInUserData          = "ionoscloud-ssh-in-user-data"
 	flagSSHUser                = "ionoscloud-ssh-user"
 	flagUserDataB64            = "ionoscloud-user-data-b64"
 	// NAT Gatway flags
@@ -133,7 +133,7 @@ type Driver struct {
 	NatPublicIps           []string
 	NatLansToGateways      map[string][]string
 	PrivateLan             bool
-	SkipIonosSSH           bool
+	SSHInUSerData          bool
 
 	// Driver Version
 	Version string
@@ -345,9 +345,9 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "The name of the user the driver will use for ssh",
 		},
 		mcnflag.BoolFlag{
-			Name:   flagSkipIonosSSH,
-			EnvVar: extflag.KebabCaseToEnvVarCase(flagSkipIonosSSH),
-			Usage:  "Should the driver skip sending ssh key when creating the volume? (it will be added in the user data instead)",
+			Name:   flagSSHInUserData,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagSSHInUserData),
+			Usage:  "Should the driver only add the SSH info in the user data? (required for custom images)",
 		},
 	}
 }
@@ -383,7 +383,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.UserData = opts.String(flagUserData)
 	d.SSHUser = opts.String(flagSSHUser)
-	d.SkipIonosSSH = opts.Bool(flagSkipIonosSSH)
+	d.SSHInUSerData = opts.Bool(flagSSHInUserData)
 	d.UserDataB64 = opts.String(flagUserDataB64)
 	d.PrivateLan = opts.Bool(flagPrivateLan)
 
@@ -663,7 +663,7 @@ func (d *Driver) Create() (err error) {
 		d.UserData = ud
 	}
 
-	if d.SSHUser != "root" || d.SkipIonosSSH {
+	if d.SSHUser != "root" || d.SSHInUSerData {
 		d.UserData, err = d.addSSHUserToYaml()
 		if err != nil {
 			return err
@@ -674,7 +674,7 @@ func (d *Driver) Create() (err error) {
 
 	// Volume
 	sshKeys := &[]string{}
-	if !d.SkipIonosSSH {
+	if !d.SSHInUSerData {
 		sshKeys = &[]string{d.SSHKey}
 	}
 	imagePassword := &d.ImagePassword
