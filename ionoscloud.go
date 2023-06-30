@@ -51,6 +51,8 @@ const (
 	flagSSHInUserData          = "ionoscloud-ssh-in-user-data"
 	flagSSHUser                = "ionoscloud-ssh-user"
 	flagUserDataB64            = "ionoscloud-user-data-b64"
+	flagWaitForIpChange        = "ionoscloud-wait-for-ip-change"
+	flagWaitForIpChangeTimeout = "ionoscloud-wait-for-ip-change-timeout"
 	// NAT Gatway flags
 	flagNatId             = "ionoscloud-nat-id"
 	flagNatName           = "ionoscloud-nat-name"
@@ -62,20 +64,21 @@ const (
 )
 
 const (
-	defaultRegion           = "us/las"
-	defaultImageAlias       = "ubuntu:20.04"
-	defaultImagePassword    = "" // Must contain both letters and numbers, at least 8 characters
-	defaultCpuFamily        = "AMD_OPTERON"
-	defaultAvailabilityZone = "AUTO"
-	defaultDiskType         = "HDD"
-	defaultServerType       = "ENTERPRISE"
-	defaultTemplate         = "CUBES XS"
-	defaultSSHUser          = "root"
-	defaultDatacenterName   = "docker-machine-data-center"
-	defaultLanName          = "docker-machine-lan"
-	defaultNatName          = "docker-machine-nat"
-	defaultSize             = 10
-	driverName              = "ionoscloud"
+	defaultRegion                 = "us/las"
+	defaultImageAlias             = "ubuntu:20.04"
+	defaultImagePassword          = "abcde12345" // Must contain both letters and numbers, at least 8 characters
+	defaultCpuFamily              = "AMD_OPTERON"
+	defaultAvailabilityZone       = "AUTO"
+	defaultDiskType               = "HDD"
+	defaultServerType             = "ENTERPRISE"
+	defaultTemplate               = "CUBES XS"
+	defaultSSHUser                = "root"
+	defaultDatacenterName         = "docker-machine-data-center"
+	defaultLanName                = "docker-machine-lan"
+	defaultNatName                = "docker-machine-nat"
+	defaultSize                   = 10
+	defaultWaitForIpChangeTimeout = 600
+	driverName                    = "ionoscloud"
 )
 
 const (
@@ -134,6 +137,8 @@ type Driver struct {
 	NatLansToGateways      map[string][]string
 	PrivateLan             bool
 	SSHInUSerData          bool
+	WaitForIpChange        bool
+	WaitForIpChangeTimeout int
 
 	// Driver Version
 	Version string
@@ -202,6 +207,17 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagPrivateLan,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagPrivateLan),
 			Usage:  "Should the created LAN be private? Does nothing if LAN ID is provided",
+		},
+		mcnflag.BoolFlag{
+			Name:   flagWaitForIpChange,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagWaitForIpChange),
+			Usage:  "Should the driver wait for the NIC IP to be set by external sources?",
+		},
+		mcnflag.IntFlag{
+			Name:   flagWaitForIpChangeTimeout,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagWaitForIpChangeTimeout),
+			Value:  defaultWaitForIpChangeTimeout,
+			Usage:  "Timeout used when waiting for NIC IP changes",
 		},
 		mcnflag.BoolFlag{
 			Name:   flagNicDhcp,
@@ -378,6 +394,8 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.LanId = opts.String(flagLanId)
 	d.LanName = opts.String(flagLanName)
 	d.NicDhcp = opts.Bool(flagNicDhcp)
+	d.WaitForIpChange = opts.Bool(flagWaitForIpChange)
+	d.WaitForIpChangeTimeout = opts.Int(flagWaitForIpChangeTimeout)
 	d.NicIps = opts.StringSlice(flagNicIps)
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
@@ -560,7 +578,7 @@ func (d *Driver) addSSHUserToYaml() (string, error) {
 		"ssh_authorized_keys": []string{d.SSHKey},
 	}
 
-	return d.client().UpdateCloudInitFile(d.UserData, "users", []interface{}{commonUser})
+	return d.client().UpdateCloudInitFile(d.UserData, "users", []interface{}{commonUser}, false, "append")
 }
 
 func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
@@ -668,6 +686,12 @@ func (d *Driver) Create() (err error) {
 		if err != nil {
 			return err
 		}
+	}
+	d.UserData, err = d.client().UpdateCloudInitFile(
+		d.UserData, "hostname", []interface{}{d.MachineName}, true, "skip",
+	)
+	if err != nil {
+		return err
 	}
 	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
 	log.Infof("Using user data: %s", ud)
@@ -798,6 +822,13 @@ func (d *Driver) Create() (err error) {
 	if nicId, ok := nic.GetIdOk(); ok && nicId != nil {
 		d.NicId = *nic.Id
 		log.Debugf("Nic ID: %v", d.NicId)
+	}
+
+	if d.WaitForIpChange {
+		err := d.client().WaitForNicIpChange(d.DatacenterId, d.ServerId, d.NicId, d.WaitForIpChangeTimeout)
+		if err != nil {
+			return err
+		}
 	}
 
 	nic, err = d.client().GetNic(d.DatacenterId, d.ServerId, d.NicId)

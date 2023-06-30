@@ -104,7 +104,7 @@ key:
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			c := &Client{}
-			yamlStr, err := c.UpdateCloudInitFile(test.cloudInitYAML, test.key, test.values)
+			yamlStr, err := c.UpdateCloudInitFile(test.cloudInitYAML, test.key, test.values, false, "append")
 			if !test.wantErr && err != nil {
 				t.Errorf("Did not expect error: %v", err)
 			}

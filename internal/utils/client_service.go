@@ -3,7 +3,7 @@ package utils
 import ionoscloud "github.com/ionos-cloud/sdk-go/v6"
 
 type ClientService interface {
-	UpdateCloudInitFile(cloudInitYAML string, key string, value []interface{}) (string, error)
+	UpdateCloudInitFile(cloudInitYAML string, key string, value []interface{}, single_value bool, behaviour string) (string, error)
 	CreateIpBlock(size int32, location string) (*ionoscloud.IpBlock, error)
 	GetIpBlockIps(ipBlock *ionoscloud.IpBlock) (*[]string, error)
 	RemoveIpBlock(ipBlockId string) error
@@ -36,4 +36,5 @@ type ClientService interface {
 	GetLocationById(regionId, locationId string) (*ionoscloud.Location, error)
 	GetImages() (*ionoscloud.Images, error)
 	GetImageById(imageId string) (*ionoscloud.Image, error)
+	WaitForNicIpChange(datacenterId, ServerId, NicId string, timeout int) error
 }
