@@ -36,4 +36,5 @@ type ClientService interface {
 	GetLocationById(regionId, locationId string) (*ionoscloud.Location, error)
 	GetImages() (*ionoscloud.Images, error)
 	GetImageById(imageId string) (*ionoscloud.Image, error)
+	WaitForNicIpChange(datacenterId, ServerId, NicId string, timeout int) error
 }

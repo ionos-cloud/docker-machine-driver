@@ -488,3 +488,45 @@ func getRequestId(path string) string {
 	str := strings.Split(path, "/")
 	return str[len(str)-2]
 }
+
+func (c *Client) WaitForNicIpChange(datacenterId, serverId, nicId string, timeout int) error {
+	nic, err := c.GetNic(datacenterId, serverId, nicId)
+	if err != nil {
+		return err
+	}
+
+	nicIps := &[]string{}
+	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
+		nicIps = nicProp.GetIps()
+	}
+	initialIp := ""
+	if len(*nicIps) > 0 {
+		initialIp = (*nicIps)[0]
+	}
+
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	start := time.Now()
+
+	for range ticker.C {
+		if time.Since(start) > time.Second*time.Duration(timeout+5) {
+			break
+		}
+		nic, err = c.GetNic(datacenterId, serverId, nicId)
+		if err != nil {
+			return err
+		}
+
+		nicIps := &[]string{}
+		if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
+			nicIps = nicProp.GetIps()
+		}
+
+		if len(*nicIps) > 0 {
+			if initialIp != (*nicIps)[0] {
+				return nil
+			}
+		}
+	}
+	return fmt.Errorf("Timeout waiting for NIC IP to change.")
+}
