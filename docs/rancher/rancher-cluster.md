@@ -40,7 +40,7 @@ docker logs -f container-id
 
 After logging into Rancher UI, follow the next steps in order to install a cluster with IONOS Cloud as cloud provider, using IONOS Cloud Docker Machine Driver:
 
-### v2.5.x
+### RKE1
 
 #### Adding the Node Driver
 
@@ -67,30 +67,59 @@ After logging into Rancher UI, follow the next steps in order to install a clust
   * Click on `Create` button
   * Wait for cluster to become `Active` \(it will take some minutes\).
   
-### v2.6.x
+### RKE2
 
 This version is under development, and it is not currently stable with the use of IONOS Cloud Docker Machine Driver. We recommend v2.5.x versions for the moment.
 
 * Install Node Driver
-  * Go to Cluster Management ➜ Drivers ➜ Node Drivers
-  * Click on `Add Node Driver` button
-  * Enter the URLs `Create`
-    * Download URL: https://github.com/ionos-cloud/docker-machine-driver/releases/download/v<version>/docker-machine-driver-<version>-linux-amd64.tar.gz
+  * connect to the machine running rancher
+  * create a yaml file containing the following information:
+  ```yaml
+  apiVersion: management.cattle.io/v3
+  kind: NodeDriver
+  metadata:
+    annotations:
+      lifecycle.cattle.io/create.node-driver-controller: "true"
+      privateCredentialFields: "token,username,password,endpoint"
+    name: ionoscloud 
+  spec:
+    active: false
+    addCloudCredential: false
+    builtin: false
+    checksum: ""
+    description: ""
+    displayName: ionoscloud
+    externalId: ""
+    uiUrl: ""
+    url: <IONOS_DRIVER_URL>
+    ```
+  * create the driver resource using
+  ```
+  kubectl create -f <FILE>
+  ```
+
+  * you can also add the old UI if you want to use RKE1
+    * Go to Tools ➜ Drivers ➜ Node Drivers
+    * Edit the Ionoscloud driver
     * Custom UI URL:  https://cdn.jsdelivr.net/gh/ionos-cloud/ui-driver-ionoscloud@main/releases/v<UI_version|latest>/component.js
     * Whitelist Domains: cdn.jsdelivr.net
   * Wait fot the machine driver to be downloaded and become `Active`
-* Create Node Template
-  * Go to Cluster Management ➜ RKE1 Configuration ➜ Node Templates
-  * Click on `Add Template` button
-  * At this point, `Ionoscloud` should be on the list of `Available Hosts`. Select `Ionoscloud`
-  * Configure the `IONOSCLOUD OPTIONS` as you prefer and add also your credentials for IONOS Cloud account
-  * Give a name to the new Node Template and press `Create` button
+  * Add the ionoscloud ui extension from https://github.com/ionos-cloud/ui-extensions-ionoscloud
+    * Go to Cluster Management ➜ Advanced ➜ Repositories
+    * Click on `Create` button
+    * Select Git repository as target
+    * Git Repo URL: https://github.com/ionos-cloud/ui-extensions-ionoscloud
+    * Git Branch: gh-pages
+
+* Create Cloud Credential
+  * Go to Cluster Management ➜ Cloud Credentials
+  * Click on `Create` button
+  * At this point, `Ionoscloud` should be on the list. Select `Ionoscloud`
 * Create New Rancher Cluster
   * Go to Cluster Management ➜ Clusters
   * Click on `Create` button
-  * In the `Create a new Kubernetes cluster` section, select `Ionoscloud`
-  * Choose the name of the new cluster, the name prefix of the node and make sure you have the Node Template you just created, in the `Template` section
-  * Customize your cluster: Single Node \(by selecting all etcd, Control Plane and Worker\) or Multiple Nodes
+  * In the `Create` section, select `Ionoscloud`
+  * Customize your cluster
   * Click on `Create` button
   * Wait for cluster to become `Active` \(it will take some minutes\).
   
