@@ -1,5 +1,13 @@
 # Changelog
 
+## \[7.0.0-rc.1\]
+### Changed
+* renamed:
+  * `user-data` to `cloud-init`
+  * `user-data-b64` to `cloud-init-b64`
+  * `ssh-in-user-data` to `ssh-in-cloud-init`
+
+
 ## \[6.1.3\]
 ### Added
 - Added `ionoscloud-nic-dhcp` and  `ionoscloud-nic-ips` which allow to change the properties of the NIC which will be created
