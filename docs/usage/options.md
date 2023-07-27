@@ -39,8 +39,8 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-cpu-family`               | Ionos Cloud Server CPU families \(AMD\_OPTERON,INTEL\_XEON, INTEL\_SKYLAKE\)                                                                                                                  |
 | `--ionoscloud-ram`                      | Ionos Cloud Server Ram in MB \(1024, 2048, 3072, 4096, etc.\)                                                                                                                                 |
 | `--ionoscloud-volume-availability-zone` | Ionos Cloud Volume Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\)                                                                                                                      |
-| `--ionoscloud-user-data`                | The cloud-init configuration for the volume as multiline text                                                                                                                                 |
-| `--ionoscloud-user-data-b64`            | The cloud-init configuration for the volume as base64 encoded string. Prioritized                                                                                                             |
+| `--ionoscloud-cloud-init`               | The cloud-init configuration for the volume as multiline text                                                                                                                                 |
+| `--ionoscloud-cloud-init-b64`           | The cloud-init configuration for the volume as base64 encoded string. Prioritized                                                                                                             |
 | `--ionoscloud-nic-dhcp`                 | Wether the created NIC should have DHCP set, defaults to false |
 | `--ionoscloud-nic-ips`                  | The ips used for the nic                                                                                                                                                           |
 | `--ionoscloud-wait-for-ip-change`                  | Should the driver wait for the NIC IP to be set by external sources?                                                                                                                                                           |
@@ -51,7 +51,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-nat-public-ips`           | If --ionoscloud-create-nat is set, change the NAT's public IPs to these values                                                                                                                |
 | `--ionoscloud-nat-lans-to-gateways`     | If --ionoscloud-create-nat is set, change the NAT's mappings of LANs to Gateway IPs to these values. Must respect format `1=10.0.0.1,10.0.0.2:2=10.0.0.10`                                    |
 | `--ionoscloud-ssh-user`                 | The user to connect to via SSH                                                                                                                                                                |
-| `--ionoscloud-ssh-in-user-data`                 | Should the driver only add the SSH info in the user data? (required for custom images)                                                                                                                                                                |
+| `--ionoscloud-ssh-in-cloud-init`        | Should the driver only add the SSH info in the user data? (required for custom images)                                                                                                                                                                |
 | `--swarm`                               | Configure Machine to join a Swarm cluster                                                                                                                                                     |
 | `--swarm-addr`                          | addr to advertise for Swarm \(default: detect and use the machine IP\)                                                                                                                        |
 | `--swarm-discovery`                     | Discovery service to use with Swarm                                                                                                                                                           |
@@ -97,8 +97,8 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-cpu-family`                | `IONOSCLOUD_CPU_FAMILY`                |
 | `--ionoscloud-ram`                       | `IONOSCLOUD_RAM`                       |
 | `--ionoscloud-volume-availability-zone`  | `IONOSCLOUD_VOLUME_AVAILABILITY_ZONE`  |
-| `--ionoscloud-user-data`                 | `IONOSCLOUD_USER_DATA`                 |
-| `--ionoscloud-user-data-b64`             | `IONOSCLOUD_USER_DATA_B64`             |
+| `--ionoscloud-cloud-init`                | `IONOSCLOUD_CLOUD_INIT`                |
+| `--ionoscloud-cloud-init-b64`            | `IONOSCLOUD_CLOUD_INIT_B64`            |
 | `--ionoscloud-nic-dhcp`                  | `IONOSCLOUD_NIC_DHCP`                  |
 | `--ionoscloud-nic-ips`                   | `IONOSCLOUD_NIC_IPS`                   |
 | `--ionoscloud-wait-for-ip-change`        | `IONOSCLOUD_WAIT_FOR_IP_CHANGE`        |
@@ -109,4 +109,4 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-nat-lans-to-gateways`      | `IONOSCLOUD_NAT_LANS_TO_GATEWAYS`      |
 | `--ionoscloud-private-lan`               | `IONOSCLOUD_PRIVATE_LAN`               |
 | `--ionoscloud-ssh-user`                  | `IONOSCLOUD_SSH_USER`                  |
-| `--ionoscloud-ssh-in-user-data`          | `IONOSCLOUD_SSH_IN_USER_DATA`          |
+| `--ionoscloud-ssh-in-cloud-init`         | `IONOSCLOUD_SSH_IN_CLOUD_INIT`         |

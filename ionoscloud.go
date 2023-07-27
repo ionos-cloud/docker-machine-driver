@@ -47,10 +47,10 @@ const (
 	flagNicIps                 = "ionoscloud-nic-ips"
 	flagLanName                = "ionoscloud-lan-name"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
-	flagUserData               = "ionoscloud-user-data"
-	flagSSHInUserData          = "ionoscloud-ssh-in-user-data"
+	flagCloudInit              = "ionoscloud-cloud-init"
+	flagSSHInCloudInit         = "ionoscloud-ssh-in-cloud-init"
 	flagSSHUser                = "ionoscloud-ssh-user"
-	flagUserDataB64            = "ionoscloud-user-data-b64"
+	flagCloudInitB64           = "ionoscloud-cloud-init-b64"
 	flagWaitForIpChange        = "ionoscloud-wait-for-ip-change"
 	flagWaitForIpChangeTimeout = "ionoscloud-wait-for-ip-change-timeout"
 	// NAT Gatway flags
@@ -131,12 +131,12 @@ type Driver struct {
 	CreateNat              bool
 	NatName                string
 	NatId                  string
-	UserData               string
-	UserDataB64            string
+	CloudInit              string
+	CloudInitB64           string
 	NatPublicIps           []string
 	NatLansToGateways      map[string][]string
 	PrivateLan             bool
-	SSHInUSerData          bool
+	SSHInCloudInit         bool
 	WaitForIpChange        bool
 	WaitForIpChangeTimeout int
 
@@ -345,13 +345,13 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
 		},
 		mcnflag.StringFlag{
-			Name:   flagUserData,
-			EnvVar: extflag.KebabCaseToEnvVarCase(flagUserData),
+			Name:   flagCloudInit,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagCloudInit),
 			Usage:  "The cloud-init configuration for the volume as a multi-line string",
 		},
 		mcnflag.StringFlag{
-			Name:   flagUserDataB64,
-			EnvVar: extflag.KebabCaseToEnvVarCase(flagUserDataB64),
+			Name:   flagCloudInitB64,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagCloudInitB64),
 			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
 		mcnflag.StringFlag{
@@ -361,8 +361,8 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "The name of the user the driver will use for ssh",
 		},
 		mcnflag.BoolFlag{
-			Name:   flagSSHInUserData,
-			EnvVar: extflag.KebabCaseToEnvVarCase(flagSSHInUserData),
+			Name:   flagSSHInCloudInit,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagSSHInCloudInit),
 			Usage:  "Should the driver only add the SSH info in the user data? (required for custom images)",
 		},
 	}
@@ -399,10 +399,10 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.NicIps = opts.StringSlice(flagNicIps)
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
-	d.UserData = opts.String(flagUserData)
+	d.CloudInit = opts.String(flagCloudInit)
 	d.SSHUser = opts.String(flagSSHUser)
-	d.SSHInUSerData = opts.Bool(flagSSHInUserData)
-	d.UserDataB64 = opts.String(flagUserDataB64)
+	d.SSHInCloudInit = opts.Bool(flagSSHInCloudInit)
+	d.CloudInitB64 = opts.String(flagCloudInitB64)
 	d.PrivateLan = opts.Bool(flagPrivateLan)
 
 	d.SwarmMaster = opts.Bool("swarm-master")
@@ -578,7 +578,7 @@ func (d *Driver) addSSHUserToYaml() (string, error) {
 		"ssh_authorized_keys": []string{d.SSHKey},
 	}
 
-	return d.client().UpdateCloudInitFile(d.UserData, "users", []interface{}{commonUser}, false, "append")
+	return d.client().UpdateCloudInitFile(d.CloudInit, "users", []interface{}{commonUser}, false, "append")
 }
 
 func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
@@ -675,30 +675,29 @@ func (d *Driver) Create() (err error) {
 	// Creating the server with the volume attached
 
 	// User Data for cloud init
-	givenB64Userdata, _ := base64.StdEncoding.DecodeString(d.UserDataB64)
-	if ud := getPropertyWithFallback(string(givenB64Userdata), d.UserData, ""); ud != "" {
+	givenB64CloudInit, _ := base64.StdEncoding.DecodeString(d.CloudInitB64)
+	if ud := getPropertyWithFallback(string(givenB64CloudInit), d.CloudInit, ""); ud != "" {
 		// Provided B64 User Data has priority over UI provided User Data
-		d.UserData = ud
+		d.CloudInit = ud
 	}
 
-	if d.SSHUser != "root" || d.SSHInUSerData {
-		d.UserData, err = d.addSSHUserToYaml()
+	if d.SSHUser != "root" || d.SSHInCloudInit {
+		d.CloudInit, err = d.addSSHUserToYaml()
 		if err != nil {
 			return err
 		}
 	}
-	d.UserData, err = d.client().UpdateCloudInitFile(
-		d.UserData, "hostname", []interface{}{d.MachineName}, true, "skip",
+	d.CloudInit, err = d.client().UpdateCloudInitFile(
+		d.CloudInit, "hostname", []interface{}{d.MachineName}, true, "skip",
 	)
 	if err != nil {
 		return err
 	}
-	ud := base64.StdEncoding.EncodeToString([]byte(d.UserData))
-	log.Infof("Using user data: %s", ud)
+	ud := base64.StdEncoding.EncodeToString([]byte(d.CloudInit))
 
 	// Volume
 	sshKeys := &[]string{}
-	if !d.SSHInUSerData {
+	if !d.SSHInCloudInit {
 		sshKeys = &[]string{d.SSHKey}
 	}
 	imagePassword := &d.ImagePassword
