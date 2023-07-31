@@ -69,7 +69,7 @@ After logging into Rancher UI, follow the next steps in order to install a clust
   
 ### RKE2
 
-This version is under development, and it is not currently stable with the use of IONOS Cloud Docker Machine Driver. We recommend v2.5.x versions for the moment.
+Using Rancher Extensions requires Rancher v2.7.0 or above.
 
 * Install Node Driver
   * connect to the machine running rancher
@@ -103,7 +103,7 @@ This version is under development, and it is not currently stable with the use o
     * Edit the Ionoscloud driver
     * Custom UI URL:  https://cdn.jsdelivr.net/gh/ionos-cloud/ui-driver-ionoscloud@main/releases/v<UI_version|latest>/component.js
     * Whitelist Domains: cdn.jsdelivr.net
-  * Wait fot the machine driver to be downloaded and become `Active`
+  * Wait for the machine driver to be downloaded and become `Active`
   * Add the ionoscloud ui extension from https://github.com/ionos-cloud/ui-extensions-ionoscloud
     * Go to Cluster Management ➜ Advanced ➜ Repositories
     * Click on `Create` button
