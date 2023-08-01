@@ -839,7 +839,7 @@ func (d *Driver) Create() (err error) {
 	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
 		nicIps = nicProp.GetIps()
 	}
-	if len(*nicIps) > 0 && !isLanPrivate {
+	if len(*nicIps) > 0 {
 		d.IPAddress = (*nicIps)[0]
 		log.Infof(d.IPAddress)
 	}
