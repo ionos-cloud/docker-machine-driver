@@ -1,5 +1,12 @@
 # Changelog
 
+## \[7.0.0-rc.2\]
+### Changed
+* fixed:
+  * driver ip not being set if it was private
+  * ipblock delete request was set even if no ipblock existed
+
+
 ## \[7.0.0-rc.1\]
 ### Changed
 * renamed:
