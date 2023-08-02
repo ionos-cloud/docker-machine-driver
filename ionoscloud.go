@@ -914,10 +914,13 @@ func (d *Driver) Remove() error {
 			result = multierror.Append(result, fmt.Errorf("error deleting datacenter: %w", err))
 		}
 	}
-	log.Debugf("Starting deleting IpBlock with Id: %v", d.IpBlockId)
-	err = d.client().RemoveIpBlock(d.IpBlockId)
-	if err != nil {
-		result = multierror.Append(result, fmt.Errorf("error deleting ipblock: %w", err))
+
+	if d.IpBlockId != "" {
+		log.Debugf("Starting deleting IpBlock with Id: %v", d.IpBlockId)
+		err = d.client().RemoveIpBlock(d.IpBlockId)
+		if err != nil {
+			result = multierror.Append(result, fmt.Errorf("error deleting ipblock: %w", err))
+		}
 	}
 
 	return result.ErrorOrNil()
