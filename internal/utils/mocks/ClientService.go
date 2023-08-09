@@ -447,6 +447,20 @@ func (mr *MockClientServiceMockRecorder) RestartServer(datacenterId, serverId in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestartServer", reflect.TypeOf((*MockClientService)(nil).RestartServer), datacenterId, serverId)
 }
 
+// ResumeServer mocks base method.
+func (m *MockClientService) ResumeServer(datacenterId, serverId string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResumeServer", datacenterId, serverId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResumeServer indicates an expected call of ResumeServer.
+func (mr *MockClientServiceMockRecorder) ResumeServer(datacenterId, serverId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeServer", reflect.TypeOf((*MockClientService)(nil).ResumeServer), datacenterId, serverId)
+}
+
 // StartServer mocks base method.
 func (m *MockClientService) StartServer(datacenterId, serverId string) error {
 	m.ctrl.T.Helper()
@@ -473,6 +487,20 @@ func (m *MockClientService) StopServer(datacenterId, serverId string) error {
 func (mr *MockClientServiceMockRecorder) StopServer(datacenterId, serverId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StopServer", reflect.TypeOf((*MockClientService)(nil).StopServer), datacenterId, serverId)
+}
+
+// SuspendServer mocks base method.
+func (m *MockClientService) SuspendServer(datacenterId, serverId string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SuspendServer", datacenterId, serverId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SuspendServer indicates an expected call of SuspendServer.
+func (mr *MockClientServiceMockRecorder) SuspendServer(datacenterId, serverId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SuspendServer", reflect.TypeOf((*MockClientService)(nil).SuspendServer), datacenterId, serverId)
 }
 
 // UpdateCloudInitFile mocks base method.
