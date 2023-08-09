@@ -933,7 +933,14 @@ func (d *Driver) Start() error {
 		return fmt.Errorf("error getting state: %w", err)
 	}
 	if serverState != state.Running {
-		err = d.client().StartServer(d.DatacenterId, d.ServerId)
+		if d.ServerType == "ENTERPRISE" {
+			err = d.client().StartServer(d.DatacenterId, d.ServerId)
+		} else if d.ServerType == "CUBE" {
+			err = d.client().ResumeServer(d.DatacenterId, d.ServerId)
+		} else {
+			err = fmt.Errorf("Wrong server type: %s", d.ServerType)
+		}
+
 		if err != nil {
 			return fmt.Errorf("error starting server: %w", err)
 		}
@@ -953,7 +960,13 @@ func (d *Driver) Stop() error {
 		log.Infof("Host is already stopped")
 		return nil
 	}
-	err = d.client().StopServer(d.DatacenterId, d.ServerId)
+	if d.ServerType == "ENTERPRISE" {
+		err = d.client().StopServer(d.DatacenterId, d.ServerId)
+	} else if d.ServerType == "CUBE" {
+		err = d.client().SuspendServer(d.DatacenterId, d.ServerId)
+	} else {
+		err = fmt.Errorf("Wrong server type: %s", d.ServerType)
+	}
 	if err != nil {
 		return fmt.Errorf("error stoping server: %w", err)
 	}
@@ -1015,15 +1028,17 @@ func (d *Driver) GetState() (state.State, error) {
 		return state.None, fmt.Errorf("error getting server: %w", err)
 	}
 
-	if metadata, ok := server.GetMetadataOk(); ok && metadata != nil {
-		if metadataState, ok := metadata.GetStateOk(); ok && metadataState != nil {
-			switch *metadataState {
+	if serverProperties, ok := server.GetPropertiesOk(); ok && serverProperties != nil {
+		if vmState, ok := serverProperties.GetVmStateOk(); ok && vmState != nil {
+			switch *vmState {
 			case "NOSTATE":
 				return state.None, nil
-			case "AVAILABLE":
+			case "RUNNING":
 				return state.Running, nil
 			case "PAUSED":
 				return state.Paused, nil
+			case "SUSPENDED":
+				return state.Stopped, nil
 			case "BLOCKED":
 				return state.Stopped, nil
 			case "SHUTDOWN":
@@ -1032,8 +1047,6 @@ func (d *Driver) GetState() (state.State, error) {
 				return state.Stopped, nil
 			case "CRASHED":
 				return state.Error, nil
-			case "INACTIVE":
-				return state.Stopped, nil
 			}
 		}
 	}

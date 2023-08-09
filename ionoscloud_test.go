@@ -806,7 +806,7 @@ func TestStartServerErr(t *testing.T) {
 }
 
 func TestStartRunningServer(t *testing.T) {
-	s := serverWithState(testVar, "AVAILABLE")
+	s := serverWithState(testVar, "RUNNING")
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.DatacenterId = testVar
 	driver.ServerId = testVar
@@ -826,7 +826,7 @@ func TestStopErr(t *testing.T) {
 }
 
 func TestStop(t *testing.T) {
-	s := serverWithState(testVar, "NOSTATE")
+	s := serverWithState(testVar, "SHUTOFF")
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.DatacenterId = testVar
 	driver.ServerId = testVar
@@ -1005,8 +1005,8 @@ func TestGetImageId(t *testing.T) {
 func serverWithState(serverId, serverState string) *sdkgo.Server {
 	return &sdkgo.Server{
 		Id: &serverId,
-		Metadata: &sdkgo.DatacenterElementMetadata{
-			State: &serverState,
+		Properties: &sdkgo.ServerProperties{
+			VmState: &serverState,
 		},
 	}
 }
@@ -1014,8 +1014,8 @@ func serverWithState(serverId, serverState string) *sdkgo.Server {
 func serverWithNicAttached(serverId, serverState, nicId string) *sdkgo.Server {
 	return &sdkgo.Server{
 		Id: &serverId,
-		Metadata: &sdkgo.DatacenterElementMetadata{
-			State: &serverState,
+		Properties: &sdkgo.ServerProperties{
+			VmState: &serverState,
 		},
 		Entities: &sdkgo.ServerEntities{
 			Nics: &sdkgo.Nics{

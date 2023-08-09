@@ -26,7 +26,9 @@ type ClientService interface {
 	GetNic(datacenterId, ServerId, NicId string) (*ionoscloud.Nic, error)
 	GetTemplates() (*ionoscloud.Templates, error)
 	StartServer(datacenterId, serverId string) error
+	ResumeServer(datacenterId, serverId string) error
 	StopServer(datacenterId, serverId string) error
+	SuspendServer(datacenterId, serverId string) error
 	RestartServer(datacenterId, serverId string) error
 	RemoveServer(datacenterId, serverId string) error
 	CreateAttachVolume(datacenterId, serverId string, properties *ClientVolumeProperties) (*ionoscloud.Volume, error)

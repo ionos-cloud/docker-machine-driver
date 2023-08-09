@@ -288,8 +288,24 @@ func (c *Client) StartServer(datacenterId, serverId string) error {
 	return nil
 }
 
+func (c *Client) ResumeServer(datacenterId, serverId string) error {
+	_, err := c.ServersApi.DatacentersServersResumePost(c.ctx, datacenterId, serverId).Execute()
+	if err != nil {
+		return sdk_utils.ShortenOpenApiErr(err)
+	}
+	return nil
+}
+
 func (c *Client) StopServer(datacenterId, serverId string) error {
 	_, err := c.ServersApi.DatacentersServersStopPost(c.ctx, datacenterId, serverId).Execute()
+	if err != nil {
+		return sdk_utils.ShortenOpenApiErr(err)
+	}
+	return nil
+}
+
+func (c *Client) SuspendServer(datacenterId, serverId string) error {
+	_, err := c.ServersApi.DatacentersServersSuspendPost(c.ctx, datacenterId, serverId).Execute()
 	if err != nil {
 		return sdk_utils.ShortenOpenApiErr(err)
 	}
