@@ -884,34 +884,55 @@ func (d *Driver) Remove() error {
 	log.Debugf("Datacenter Id: %v", d.DatacenterId)
 	log.Debugf("Server Id: %v", d.ServerId)
 	log.Debugf("Starting deleting Nic with Id: %v", d.NicId)
-	err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
-	if err != nil {
-		result = multierror.Append(result, fmt.Errorf("error deleting NIC: %w", err))
+	var err error
+	if d.DatacenterId != "" && d.ServerId != "" && d.NicId != "" {
+		err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
+		if err != nil {
+			result = multierror.Append(result, fmt.Errorf("error deleting NIC: %w", err))
+		} else {
+			d.NicId = ""
+		}
 	}
-	log.Debugf("Starting deleting Volume with Id: %v", d.VolumeId)
-	err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)
-	if err != nil {
-		result = multierror.Append(result, fmt.Errorf("error removing volume: %w", err))
+	if d.DatacenterId != "" && d.VolumeId != "" {
+		log.Debugf("Starting deleting Volume with Id: %v", d.VolumeId)
+		err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)
+		if err != nil {
+			result = multierror.Append(result, fmt.Errorf("error removing volume: %w", err))
+		} else {
+			d.VolumeId = ""
+		}
 	}
-	log.Debugf("Starting deleting Server with Id: %v", d.ServerId)
-	err = d.client().RemoveServer(d.DatacenterId, d.ServerId)
-	if err != nil {
-		result = multierror.Append(result, fmt.Errorf("error deleting server: %w", err))
+	if d.DatacenterId != "" && d.ServerId != "" {
+		log.Debugf("Starting deleting Server with Id: %v", d.ServerId)
+		err = d.client().RemoveServer(d.DatacenterId, d.ServerId)
+		if err != nil {
+			result = multierror.Append(result, fmt.Errorf("error deleting server: %w", err))
+		} else {
+			d.ServerId = ""
+		}
 	}
 	// If the LAN existed before creating the machine, do not delete it at clean-up
 	if !d.LanExists {
-		log.Debugf("Starting deleting LAN with Id: %v", d.LanId)
-		err = d.client().RemoveLan(d.DatacenterId, d.LanId)
-		if err != nil {
-			result = multierror.Append(result, fmt.Errorf("error deleting LAN: %w", err))
+		if d.DatacenterId != "" && d.LanId != "" {
+			log.Debugf("Starting deleting LAN with Id: %v", d.LanId)
+			err = d.client().RemoveLan(d.DatacenterId, d.LanId)
+			if err != nil {
+				result = multierror.Append(result, fmt.Errorf("error deleting LAN: %w", err))
+			} else {
+				d.LanId = ""
+			}
 		}
 	}
 	// If the DataCenter existed before creating the machine, do not delete it at clean-up
 	if !d.DCExists {
-		log.Debugf("Starting deleting Datacenter with Id: %v", d.DatacenterId)
-		err = d.client().RemoveDatacenter(d.DatacenterId)
-		if err != nil {
-			result = multierror.Append(result, fmt.Errorf("error deleting datacenter: %w", err))
+		if d.DatacenterId != "" {
+			log.Debugf("Starting deleting Datacenter with Id: %v", d.DatacenterId)
+			err = d.client().RemoveDatacenter(d.DatacenterId)
+			if err != nil {
+				result = multierror.Append(result, fmt.Errorf("error deleting datacenter: %w", err))
+			} else {
+				d.DatacenterId = ""
+			}
 		}
 	}
 
@@ -920,6 +941,8 @@ func (d *Driver) Remove() error {
 		err = d.client().RemoveIpBlock(d.IpBlockId)
 		if err != nil {
 			result = multierror.Append(result, fmt.Errorf("error deleting ipblock: %w", err))
+		} else {
+			d.IpBlockId = ""
 		}
 	}
 
