@@ -53,13 +53,13 @@ const (
 	flagCloudInitB64           = "ionoscloud-cloud-init-b64"
 	flagWaitForIpChange        = "ionoscloud-wait-for-ip-change"
 	flagWaitForIpChangeTimeout = "ionoscloud-wait-for-ip-change-timeout"
-	// NAT Gatway flags
-	flagNatId             = "ionoscloud-nat-id"
-	flagNatName           = "ionoscloud-nat-name"
-	flagNatPublicIps      = "ionoscloud-nat-public-ips"
-	flagNatLansToGateways = "ionoscloud-nat-lans-to-gateways"
-	flagPrivateLan        = "ionoscloud-private-lan"
-	flagCreateNat         = "ionoscloud-create-nat"
+	flagNatId                  = "ionoscloud-nat-id"
+	flagNatName                = "ionoscloud-nat-name"
+	flagNatPublicIps           = "ionoscloud-nat-public-ips"
+	flagNatFlowlogs            = "ionoscloud-nat-flowlogs"
+	flagNatLansToGateways      = "ionoscloud-nat-lans-to-gateways"
+	flagPrivateLan             = "ionoscloud-private-lan"
+	flagCreateNat              = "ionoscloud-create-nat"
 	// ---
 )
 
@@ -134,6 +134,7 @@ type Driver struct {
 	CloudInit              string
 	CloudInitB64           string
 	NatPublicIps           []string
+	NatFlowlogs            []string
 	NatLansToGateways      map[string][]string
 	PrivateLan             bool
 	SSHInCloudInit         bool
@@ -196,6 +197,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagNatPublicIps,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatPublicIps),
 			Usage:  "Ionos Cloud NAT Gateway public IPs",
+		},
+		mcnflag.StringSliceFlag{
+			Name:   flagNatFlowlogs,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatFlowlogs),
+			Usage:  "Ionos Cloud NAT Gateway Flowlogs",
 		},
 		mcnflag.StringFlag{
 			// A string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10" . Lans MUST be separated by `:`. IPs MUST be separated by `,`
@@ -374,6 +380,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.NatName = opts.String(flagNatName)
 	d.NatId = opts.String(flagNatId)
 	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
+	d.NatFlowlogs = opts.StringSlice(flagNatFlowlogs)
 	d.NatLansToGateways = extflag.ToMapOfStringToStringSlice(opts.String(flagNatLansToGateways))
 	d.URL = opts.String(flagEndpoint)
 	d.Username = opts.String(flagUsername)
@@ -857,7 +864,7 @@ func (d *Driver) Create() (err error) {
 		}
 		subnet := net.ParseIP((*nicIps)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
 		log.Infof("Provisioning NAT with subnet: %s", subnet)
-		nat, err := d.client().CreateNat(d.DatacenterId, d.NatName, *natPublicIps, *natLansToGateways, subnet)
+		nat, err := d.client().CreateNat(d.DatacenterId, d.NatName, *natPublicIps, *&d.NatFlowlogs, *natLansToGateways, subnet)
 		if err != nil {
 			return err
 		}

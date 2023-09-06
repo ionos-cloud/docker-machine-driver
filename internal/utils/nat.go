@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/docker/machine/libmachine/log"
@@ -70,7 +71,34 @@ func (nrm *NatRuleMaker) OpenPorts(protocol string, start int32, end int32) *Nat
 	return nrm
 }
 
-func (c *Client) CreateNat(datacenterId, name string, publicIps []string, lansToGateways map[string][]string, subnet string) (*sdkgo.NatGateway, error) {
+func flowlogStringToModel(flowlog string) sdkgo.FlowLog {
+	var split = strings.Split(flowlog, ":")
+
+	return sdkgo.FlowLog{
+		Properties: &sdkgo.FlowLogProperties{
+			Name:      &split[0],
+			Action:    &split[1],
+			Direction: &split[2],
+			Bucket:    &split[3],
+		},
+	}
+}
+
+func flowlogsStringToModel(flowlogs []string) *sdkgo.FlowLogs {
+	if len(flowlogs) == 0 {
+		return nil
+	}
+	flowlog_models := sdkgo.NewFlowLogs()
+	flowlog_models.Items = &[]sdkgo.FlowLog{}
+
+	for _, flowlog := range flowlogs {
+		*flowlog_models.Items = append(*flowlog_models.Items, flowlogStringToModel(flowlog))
+	}
+
+	return flowlog_models
+}
+
+func (c *Client) CreateNat(datacenterId, name string, publicIps, flowlogs []string, lansToGateways map[string][]string, subnet string) (*sdkgo.NatGateway, error) {
 	var lans []sdkgo.NatGatewayLanProperties
 
 	err := c.createLansIfNotExist(datacenterId, maps.Keys(lansToGateways))
@@ -128,7 +156,7 @@ func (c *Client) CreateNat(datacenterId, name string, publicIps []string, lansTo
 			},
 			Entities: &sdkgo.NatGatewayEntities{
 				Rules:    &sdkgo.NatGatewayRules{Items: rules},
-				Flowlogs: nil,
+				Flowlogs: flowlogsStringToModel(flowlogs),
 			},
 		},
 	).Execute()
