@@ -57,6 +57,7 @@ const (
 	flagNatName                = "ionoscloud-nat-name"
 	flagNatPublicIps           = "ionoscloud-nat-public-ips"
 	flagNatFlowlogs            = "ionoscloud-nat-flowlogs"
+	flagNatRules               = "ionoscloud-nat-rules"
 	flagNatLansToGateways      = "ionoscloud-nat-lans-to-gateways"
 	flagPrivateLan             = "ionoscloud-private-lan"
 	flagCreateNat              = "ionoscloud-create-nat"
@@ -135,6 +136,7 @@ type Driver struct {
 	CloudInitB64           string
 	NatPublicIps           []string
 	NatFlowlogs            []string
+	NatRules               []string
 	NatLansToGateways      map[string][]string
 	PrivateLan             bool
 	SSHInCloudInit         bool
@@ -202,6 +204,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagNatFlowlogs,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatFlowlogs),
 			Usage:  "Ionos Cloud NAT Gateway Flowlogs",
+		},
+		mcnflag.StringSliceFlag{
+			Name:   flagNatRules,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatRules),
+			Usage:  "Ionos Cloud NAT Gateway Rules",
 		},
 		mcnflag.StringFlag{
 			// A string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10" . Lans MUST be separated by `:`. IPs MUST be separated by `,`
@@ -381,6 +388,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.NatId = opts.String(flagNatId)
 	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
 	d.NatFlowlogs = opts.StringSlice(flagNatFlowlogs)
+	d.NatRules = opts.StringSlice(flagNatRules)
 	d.NatLansToGateways = extflag.ToMapOfStringToStringSlice(opts.String(flagNatLansToGateways))
 	d.URL = opts.String(flagEndpoint)
 	d.Username = opts.String(flagUsername)
@@ -864,7 +872,7 @@ func (d *Driver) Create() (err error) {
 		}
 		subnet := net.ParseIP((*nicIps)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
 		log.Infof("Provisioning NAT with subnet: %s", subnet)
-		nat, err := d.client().CreateNat(d.DatacenterId, d.NatName, *natPublicIps, *&d.NatFlowlogs, *natLansToGateways, subnet)
+		nat, err := d.client().CreateNat(d.DatacenterId, d.NatName, *natPublicIps, *&d.NatFlowlogs, *&d.NatRules, *natLansToGateways, subnet)
 		if err != nil {
 			return err
 		}

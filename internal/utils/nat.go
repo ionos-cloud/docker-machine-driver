@@ -98,7 +98,68 @@ func flowlogsStringToModel(flowlogs []string) *sdkgo.FlowLogs {
 	return flowlog_models
 }
 
-func (c *Client) CreateNat(datacenterId, name string, publicIps, flowlogs []string, lansToGateways map[string][]string, subnet string) (*sdkgo.NatGateway, error) {
+func natRuleStringToModel(rule, natPublicIp string) (*sdkgo.NatGatewayRule, error) {
+	var split = strings.Split(rule, ":")
+	ruleType := sdkgo.NatGatewayRuleType(split[1])
+	ruleProtocol := sdkgo.NatGatewayRuleProtocol(split[2])
+
+	publicIp := split[3]
+	if publicIp == "" {
+		publicIp = natPublicIp
+	}
+
+	start, err := strconv.Atoi(split[6])
+	start32 := int32(start)
+
+	if err != nil {
+		return nil, err
+	}
+	end, err := strconv.Atoi(split[7])
+	end32 := int32(end)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ruleModel := sdkgo.NatGatewayRule{
+		Properties: &sdkgo.NatGatewayRuleProperties{
+			Name:         &split[0],
+			Type:         &ruleType,
+			Protocol:     &ruleProtocol,
+			PublicIp:     &publicIp,
+			SourceSubnet: &split[4],
+			TargetSubnet: &split[5],
+			TargetPortRange: &sdkgo.TargetPortRange{
+				Start: &start32,
+				End:   &end32,
+			},
+		},
+	}
+
+	return &ruleModel, nil
+}
+
+func natRulesStringToModel(rules []string, natPublicIp string) (*sdkgo.NatGatewayRules, error) {
+	if len(rules) == 0 {
+		return nil, nil
+	}
+	rule_models := sdkgo.NewNatGatewayRules()
+	rule_models.Items = &[]sdkgo.NatGatewayRule{}
+
+	for _, rule := range rules {
+		rule_model, err := natRuleStringToModel(rule, natPublicIp)
+
+		if err != nil {
+			return nil, err
+		}
+
+		*rule_models.Items = append(*rule_models.Items, *rule_model)
+	}
+
+	return rule_models, nil
+}
+
+func (c *Client) CreateNat(datacenterId, name string, publicIps, flowlogs, natRules []string, lansToGateways map[string][]string, subnet string) (*sdkgo.NatGateway, error) {
 	var lans []sdkgo.NatGatewayLanProperties
 
 	err := c.createLansIfNotExist(datacenterId, maps.Keys(lansToGateways))
@@ -146,6 +207,16 @@ func (c *Client) CreateNat(datacenterId, name string, publicIps, flowlogs []stri
 		OpenPorts("UDP", 30000, 32767). //
 		OpenPort("ALL", 0)              // Outbound
 	rules := nrm.Make()
+
+	new_rules, err := natRulesStringToModel(natRules, publicIps[0])
+
+	if err != nil {
+		return nil, err
+	}
+
+	if new_rules != nil {
+		*rules = append(*rules, *new_rules.Items...)
+	}
 
 	nat, resp, err := c.NATGatewaysApi.DatacentersNatgatewaysPost(c.ctx, datacenterId).NatGateway(
 		sdkgo.NatGateway{
