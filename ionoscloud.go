@@ -184,7 +184,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.StringFlag{
 			Name:   flagNatId,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatId),
-			//Value:  nil,
+			// Value:  nil,
 			Usage: "Ionos Cloud existing and configured NAT Gateway",
 		},
 		mcnflag.BoolFlag{
@@ -1017,7 +1017,6 @@ func (d *Driver) GetIP() (string, error) {
 	if d.IPAddress == "" {
 		return "", fmt.Errorf("IP address is not set")
 	}
-	log.Infof("Using IP %s to connect", d.IPAddress)
 	return d.IPAddress, nil
 }
 
