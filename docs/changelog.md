@@ -1,5 +1,24 @@
 # Changelog
 
+## \[7.0.1]
+### Changed
+* changed:
+  * removed debug info log for `GetIP`: "Using IP x.x.x.x to connect"
+  
+## \[7.0.0]
+
+### Changed
+* renamed:
+  * `user-data` to `cloud-init`
+  * `user-data-b64` to `cloud-init-b64`
+  * `ssh-in-user-data` to `ssh-in-cloud-init`
+
+### Fixed
+* fixed:
+  * driver ip not being set if it was private
+  * ipblock delete request was sent even if no ipblock existed
+  * start and stop not working for CUBE servers
+
 ## \[7.0.0-rc.2\]
 ### Changed
 * fixed:
