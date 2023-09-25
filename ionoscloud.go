@@ -58,6 +58,7 @@ const (
 	flagNatPublicIps           = "ionoscloud-nat-public-ips"
 	flagNatFlowlogs            = "ionoscloud-nat-flowlogs"
 	flagNatRules               = "ionoscloud-nat-rules"
+	flagSkipDefaultNatRules    = "ionoscloud-skip-default-nat-rules"
 	flagNatLansToGateways      = "ionoscloud-nat-lans-to-gateways"
 	flagPrivateLan             = "ionoscloud-private-lan"
 	flagCreateNat              = "ionoscloud-create-nat"
@@ -118,6 +119,7 @@ type Driver struct {
 	Template               string
 	DCExists               bool
 	LanExists              bool
+	NatExists              bool
 	UseAlias               bool
 	VolumeAvailabilityZone string
 	ServerAvailabilityZone string
@@ -137,6 +139,7 @@ type Driver struct {
 	NatPublicIps           []string
 	NatFlowlogs            []string
 	NatRules               []string
+	SkipDefaultNatRules    bool
 	NatLansToGateways      map[string][]string
 	PrivateLan             bool
 	SSHInCloudInit         bool
@@ -209,6 +212,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagNatRules,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatRules),
 			Usage:  "Ionos Cloud NAT Gateway Rules",
+		},
+		mcnflag.BoolFlag{
+			Name:   flagSkipDefaultNatRules,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagSkipDefaultNatRules),
+			Usage:  "Should the driver skip creating default nat rules if creating a NAT, creating only the specified rules",
 		},
 		mcnflag.StringFlag{
 			// A string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10" . Lans MUST be separated by `:`. IPs MUST be separated by `,`
@@ -414,6 +422,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.NicIps = opts.StringSlice(flagNicIps)
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
+	d.SkipDefaultNatRules = opts.Bool(flagSkipDefaultNatRules)
 	d.CloudInit = opts.String(flagCloudInit)
 	d.SSHUser = opts.String(flagSSHUser)
 	d.SSHInCloudInit = opts.Bool(flagSSHInCloudInit)
@@ -455,6 +464,7 @@ func (d *Driver) PreCreateCheck() error {
 
 	d.DCExists = false
 	d.LanExists = false
+	d.NatExists = false
 
 	for i := len(d.MachineName) - 1; i >= 0; i-- {
 		if !unicode.IsNumber(rune(d.MachineName[i])) {
@@ -554,6 +564,10 @@ func (d *Driver) PreCreateCheck() error {
 				}
 			}
 		}
+	}
+
+	if d.NatId != "" {
+		d.NatExists = true
 	}
 
 	if d.NatId != "" && d.CreateNat {
@@ -870,9 +884,8 @@ func (d *Driver) Create() (err error) {
 		if d.NatLansToGateways != nil {
 			natLansToGateways = &d.NatLansToGateways
 		}
-		subnet := net.ParseIP((*nicIps)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
-		log.Infof("Provisioning NAT with subnet: %s", subnet)
-		nat, err := d.client().CreateNat(d.DatacenterId, d.NatName, *natPublicIps, *&d.NatFlowlogs, *&d.NatRules, *natLansToGateways, subnet)
+		sourceSubnet := net.ParseIP((*nicIps)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
+		nat, err := d.client().CreateNat(d.DatacenterId, d.NatName, *natPublicIps, *&d.NatFlowlogs, *&d.NatRules, *natLansToGateways, sourceSubnet, d.SkipDefaultNatRules)
 		if err != nil {
 			return err
 		}
@@ -898,9 +911,20 @@ func (d *Driver) Remove() error {
 
 	log.Debugf("Datacenter Id: %v", d.DatacenterId)
 	log.Debugf("Server Id: %v", d.ServerId)
-	log.Debugf("Starting deleting Nic with Id: %v", d.NicId)
+
+	if !d.NatExists && d.DatacenterId != "" && d.NatId != "" {
+		log.Debugf("Starting deleting NAT with Id: %v", d.NatId)
+		err := d.client().RemoveNat(d.DatacenterId, d.NatId)
+		if err != nil {
+			result = multierror.Append(result, fmt.Errorf("error deleting NAT: %w", err))
+		} else {
+			d.NatId = ""
+		}
+	}
+
 	var err error
 	if d.DatacenterId != "" && d.ServerId != "" && d.NicId != "" {
+		log.Debugf("Starting deleting Nic with Id: %v", d.NicId)
 		err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
 		if err != nil {
 			result = multierror.Append(result, fmt.Errorf("error deleting NIC: %w", err))
@@ -960,6 +984,7 @@ func (d *Driver) Remove() error {
 			d.IpBlockId = ""
 		}
 	}
+	time.Sleep(300)
 
 	return result.ErrorOrNil()
 }
