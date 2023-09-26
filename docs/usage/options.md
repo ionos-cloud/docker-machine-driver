@@ -51,7 +51,8 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-nat-public-ips`           | If --ionoscloud-create-nat is set, change the NAT's public IPs to these values                                                                                                                |
 | `--ionoscloud-nat-lans-to-gateways`     | If --ionoscloud-create-nat is set, change the NAT's mappings of LANs to Gateway IPs to these values. Must respect format `1=10.0.0.1,10.0.0.2:2=10.0.0.10`                                    |
 | `--ionoscloud-nat-flowlogs`     | If --ionoscloud-create-nat is set, add flowlogs to the nat. Must respect format `name:action:direction:bucket`,                                    |
-| `--ionoscloud-nat-rules`     | If --ionoscloud-create-nat is set, add rules to the NAT. Must respect format `name:type:protocol:public_ip:source_subnet:target_subnet:target_port_range_start:target_port_range_end`, to skip providing an optional value just omit it (`name:type:protocol::source_subnet:::`), not setting public IP will use the public IP of the NAT for the rule                                    |
+| `--ionoscloud-nat-rules`     | If --ionoscloud-create-nat is set, add rules to the NAT. Must respect format `name:type:protocol:public_ip:source_subnet:target_subnet:target_port_range_start:target_port_range_end`, to skip providing an optional value just omit it (`name:type:protocol::source_subnet:::`), not setting public IP will use the public IP of the NAT for the rule, not setting source subnet will use the first ip on the NIC with mask 24                                    |
+| `--ionoscloud-skip-default-nat-rules`                 | Should the driver skip creating default nat rules if creating a NAT, creating only the specified rules, the UI drivers always set this flag                                                                                                                                                                |
 | `--ionoscloud-ssh-user`                 | The user to connect to via SSH                                                                                                                                                                |
 | `--ionoscloud-ssh-in-cloud-init`        | Should the driver only add the SSH info in the user data? (required for custom images)                                                                                                                                                                |
 | `--swarm`                               | Configure Machine to join a Swarm cluster                                                                                                                                                     |
@@ -111,6 +112,7 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-nat-lans-to-gateways`      | `IONOSCLOUD_NAT_LANS_TO_GATEWAYS`      |
 | `--ionoscloud-nat-flowlogs`              | `IONOSCLOUD_NAT_FLOWLOG`               |
 | `--ionoscloud-nat-rules`                 | `IONOSCLOUD_NAT_RULES`                 |
+| `--ionoscloud-skip-default-nat-rules`    | `IONOSCLOUD_SKIP_DEFAULT_NAT_RULES`    |
 | `--ionoscloud-private-lan`               | `IONOSCLOUD_PRIVATE_LAN`               |
 | `--ionoscloud-ssh-user`                  | `IONOSCLOUD_SSH_USER`                  |
 | `--ionoscloud-ssh-in-cloud-init`         | `IONOSCLOUD_SSH_IN_CLOUD_INIT`         |
