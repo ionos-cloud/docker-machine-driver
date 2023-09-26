@@ -1,5 +1,17 @@
 # Changelog
 
+## \[7.0.2]
+### Changed
+* added:
+  * option to configure rules and flowlogs on the created NAT
+* changed:
+  * default nat rules are not created with target subnet nil
+* fixed:
+  * driver was failing while trying to remove resources
+  * driver was not removing the NAT gateway if it was created
+  * some options on the RKE2 configuration war overriden when using edit (fixed in UI extension v0.1.1)
+  * natLansToGateways did not work with edit (fixed in UI extension v0.1.1)
+
 ## \[7.0.1]
 ### Changed
 * changed:
