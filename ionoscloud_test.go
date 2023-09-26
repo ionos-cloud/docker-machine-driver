@@ -448,8 +448,8 @@ func TestCreateNatPublicIps(t *testing.T) {
 	clientMock.EXPECT().GetIpBlockIps("SHOULD_NOT_CALL")
 	clientMock.EXPECT().CreateAttachNIC(driver.DatacenterId, driver.ServerId, driver.MachineName, true, int32(0), &driver.NicIps).Return(nic, nil)
 	clientMock.EXPECT().CreateNat(
-		driver.DatacenterId, "docker-machine-nat", driver.NatPublicIps, driver.NatLansToGateways,
-		net.ParseIP((driver.NicIps)[0]).Mask(net.CIDRMask(24, 32)).String()+"/24",
+		driver.DatacenterId, "docker-machine-nat", driver.NatPublicIps, driver.NatFlowlogs, driver.NatRules, driver.NatLansToGateways,
+		net.ParseIP((driver.NicIps)[0]).Mask(net.CIDRMask(24, 32)).String()+"/24", driver.SkipDefaultNatRules,
 	).Return(nat, nil)
 	err := driver.Create()
 	assert.NoError(t, err)
@@ -465,8 +465,14 @@ func TestCreateNat(t *testing.T) {
 	driver.LanId = ""
 	driver.IPAddress = testVar
 	driver.NicDhcp = true
+	driver.SkipDefaultNatRules = true
 	driver.PrivateLan = true
 	driver.CreateNat = true
+	driver.NatFlowlogs = []string{"test_name:ACCEPTED:INGRESS:test_bucket", "test_name2:REGECTED:EGRESS:test_bucket"}
+	driver.NatRules = []string{
+		"name1:SNAT:TCP::10.0.1.0/24:10.0.2.0/24:100:500",
+		"name2:SNAT:ALL::10.0.1.0/24::1023:1500",
+	}
 
 	driver.NatLansToGateways = map[string][]string{"1": {"127.0.0.3"}}
 
@@ -489,8 +495,8 @@ func TestCreateNat(t *testing.T) {
 	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
 	clientMock.EXPECT().CreateAttachNIC(driver.DatacenterId, driver.ServerId, driver.MachineName, true, int32(0), nil).Return(nic, nil)
 	clientMock.EXPECT().CreateNat(
-		driver.DatacenterId, "docker-machine-nat", ips, driver.NatLansToGateways,
-		net.ParseIP(([]string{"127.0.0.1"})[0]).Mask(net.CIDRMask(24, 32)).String()+"/24",
+		driver.DatacenterId, "docker-machine-nat", ips, driver.NatFlowlogs, driver.NatRules, driver.NatLansToGateways,
+		net.ParseIP(([]string{"127.0.0.1"})[0]).Mask(net.CIDRMask(24, 32)).String()+"/24", driver.SkipDefaultNatRules,
 	).Return(nat, nil)
 	err := driver.Create()
 	assert.NoError(t, err)

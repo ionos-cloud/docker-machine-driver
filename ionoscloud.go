@@ -53,13 +53,15 @@ const (
 	flagCloudInitB64           = "ionoscloud-cloud-init-b64"
 	flagWaitForIpChange        = "ionoscloud-wait-for-ip-change"
 	flagWaitForIpChangeTimeout = "ionoscloud-wait-for-ip-change-timeout"
-	// NAT Gatway flags
-	flagNatId             = "ionoscloud-nat-id"
-	flagNatName           = "ionoscloud-nat-name"
-	flagNatPublicIps      = "ionoscloud-nat-public-ips"
-	flagNatLansToGateways = "ionoscloud-nat-lans-to-gateways"
-	flagPrivateLan        = "ionoscloud-private-lan"
-	flagCreateNat         = "ionoscloud-create-nat"
+	flagNatId                  = "ionoscloud-nat-id"
+	flagNatName                = "ionoscloud-nat-name"
+	flagNatPublicIps           = "ionoscloud-nat-public-ips"
+	flagNatFlowlogs            = "ionoscloud-nat-flowlogs"
+	flagNatRules               = "ionoscloud-nat-rules"
+	flagSkipDefaultNatRules    = "ionoscloud-skip-default-nat-rules"
+	flagNatLansToGateways      = "ionoscloud-nat-lans-to-gateways"
+	flagPrivateLan             = "ionoscloud-private-lan"
+	flagCreateNat              = "ionoscloud-create-nat"
 	// ---
 )
 
@@ -117,6 +119,7 @@ type Driver struct {
 	Template               string
 	DCExists               bool
 	LanExists              bool
+	NatExists              bool
 	UseAlias               bool
 	VolumeAvailabilityZone string
 	ServerAvailabilityZone string
@@ -134,6 +137,9 @@ type Driver struct {
 	CloudInit              string
 	CloudInitB64           string
 	NatPublicIps           []string
+	NatFlowlogs            []string
+	NatRules               []string
+	SkipDefaultNatRules    bool
 	NatLansToGateways      map[string][]string
 	PrivateLan             bool
 	SSHInCloudInit         bool
@@ -196,6 +202,21 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagNatPublicIps,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatPublicIps),
 			Usage:  "Ionos Cloud NAT Gateway public IPs",
+		},
+		mcnflag.StringSliceFlag{
+			Name:   flagNatFlowlogs,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatFlowlogs),
+			Usage:  "Ionos Cloud NAT Gateway Flowlogs",
+		},
+		mcnflag.StringSliceFlag{
+			Name:   flagNatRules,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatRules),
+			Usage:  "Ionos Cloud NAT Gateway Rules",
+		},
+		mcnflag.BoolFlag{
+			Name:   flagSkipDefaultNatRules,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagSkipDefaultNatRules),
+			Usage:  "Should the driver skip creating default nat rules if creating a NAT, creating only the specified rules",
 		},
 		mcnflag.StringFlag{
 			// A string, like "1=10.0.0.1,10.0.0.2:2=10.0.0.10" . Lans MUST be separated by `:`. IPs MUST be separated by `,`
@@ -374,6 +395,8 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.NatName = opts.String(flagNatName)
 	d.NatId = opts.String(flagNatId)
 	d.NatPublicIps = opts.StringSlice(flagNatPublicIps)
+	d.NatFlowlogs = opts.StringSlice(flagNatFlowlogs)
+	d.NatRules = opts.StringSlice(flagNatRules)
 	d.NatLansToGateways = extflag.ToMapOfStringToStringSlice(opts.String(flagNatLansToGateways))
 	d.URL = opts.String(flagEndpoint)
 	d.Username = opts.String(flagUsername)
@@ -399,6 +422,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.NicIps = opts.StringSlice(flagNicIps)
 	d.VolumeAvailabilityZone = opts.String(flagVolumeAvailabilityZone)
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
+	d.SkipDefaultNatRules = opts.Bool(flagSkipDefaultNatRules)
 	d.CloudInit = opts.String(flagCloudInit)
 	d.SSHUser = opts.String(flagSSHUser)
 	d.SSHInCloudInit = opts.Bool(flagSSHInCloudInit)
@@ -440,6 +464,7 @@ func (d *Driver) PreCreateCheck() error {
 
 	d.DCExists = false
 	d.LanExists = false
+	d.NatExists = false
 
 	for i := len(d.MachineName) - 1; i >= 0; i-- {
 		if !unicode.IsNumber(rune(d.MachineName[i])) {
@@ -539,6 +564,10 @@ func (d *Driver) PreCreateCheck() error {
 				}
 			}
 		}
+	}
+
+	if d.NatId != "" {
+		d.NatExists = true
 	}
 
 	if d.NatId != "" && d.CreateNat {
@@ -855,9 +884,8 @@ func (d *Driver) Create() (err error) {
 		if d.NatLansToGateways != nil {
 			natLansToGateways = &d.NatLansToGateways
 		}
-		subnet := net.ParseIP((*nicIps)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
-		log.Infof("Provisioning NAT with subnet: %s", subnet)
-		nat, err := d.client().CreateNat(d.DatacenterId, d.NatName, *natPublicIps, *natLansToGateways, subnet)
+		sourceSubnet := net.ParseIP((*nicIps)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
+		nat, err := d.client().CreateNat(d.DatacenterId, d.NatName, *natPublicIps, *&d.NatFlowlogs, *&d.NatRules, *natLansToGateways, sourceSubnet, d.SkipDefaultNatRules)
 		if err != nil {
 			return err
 		}
@@ -883,35 +911,67 @@ func (d *Driver) Remove() error {
 
 	log.Debugf("Datacenter Id: %v", d.DatacenterId)
 	log.Debugf("Server Id: %v", d.ServerId)
-	log.Debugf("Starting deleting Nic with Id: %v", d.NicId)
-	err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
-	if err != nil {
-		result = multierror.Append(result, fmt.Errorf("error deleting NIC: %w", err))
+
+	if !d.NatExists && d.DatacenterId != "" && d.NatId != "" {
+		log.Debugf("Starting deleting NAT with Id: %v", d.NatId)
+		err := d.client().RemoveNat(d.DatacenterId, d.NatId)
+		if err != nil {
+			result = multierror.Append(result, fmt.Errorf("error deleting NAT: %w", err))
+		} else {
+			d.NatId = ""
+		}
 	}
-	log.Debugf("Starting deleting Volume with Id: %v", d.VolumeId)
-	err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)
-	if err != nil {
-		result = multierror.Append(result, fmt.Errorf("error removing volume: %w", err))
+
+	var err error
+	if d.DatacenterId != "" && d.ServerId != "" && d.NicId != "" {
+		log.Debugf("Starting deleting Nic with Id: %v", d.NicId)
+		err := d.client().RemoveNic(d.DatacenterId, d.ServerId, d.NicId)
+		if err != nil {
+			result = multierror.Append(result, fmt.Errorf("error deleting NIC: %w", err))
+		} else {
+			d.NicId = ""
+		}
 	}
-	log.Debugf("Starting deleting Server with Id: %v", d.ServerId)
-	err = d.client().RemoveServer(d.DatacenterId, d.ServerId)
-	if err != nil {
-		result = multierror.Append(result, fmt.Errorf("error deleting server: %w", err))
+	if d.DatacenterId != "" && d.VolumeId != "" {
+		log.Debugf("Starting deleting Volume with Id: %v", d.VolumeId)
+		err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)
+		if err != nil {
+			result = multierror.Append(result, fmt.Errorf("error removing volume: %w", err))
+		} else {
+			d.VolumeId = ""
+		}
+	}
+	if d.DatacenterId != "" && d.ServerId != "" {
+		log.Debugf("Starting deleting Server with Id: %v", d.ServerId)
+		err = d.client().RemoveServer(d.DatacenterId, d.ServerId)
+		if err != nil {
+			result = multierror.Append(result, fmt.Errorf("error deleting server: %w", err))
+		} else {
+			d.ServerId = ""
+		}
 	}
 	// If the LAN existed before creating the machine, do not delete it at clean-up
 	if !d.LanExists {
-		log.Debugf("Starting deleting LAN with Id: %v", d.LanId)
-		err = d.client().RemoveLan(d.DatacenterId, d.LanId)
-		if err != nil {
-			result = multierror.Append(result, fmt.Errorf("error deleting LAN: %w", err))
+		if d.DatacenterId != "" && d.LanId != "" {
+			log.Debugf("Starting deleting LAN with Id: %v", d.LanId)
+			err = d.client().RemoveLan(d.DatacenterId, d.LanId)
+			if err != nil {
+				result = multierror.Append(result, fmt.Errorf("error deleting LAN: %w", err))
+			} else {
+				d.LanId = ""
+			}
 		}
 	}
 	// If the DataCenter existed before creating the machine, do not delete it at clean-up
 	if !d.DCExists {
-		log.Debugf("Starting deleting Datacenter with Id: %v", d.DatacenterId)
-		err = d.client().RemoveDatacenter(d.DatacenterId)
-		if err != nil {
-			result = multierror.Append(result, fmt.Errorf("error deleting datacenter: %w", err))
+		if d.DatacenterId != "" {
+			log.Debugf("Starting deleting Datacenter with Id: %v", d.DatacenterId)
+			err = d.client().RemoveDatacenter(d.DatacenterId)
+			if err != nil {
+				result = multierror.Append(result, fmt.Errorf("error deleting datacenter: %w", err))
+			} else {
+				d.DatacenterId = ""
+			}
 		}
 	}
 
@@ -920,6 +980,8 @@ func (d *Driver) Remove() error {
 		err = d.client().RemoveIpBlock(d.IpBlockId)
 		if err != nil {
 			result = multierror.Append(result, fmt.Errorf("error deleting ipblock: %w", err))
+		} else {
+			d.IpBlockId = ""
 		}
 	}
 
