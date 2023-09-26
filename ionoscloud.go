@@ -984,7 +984,6 @@ func (d *Driver) Remove() error {
 			d.IpBlockId = ""
 		}
 	}
-	time.Sleep(300)
 
 	return result.ErrorOrNil()
 }

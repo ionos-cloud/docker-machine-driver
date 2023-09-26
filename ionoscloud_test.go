@@ -449,7 +449,7 @@ func TestCreateNatPublicIps(t *testing.T) {
 	clientMock.EXPECT().CreateAttachNIC(driver.DatacenterId, driver.ServerId, driver.MachineName, true, int32(0), &driver.NicIps).Return(nic, nil)
 	clientMock.EXPECT().CreateNat(
 		driver.DatacenterId, "docker-machine-nat", driver.NatPublicIps, driver.NatFlowlogs, driver.NatRules, driver.NatLansToGateways,
-		net.ParseIP((driver.NicIps)[0]).Mask(net.CIDRMask(24, 32)).String()+"/24",
+		net.ParseIP((driver.NicIps)[0]).Mask(net.CIDRMask(24, 32)).String()+"/24", driver.SkipDefaultNatRules,
 	).Return(nat, nil)
 	err := driver.Create()
 	assert.NoError(t, err)
@@ -465,6 +465,7 @@ func TestCreateNat(t *testing.T) {
 	driver.LanId = ""
 	driver.IPAddress = testVar
 	driver.NicDhcp = true
+	driver.SkipDefaultNatRules = true
 	driver.PrivateLan = true
 	driver.CreateNat = true
 	driver.NatFlowlogs = []string{"test_name:ACCEPTED:INGRESS:test_bucket", "test_name2:REGECTED:EGRESS:test_bucket"}
@@ -495,7 +496,7 @@ func TestCreateNat(t *testing.T) {
 	clientMock.EXPECT().CreateAttachNIC(driver.DatacenterId, driver.ServerId, driver.MachineName, true, int32(0), nil).Return(nic, nil)
 	clientMock.EXPECT().CreateNat(
 		driver.DatacenterId, "docker-machine-nat", ips, driver.NatFlowlogs, driver.NatRules, driver.NatLansToGateways,
-		net.ParseIP(([]string{"127.0.0.1"})[0]).Mask(net.CIDRMask(24, 32)).String()+"/24",
+		net.ParseIP(([]string{"127.0.0.1"})[0]).Mask(net.CIDRMask(24, 32)).String()+"/24", driver.SkipDefaultNatRules,
 	).Return(nat, nil)
 	err := driver.Create()
 	assert.NoError(t, err)
