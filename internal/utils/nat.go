@@ -134,11 +134,10 @@ func natRuleStringToModel(rule, natPublicIp, defaultsourceSubnet string) (*sdkgo
 	} else {
 
 		start, err := strconv.Atoi(split[6])
-		start32 := int32(start)
-
 		if err != nil {
 			return nil, err
 		}
+		start32 := int32(start)
 		ruleModel.Properties.TargetPortRange.Start = &start32
 	}
 
@@ -147,11 +146,10 @@ func natRuleStringToModel(rule, natPublicIp, defaultsourceSubnet string) (*sdkgo
 	} else {
 
 		end, err := strconv.Atoi(split[7])
-		end32 := int32(end)
-
 		if err != nil {
 			return nil, err
 		}
+		end32 := int32(end)
 		ruleModel.Properties.TargetPortRange.End = &end32
 	}
 
