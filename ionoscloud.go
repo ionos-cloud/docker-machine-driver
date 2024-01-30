@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -61,6 +62,7 @@ const (
 	flagSkipDefaultNatRules    = "ionoscloud-skip-default-nat-rules"
 	flagNatLansToGateways      = "ionoscloud-nat-lans-to-gateways"
 	flagPrivateLan             = "ionoscloud-private-lan"
+	flagAdditionalLans         = "ionoscloud-additional-lans"
 	flagCreateNat              = "ionoscloud-create-nat"
 	// ---
 )
@@ -125,6 +127,9 @@ type Driver struct {
 	ServerAvailabilityZone string
 	LanId                  string
 	LanName                string
+	AdditionalLans         []string
+	AdditionalLansIds      []int
+	AdditionalNicsIds      []string
 	DatacenterId           string
 	DatacenterName         string
 	VolumeId               string
@@ -228,6 +233,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagPrivateLan,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagPrivateLan),
 			Usage:  "Should the created LAN be private? Does nothing if LAN ID is provided",
+		},
+		mcnflag.StringSliceFlag{
+			Name:   flagNicIps,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagAdditionalLans),
+			Usage:  "Names of existing IONOS Lans to connect the machine to. Names that are not found are ignored",
 		},
 		mcnflag.BoolFlag{
 			Name:   flagWaitForIpChange,
@@ -428,6 +438,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.SSHInCloudInit = opts.Bool(flagSSHInCloudInit)
 	d.CloudInitB64 = opts.String(flagCloudInitB64)
 	d.PrivateLan = opts.Bool(flagPrivateLan)
+	d.AdditionalLans = opts.StringSlice(flagAdditionalLans)
 
 	d.SwarmMaster = opts.Bool("swarm-master")
 	d.SwarmHost = opts.String("swarm-host")
@@ -512,6 +523,14 @@ func (d *Driver) PreCreateCheck() error {
 					foundLan = true
 					if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
 						d.LanId = *lanId
+					}
+				} else if slices.Contains(d.AdditionalLans, *lan.Properties.Name) {
+					if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
+						lanIdInt, err := strconv.Atoi(*lanId)
+						if err != nil {
+							return fmt.Errorf("invalid LAN ID found: %v", *lanId)
+						}
+						d.AdditionalLansIds = append(d.AdditionalLansIds, lanIdInt)
 					}
 				}
 			}
@@ -847,6 +866,20 @@ func (d *Driver) Create() (err error) {
 		}
 		return err
 	}
+	for _, additionalLanId := range d.AdditionalLansIds {
+		additionalNic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(additionalLanId), nil)
+		if err != nil {
+			// TODO: Duplicated
+			log.Warn(rollingBackNotice)
+			if removeErr := d.Remove(); removeErr != nil {
+				return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", fmt.Errorf("error attaching additional NIC: %w", err), removeErr)
+			}
+			return err
+		}
+		if nicId, ok := additionalNic.GetIdOk(); ok && nicId != nil {
+			d.AdditionalNicsIds = append(d.AdditionalNicsIds, *nicId)
+		}
+	}
 	if nicId, ok := nic.GetIdOk(); ok && nicId != nil {
 		d.NicId = *nic.Id
 		log.Debugf("Nic ID: %v", d.NicId)
@@ -930,6 +963,15 @@ func (d *Driver) Remove() error {
 			result = multierror.Append(result, fmt.Errorf("error deleting NIC: %w", err))
 		} else {
 			d.NicId = ""
+		}
+	}
+	if d.DatacenterId != "" && d.ServerId != "" {
+		for _, additionalNicId := range d.AdditionalNicsIds {
+			log.Debugf("Starting deleting additional Nic with Id: %v", additionalNicId)
+			err := d.client().RemoveNic(d.DatacenterId, d.ServerId, additionalNicId)
+			if err != nil {
+				result = multierror.Append(result, fmt.Errorf("error deleting additional NIC: %w", err))
+			}
 		}
 	}
 	if d.DatacenterId != "" && d.VolumeId != "" {
