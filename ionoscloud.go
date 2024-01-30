@@ -477,12 +477,18 @@ func (d *Driver) PreCreateCheck() error {
 	d.LanExists = false
 	d.NatExists = false
 
-	for i := len(d.MachineName) - 1; i >= 0; i-- {
-		if !unicode.IsNumber(rune(d.MachineName[i])) {
-			if d.MachineName[i+1:] != "1" {
-				time.Sleep(60 * time.Second)
+	if strings.Contains(d.MachineName, "-pool") {
+		if !strings.Contains(d.MachineName, "-pool1-") {
+			time.Sleep(60 * time.Second)
+		}
+	} else {
+		for i := len(d.MachineName) - 1; i >= 0; i-- {
+			if !unicode.IsNumber(rune(d.MachineName[i])) {
+				if d.MachineName[i+1:] != "1" {
+					time.Sleep(60 * time.Second)
+				}
+				break
 			}
-			break
 		}
 	}
 	if d.DatacenterId == "" {
