@@ -22,6 +22,14 @@ Docker Machine Driver is the official driver for Docker Machine to use with IONO
 
 [Docker Machine](https://github.com/docker/machine) lets you create Docker hosts on your computer and inside your own data center. It creates servers, installs Docker on them, then configures the Docker client to talk to them. For more information about Docker Machine, check the official [GitHub Repository](https://github.com/docker/machine).
 
+---
+### Warning: API Basic Authentication Deprecation Notice
+Effective March 15, 2024, IONOS account holders using 2-Factor Authentication will no longer be able to utilize Basic Authentication for accessing our APIs, SDKs, and all related tools. Token creation and deletion via APIs and ionosCTL will also be restricted.
+
+Affected users are required to switch to token-based authorization. These tokens will be accessible through our new Token Manager in the Data Center Designer, launching at the beginning of February 2024.
+
+---
+
 ## Getting started
 
 ## Setup
