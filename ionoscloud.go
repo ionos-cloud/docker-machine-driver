@@ -235,7 +235,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Should the created LAN be private? Does nothing if LAN ID is provided",
 		},
 		mcnflag.StringSliceFlag{
-			Name:   flagNicIps,
+			Name:   flagAdditionalLans,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagAdditionalLans),
 			Usage:  "Names of existing IONOS Lans to connect the machine to. Names that are not found are ignored",
 		},
