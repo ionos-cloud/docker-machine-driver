@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -530,7 +529,7 @@ func (d *Driver) PreCreateCheck() error {
 					if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
 						d.LanId = *lanId
 					}
-				} else if slices.Contains(d.AdditionalLans, *lan.Properties.Name) {
+				} else if utils.Contains(d.AdditionalLans, *lan.Properties.Name) {
 					if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
 						lanIdInt, err := strconv.Atoi(*lanId)
 						if err != nil {
