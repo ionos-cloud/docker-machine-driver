@@ -12,10 +12,12 @@ You will create a Docker Container with the following command:
 sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged rancher/rancher
 ```
 
+> **_NOTE:_** Please note that versions 2.8+ do not currently allow adding the IonosCloud UI extension for RKE2
+
 To use a specific Rancher version, check the [available docker images](https://hub.docker.com/r/rancher/rancher/tags) and add the corresponding tag to the command: 
 
 ```text
-sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged rancher/rancher:v2.5.x
+sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged rancher/rancher:v2.7.5
 ```
 
 To output the available docker containers, use:
