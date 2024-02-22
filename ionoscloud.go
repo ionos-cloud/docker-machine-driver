@@ -338,7 +338,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagServerCpuFamily,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerCpuFamily),
 			Value:  defaultCpuFamily,
-			Usage:  "Ionos Cloud Server CPU families (AMD_OPTERON, INTEL_XEON, INTEL_SKYLAKE)",
+			Usage:  "Ionos Cloud Server CPU families (AMD_OPTERON, INTEL_XEON, INTEL_SKYLAKE, INTEL_ICELAKE, AMD_EPYC)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagDatacenterId,
@@ -826,7 +826,11 @@ func (d *Driver) Create() (err error) {
 	if err != nil {
 		return fmt.Errorf("error getting server by id: %w", err)
 	}
-	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
+	volumes, ok := server.Entities.GetVolumesOk()
+	if ok != true {
+		return fmt.Errorf("error getting server: d.ServerId is empty")
+	}
+	d.VolumeId = *(*volumes.Items)[0].GetId()
 	log.Debugf("Volume ID: %v", d.VolumeId)
 
 	// Reserve IP if needed
@@ -1131,6 +1135,9 @@ func (d *Driver) GetIP() (string, error) {
 
 // GetState returns the state of the machine role instance.
 func (d *Driver) GetState() (state.State, error) {
+	if d.ServerId == "" {
+		return state.None, fmt.Errorf("error getting server: d.ServerID is empty")
+	}
 	server, err := d.client().GetServer(d.DatacenterId, d.ServerId)
 	if err != nil {
 		return state.None, fmt.Errorf("error getting server: %w", err)
