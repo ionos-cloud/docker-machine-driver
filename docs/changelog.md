@@ -1,5 +1,17 @@
 # Changelog
 
+## \[7.0.3]
+### Changed
+* added:
+  * option connect to additional lans, flag and option added in RKE1 and RKE2 UIs
+  * added new cpu family options in UI
+* fixed:
+  * driver was trying to get server state without knowing the server ID
+  * RKE2: making servers in pool1 start while the others wait to try to avoid creating multiple datacenter
+  * cloudinit input was not should the old value when updating the config
+* known issues:
+  * multiple data centers and LANs are created in RKE2 if there are multiple machines in pool1, this is because the driver does not know which machine should go first
+
 ## \[7.0.2]
 ### Changed
 * added:

@@ -520,12 +520,12 @@ func (c *Client) WaitForNicIpChange(datacenterId, serverId, nicId string, timeou
 		initialIp = (*nicIps)[0]
 	}
 
-	ticker := time.NewTicker(2 * time.Second)
+	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 	start := time.Now()
 
 	for range ticker.C {
-		if time.Since(start) > time.Second*time.Duration(timeout+5) {
+		if time.Since(start) > time.Second*time.Duration(timeout+15) {
 			break
 		}
 		nic, err = c.GetNic(datacenterId, serverId, nicId)
