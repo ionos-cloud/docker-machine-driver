@@ -20,7 +20,7 @@ type ClientService interface {
 	RemoveNat(datacenterId, natId string) error
 
 	CreateServer(datacenterId string, server ionoscloud.Server) (*ionoscloud.Server, error)
-	GetServer(datacenterId, serverId string) (*ionoscloud.Server, error)
+	GetServer(datacenterId, serverId string, depth int32) (*ionoscloud.Server, error)
 	GetLan(datacenterId, LanId string) (*ionoscloud.Lan, error)
 	GetLans(datacenterId string) (*ionoscloud.Lans, error)
 	GetNic(datacenterId, ServerId, NicId string) (*ionoscloud.Nic, error)

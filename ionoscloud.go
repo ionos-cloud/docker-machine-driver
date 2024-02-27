@@ -808,36 +808,11 @@ func (d *Driver) Create() (err error) {
 	serverToCreate.Entities = sdkgo.NewServerEntitiesWithDefaults()
 	serverToCreate.Entities.SetVolumes(*attachedVolumes)
 
-	server, err := d.client().CreateServer(d.DatacenterId, serverToCreate)
-	if err != nil {
-		// TODO: Export to a func
-		log.Warn(rollingBackNotice)
-		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create server due to error: %w\n Removing created resources: %v", err, removeErr)
-		}
-		return err
-	}
-	if serverId, ok := server.GetIdOk(); ok && serverId != nil {
-		d.ServerId = *serverId
-		log.Debugf("Server ID: %v", d.ServerId)
-	}
-
-	server, err = d.client().GetServer(d.DatacenterId, d.ServerId)
-	if err != nil {
-		return fmt.Errorf("error getting server by id: %w", err)
-	}
-	volumes, ok := server.Entities.GetVolumesOk()
-	if ok != true {
-		return fmt.Errorf("error getting server: d.ServerId is empty")
-	}
-	d.VolumeId = *(*volumes.Items)[0].GetId()
-	log.Debugf("Volume ID: %v", d.VolumeId)
-
-	// Reserve IP if needed
-
+	// Add nics to server
 	providedNicIps := len(d.NicIps) != 0
 	reservedIps := &[]string{}
 
+	// Reserve IP if needed
 	if !isLanPrivate && !providedNicIps ||
 		d.CreateNat && d.NatPublicIps == nil {
 		ipBlock, err := d.client().CreateIpBlock(1, d.Location)
@@ -854,7 +829,6 @@ func (d *Driver) Create() (err error) {
 		}
 	}
 
-	// Create NIC
 	var ipsForAttachedNic *[]string
 
 	if providedNicIps {
@@ -865,33 +839,74 @@ func (d *Driver) Create() (err error) {
 		ipsForAttachedNic = reservedIps // For public NICs we use the generated IPs
 	}
 
+	attachedNics := sdkgo.NewNicsWithDefaults()
+
 	lanId, _ := strconv.Atoi(d.LanId)
-	nic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, d.NicDhcp, int32(lanId), ipsForAttachedNic)
+	lanId_int32 := int32(lanId)
+	nicProperties := &sdkgo.NicProperties{
+		Name: &d.MachineName,
+		Lan:  &lanId_int32,
+		Ips:  ipsForAttachedNic,
+		Dhcp: &d.NicDhcp,
+	}
+
+	attachedNics.Items = &[]sdkgo.Nic{
+		{
+			Properties: nicProperties,
+		},
+	}
+
+	for _, additionalLanId := range d.AdditionalLansIds {
+		dhcp_true := true
+		additionalLanId_int32 := int32(additionalLanId)
+		additionalNicName := d.MachineName + " " + fmt.Sprint(additionalLanId)
+		nicProperties = &sdkgo.NicProperties{
+			Name: &additionalNicName,
+			Lan:  &additionalLanId_int32,
+			Ips:  nil,
+			Dhcp: &dhcp_true,
+		}
+		additionalNic := sdkgo.Nic{
+			Properties: nicProperties,
+		}
+		*attachedNics.Items = append(*attachedNics.Items, additionalNic)
+	}
+
+	serverToCreate.Entities.SetNics(*attachedNics)
+
+	server, err := d.client().CreateServer(d.DatacenterId, serverToCreate)
 	if err != nil {
-		// TODO: Duplicated
+		// TODO: Export to a func
 		log.Warn(rollingBackNotice)
 		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", fmt.Errorf("error attaching NIC: %w", err), removeErr)
+			return fmt.Errorf("failed to create server due to error: %w\n Removing created resources: %v", err, removeErr)
 		}
 		return err
 	}
-	for _, additionalLanId := range d.AdditionalLansIds {
-		additionalNic, err := d.client().CreateAttachNIC(d.DatacenterId, d.ServerId, d.MachineName, true, int32(additionalLanId), nil)
-		if err != nil {
-			// TODO: Duplicated
-			log.Warn(rollingBackNotice)
-			if removeErr := d.Remove(); removeErr != nil {
-				return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", fmt.Errorf("error attaching additional NIC: %w", err), removeErr)
-			}
-			return err
-		}
-		if nicId, ok := additionalNic.GetIdOk(); ok && nicId != nil {
-			d.AdditionalNicsIds = append(d.AdditionalNicsIds, *nicId)
-		}
+	if serverId, ok := server.GetIdOk(); ok && serverId != nil {
+		d.ServerId = *serverId
+		log.Debugf("Server ID: %v", d.ServerId)
 	}
-	if nicId, ok := nic.GetIdOk(); ok && nicId != nil {
-		d.NicId = *nic.Id
-		log.Debugf("Nic ID: %v", d.NicId)
+
+	server, err = d.client().GetServer(d.DatacenterId, d.ServerId, 2)
+	if err != nil {
+		return fmt.Errorf("error getting server by id: %w", err)
+	}
+	volumes, ok := server.Entities.GetVolumesOk()
+	if !ok {
+		return fmt.Errorf("error getting server: d.ServerId is empty")
+	}
+	d.VolumeId = *(*volumes.Items)[0].GetId()
+	log.Debugf("Volume ID: %v", d.VolumeId)
+
+	nics := server.Entities.GetNics()
+	for _, nic := range *nics.Items {
+		if *nic.Properties.Name == d.MachineName {
+			d.NicId = *nic.Id
+			log.Debugf("Nic ID: %v", d.NicId)
+		} else {
+			d.AdditionalNicsIds = append(d.AdditionalNicsIds, *nic.Id)
+		}
 	}
 
 	if d.WaitForIpChange {
@@ -901,7 +916,7 @@ func (d *Driver) Create() (err error) {
 		}
 	}
 
-	nic, err = d.client().GetNic(d.DatacenterId, d.ServerId, d.NicId)
+	nic, err := d.client().GetNic(d.DatacenterId, d.ServerId, d.NicId)
 	if err != nil {
 		return fmt.Errorf("error getting NIC: %w", err)
 	}
@@ -927,7 +942,7 @@ func (d *Driver) Create() (err error) {
 			natLansToGateways = &d.NatLansToGateways
 		}
 		sourceSubnet := net.ParseIP((*nicIps)[0]).Mask(net.CIDRMask(24, 32)).String() + "/24"
-		nat, err := d.client().CreateNat(d.DatacenterId, d.NatName, *natPublicIps, *&d.NatFlowlogs, *&d.NatRules, *natLansToGateways, sourceSubnet, d.SkipDefaultNatRules)
+		nat, err := d.client().CreateNat(d.DatacenterId, d.NatName, *natPublicIps, d.NatFlowlogs, d.NatRules, *natLansToGateways, sourceSubnet, d.SkipDefaultNatRules)
 		if err != nil {
 			return err
 		}
@@ -1051,7 +1066,7 @@ func (d *Driver) Start() error {
 		} else if d.ServerType == "CUBE" {
 			err = d.client().ResumeServer(d.DatacenterId, d.ServerId)
 		} else {
-			err = fmt.Errorf("Wrong server type: %s", d.ServerType)
+			err = fmt.Errorf("wrong server type: %s", d.ServerType)
 		}
 
 		if err != nil {
@@ -1078,7 +1093,7 @@ func (d *Driver) Stop() error {
 	} else if d.ServerType == "CUBE" {
 		err = d.client().SuspendServer(d.DatacenterId, d.ServerId)
 	} else {
-		err = fmt.Errorf("Wrong server type: %s", d.ServerType)
+		err = fmt.Errorf("wrong server type: %s", d.ServerType)
 	}
 	if err != nil {
 		return fmt.Errorf("error stoping server: %w", err)
@@ -1138,7 +1153,7 @@ func (d *Driver) GetState() (state.State, error) {
 	if d.ServerId == "" {
 		return state.None, fmt.Errorf("error getting server: d.ServerID is empty")
 	}
-	server, err := d.client().GetServer(d.DatacenterId, d.ServerId)
+	server, err := d.client().GetServer(d.DatacenterId, d.ServerId, 1)
 	if err != nil {
 		return state.None, fmt.Errorf("error getting server: %w", err)
 	}
