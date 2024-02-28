@@ -170,7 +170,7 @@ func TestClientCreateServerErr(t *testing.T) {
 }
 
 func TestClientGetServerErr(t *testing.T) {
-	_, err := getTestClient().GetServer(testName, testName)
+	_, err := getTestClient().GetServer(testName, testName, 2)
 	assert.Error(t, err)
 }
 
