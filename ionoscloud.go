@@ -842,10 +842,9 @@ func (d *Driver) Create() (err error) {
 	attachedNics := sdkgo.NewNicsWithDefaults()
 
 	lanId, _ := strconv.Atoi(d.LanId)
-	lanId_int32 := int32(lanId)
 	nicProperties := &sdkgo.NicProperties{
 		Name: &d.MachineName,
-		Lan:  &lanId_int32,
+		Lan:  sdkgo.PtrInt32(int32(lanId)),
 		Ips:  ipsForAttachedNic,
 		Dhcp: &d.NicDhcp,
 	}
@@ -857,17 +856,13 @@ func (d *Driver) Create() (err error) {
 	}
 
 	for _, additionalLanId := range d.AdditionalLansIds {
-		dhcp_true := true
-		additionalLanId_int32 := int32(additionalLanId)
-		additionalNicName := d.MachineName + " " + fmt.Sprint(additionalLanId)
-		nicProperties = &sdkgo.NicProperties{
-			Name: &additionalNicName,
-			Lan:  &additionalLanId_int32,
-			Ips:  nil,
-			Dhcp: &dhcp_true,
-		}
 		additionalNic := sdkgo.Nic{
-			Properties: nicProperties,
+			Properties: &sdkgo.NicProperties{
+				Name: sdkgo.PtrString(d.MachineName + " " + fmt.Sprint(additionalLanId)),
+				Lan:  sdkgo.PtrInt32(int32(additionalLanId)),
+				Ips:  nil,
+				Dhcp: sdkgo.PtrBool(true),
+			},
 		}
 		*attachedNics.Items = append(*attachedNics.Items, additionalNic)
 	}
@@ -886,17 +881,15 @@ func (d *Driver) Create() (err error) {
 	if serverId, ok := server.GetIdOk(); ok && serverId != nil {
 		d.ServerId = *serverId
 		log.Debugf("Server ID: %v", d.ServerId)
+	} else {
+		return fmt.Errorf("error getting server: d.ServerId is empty")
 	}
 
 	server, err = d.client().GetServer(d.DatacenterId, d.ServerId, 2)
 	if err != nil {
 		return fmt.Errorf("error getting server by id: %w", err)
 	}
-	volumes, ok := server.Entities.GetVolumesOk()
-	if !ok {
-		return fmt.Errorf("error getting server: d.ServerId is empty")
-	}
-	d.VolumeId = *(*volumes.Items)[0].GetId()
+	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
 	log.Debugf("Volume ID: %v", d.VolumeId)
 
 	nics := server.Entities.GetNics()
