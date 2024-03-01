@@ -1,5 +1,10 @@
 # Changelog
 
+## \[7.0.4]
+### Changed
+* improvement:
+  * use composite requests to reduce the number of calls made
+
 ## \[7.0.3]
 ### Changed
 * added:
