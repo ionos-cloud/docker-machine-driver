@@ -10,7 +10,6 @@ import (
 	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
-	"golang.org/x/exp/maps"
 )
 
 func (c *Client) GetNats(datacenterId string) (*sdkgo.NatGateways, error) {
@@ -176,11 +175,19 @@ func natRulesStringToModel(rules []string, natPublicIp, sourceSubnet string) (*s
 	return rule_models, nil
 }
 
+func keysOfMap[K comparable, V any](m map[K]V) []K {
+	keys := make([]K, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 func (c *Client) CreateNat(datacenterId, name string, publicIps, flowlogs, natRules []string, lansToGateways map[string][]string, sourceSubnet string, skipDefaultRules bool) (*sdkgo.NatGateway, error) {
 	var lans []sdkgo.NatGatewayLanProperties
 	publicIp := publicIps[0]
 
-	err := c.createLansIfNotExist(datacenterId, maps.Keys(lansToGateways))
+	err := c.createLansIfNotExist(datacenterId, keysOfMap(lansToGateways))
 	if err != nil {
 		return nil, err
 	}
