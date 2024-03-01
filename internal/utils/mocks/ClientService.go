@@ -8,7 +8,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	utils "github.com/ionos-cloud/docker-machine-driver/internal/utils"
 	ionoscloud "github.com/ionos-cloud/sdk-go/v6"
 )
 
@@ -33,36 +32,6 @@ func NewMockClientService(ctrl *gomock.Controller) *MockClientService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClientService) EXPECT() *MockClientServiceMockRecorder {
 	return m.recorder
-}
-
-// CreateAttachNIC mocks base method.
-func (m *MockClientService) CreateAttachNIC(datacenterId, serverId, name string, dhcp bool, lanId int32, ips *[]string) (*ionoscloud.Nic, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAttachNIC", datacenterId, serverId, name, dhcp, lanId, ips)
-	ret0, _ := ret[0].(*ionoscloud.Nic)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateAttachNIC indicates an expected call of CreateAttachNIC.
-func (mr *MockClientServiceMockRecorder) CreateAttachNIC(datacenterId, serverId, name, dhcp, lanId, ips interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAttachNIC", reflect.TypeOf((*MockClientService)(nil).CreateAttachNIC), datacenterId, serverId, name, dhcp, lanId, ips)
-}
-
-// CreateAttachVolume mocks base method.
-func (m *MockClientService) CreateAttachVolume(datacenterId, serverId string, properties *utils.ClientVolumeProperties) (*ionoscloud.Volume, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAttachVolume", datacenterId, serverId, properties)
-	ret0, _ := ret[0].(*ionoscloud.Volume)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateAttachVolume indicates an expected call of CreateAttachVolume.
-func (mr *MockClientServiceMockRecorder) CreateAttachVolume(datacenterId, serverId, properties interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAttachVolume", reflect.TypeOf((*MockClientService)(nil).CreateAttachVolume), datacenterId, serverId, properties)
 }
 
 // CreateDatacenter mocks base method.
@@ -306,18 +275,18 @@ func (mr *MockClientServiceMockRecorder) GetNic(datacenterId, ServerId, NicId in
 }
 
 // GetServer mocks base method.
-func (m *MockClientService) GetServer(datacenterId, serverId string) (*ionoscloud.Server, error) {
+func (m *MockClientService) GetServer(datacenterId, serverId string, depth int32) (*ionoscloud.Server, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetServer", datacenterId, serverId)
+	ret := m.ctrl.Call(m, "GetServer", datacenterId, serverId, depth)
 	ret0, _ := ret[0].(*ionoscloud.Server)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetServer indicates an expected call of GetServer.
-func (mr *MockClientServiceMockRecorder) GetServer(datacenterId, serverId interface{}) *gomock.Call {
+func (mr *MockClientServiceMockRecorder) GetServer(datacenterId, serverId, depth interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServer", reflect.TypeOf((*MockClientService)(nil).GetServer), datacenterId, serverId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServer", reflect.TypeOf((*MockClientService)(nil).GetServer), datacenterId, serverId, depth)
 }
 
 // GetTemplates mocks base method.
