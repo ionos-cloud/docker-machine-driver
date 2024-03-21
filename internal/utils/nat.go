@@ -183,6 +183,22 @@ func keysOfMap[K comparable, V any](m map[K]V) []K {
 	return keys
 }
 
+func (c *Client) PatchNat(datacenterId, natId, name string, publicIps []string, lansToGateways []sdkgo.NatGatewayLanProperties) (*sdkgo.NatGateway, error) {
+	nat, resp, err := c.NATGatewaysApi.DatacentersNatgatewaysPatch(c.ctx, datacenterId, natId).NatGatewayProperties(
+		sdkgo.NatGatewayProperties{
+			Name:      &name,
+			PublicIps: &publicIps,
+			Lans:      &lansToGateways,
+		},
+	).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.waitTillProvisioned(resp.Header.Get("location"))
+	return &nat, err
+}
+
 func (c *Client) CreateNat(datacenterId, name string, publicIps, flowlogs, natRules []string, lansToGateways map[string][]string, sourceSubnet string, skipDefaultRules bool) (*sdkgo.NatGateway, error) {
 	var lans []sdkgo.NatGatewayLanProperties
 	publicIp := publicIps[0]
