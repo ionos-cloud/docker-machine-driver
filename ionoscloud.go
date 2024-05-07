@@ -114,6 +114,7 @@ type Driver struct {
 	Size                   int
 	NicDhcp                bool
 	NicIps                 []string
+	ReservedIps            *[]string
 	Location               string
 	CpuFamily              string
 	ServerType             string
@@ -146,6 +147,7 @@ type Driver struct {
 	SkipDefaultNatRules    bool
 	NatLansToGateways      map[string][]string
 	PrivateLan             bool
+	IsLanPrivate           bool
 	SSHInCloudInit         bool
 	WaitForIpChange        bool
 	WaitForIpChangeTimeout int
@@ -566,7 +568,7 @@ func (d *Driver) PreCreateCheck() error {
 			}
 		}
 	}
-	if imageId, err := d.getImageId(d.Image); err != nil && imageId == "" {
+	if imageId, err := d.getImageIdOrAlias(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}
 
@@ -643,26 +645,18 @@ func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
 
 // Create creates the machine.
 func (d *Driver) Create() (err error) {
-	log.Infof("Creating SSH key...")
-	if d.SSHKey == "" {
-		d.SSHKey, err = d.createSSHKey()
-		if err != nil {
-			return fmt.Errorf("error creating SSH keys: %w", err)
-		}
-		log.Debugf("SSH Key generated in file: %v", d.publicSSHKeyPath())
-	}
-
-	result, err := d.getImageId(d.Image)
+	err = d.CreateIonosMachine()
 	if err != nil {
-		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
+		log.Warn(rollingBackNotice)
+		if removeErr := d.Remove(); removeErr != nil {
+			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
+		}
+		return err
 	}
-	var alias string
-	if d.UseAlias {
-		alias = result
-	}
+	return nil
+}
 
-	// Creating Data Center if one was not provided
-
+func (d *Driver) CreateDataCenterIfNeeded() (err error) {
 	var dc *sdkgo.Datacenter
 	if d.DatacenterId == "" {
 		d.DCExists = false
@@ -684,18 +678,14 @@ func (d *Driver) Create() (err error) {
 		d.DatacenterId = *dcId
 		log.Debugf("Datacenter ID: %v", d.DatacenterId)
 	}
+	return nil
+}
 
-	// Creating LAN if one was not provided
-
+func (d *Driver) CreateLanIfNeeded() (err error) {
 	if d.LanId == "" {
 		lan, err := d.client().CreateLan(d.DatacenterId, d.LanName, !d.PrivateLan)
 		if err != nil {
 			err = fmt.Errorf("error creating LAN: %w", err)
-			// TODO : export below to a func --->
-			log.Warn(rollingBackNotice)
-			if removeErr := d.Remove(); removeErr != nil {
-				return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
-			}
 			return err
 			// TODO: <---
 		}
@@ -704,30 +694,26 @@ func (d *Driver) Create() (err error) {
 			log.Debugf("Lan ID: %v", d.LanId)
 		}
 	}
+	return nil
+}
 
-	lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
-	if err != nil {
-		return fmt.Errorf("error getting LAN: %w", err)
-	}
-
-	if err != nil {
-		log.Warn(rollingBackNotice)
-		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
+func (d *Driver) GetServerProperties() (err error) {
+	if d.LanId == "" {
+		lan, err := d.client().CreateLan(d.DatacenterId, d.LanName, !d.PrivateLan)
+		if err != nil {
+			err = fmt.Errorf("error creating LAN: %w", err)
+			return err
+			// TODO: <---
 		}
-		return err
-	}
-
-	var isLanPrivate bool
-	if lanProp, ok := lan.GetPropertiesOk(); ok && lanProp != nil {
-		if public, ok := lanProp.GetPublicOk(); ok && public != nil {
-			isLanPrivate = !*public
+		if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
+			d.LanId = *lanId
+			log.Debugf("Lan ID: %v", d.LanId)
 		}
 	}
+	return nil
+}
 
-	// Creating the server with the volume attached
-
-	// User Data for cloud init
+func (d *Driver) GetFinalUserData() (userdata string, err error) {
 	givenB64CloudInit, _ := base64.StdEncoding.DecodeString(d.CloudInitB64)
 	if ud := getPropertyWithFallback(string(givenB64CloudInit), d.CloudInit, ""); ud != "" {
 		// Provided B64 User Data has priority over UI provided User Data
@@ -737,16 +723,30 @@ func (d *Driver) Create() (err error) {
 	if d.SSHUser != "root" || d.SSHInCloudInit {
 		d.CloudInit, err = d.addSSHUserToYaml()
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 	d.CloudInit, err = d.client().UpdateCloudInitFile(
 		d.CloudInit, "hostname", []interface{}{d.MachineName}, true, "skip",
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 	ud := base64.StdEncoding.EncodeToString([]byte(d.CloudInit))
+	return ud, nil
+}
+
+func (d *Driver) CreateIonosServer() (err error) {
+	// Creating the server with the volume attached
+	imageIdentifier, err := d.getImageIdOrAlias(d.Image)
+	if err != nil {
+		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
+	}
+
+	ud, err := d.GetFinalUserData()
+	if err != nil {
+		return fmt.Errorf("error with user data: %w", err)
+	}
 
 	// Volume
 	sshKeys := &[]string{}
@@ -768,11 +768,11 @@ func (d *Driver) Create() (err error) {
 	}
 
 	if !d.UseAlias {
-		log.Infof("Image Id: %v", result)
-		volumeProperties.Image = &result
+		log.Infof("Image Id: %v", imageIdentifier)
+		volumeProperties.Image = &imageIdentifier
 	} else {
-		log.Infof("Image Alias: %v", alias)
-		volumeProperties.ImageAlias = &alias
+		log.Infof("Image Alias: %v", imageIdentifier)
+		volumeProperties.ImageAlias = &imageIdentifier
 	}
 
 	serverToCreate := sdkgo.Server{}
@@ -808,35 +808,14 @@ func (d *Driver) Create() (err error) {
 	serverToCreate.Entities = sdkgo.NewServerEntitiesWithDefaults()
 	serverToCreate.Entities.SetVolumes(*attachedVolumes)
 
-	// Add nics to server
-	providedNicIps := len(d.NicIps) != 0
-	reservedIps := &[]string{}
-
-	// Reserve IP if needed
-	if !isLanPrivate && !providedNicIps ||
-		d.CreateNat && d.NatPublicIps == nil {
-		ipBlock, err := d.client().CreateIpBlock(1, d.Location)
-		if err != nil {
-			return fmt.Errorf("error creating ipblock: %w", err)
-		}
-		if ipBlockId, ok := ipBlock.GetIdOk(); ok && ipBlockId != nil {
-			d.IpBlockId = *ipBlockId
-			log.Debugf("IpBlock ID: %v", d.IpBlockId)
-		}
-		reservedIps, err = d.client().GetIpBlockIps(ipBlock)
-		if err != nil {
-			return err
-		}
-	}
-
 	var ipsForAttachedNic *[]string
 
-	if providedNicIps {
+	if len(d.NicIps) != 0 {
 		ipsForAttachedNic = &d.NicIps // If IPs are provided use those
-	} else if isLanPrivate {
+	} else if d.IsLanPrivate {
 		ipsForAttachedNic = nil // Let CloudAPI generate an IP, which we can later use for the subnet
 	} else {
-		ipsForAttachedNic = reservedIps // For public NICs we use the generated IPs
+		ipsForAttachedNic = d.ReservedIps // For public NICs we use the generated IPs
 	}
 
 	attachedNics := sdkgo.NewNicsWithDefaults()
@@ -871,11 +850,6 @@ func (d *Driver) Create() (err error) {
 
 	server, err := d.client().CreateServer(d.DatacenterId, serverToCreate)
 	if err != nil {
-		// TODO: Export to a func
-		log.Warn(rollingBackNotice)
-		if removeErr := d.Remove(); removeErr != nil {
-			return fmt.Errorf("failed to create server due to error: %w\n Removing created resources: %v", err, removeErr)
-		}
 		return err
 	}
 	if serverId, ok := server.GetIdOk(); ok && serverId != nil {
@@ -884,31 +858,10 @@ func (d *Driver) Create() (err error) {
 	} else {
 		return fmt.Errorf("error getting server: d.ServerId is empty")
 	}
+	return nil
+}
 
-	server, err = d.client().GetServer(d.DatacenterId, d.ServerId, 2)
-	if err != nil {
-		return fmt.Errorf("error getting server by id: %w", err)
-	}
-	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
-	log.Debugf("Volume ID: %v", d.VolumeId)
-
-	nics := server.Entities.GetNics()
-	for _, nic := range *nics.Items {
-		if *nic.Properties.Name == d.MachineName {
-			d.NicId = *nic.Id
-			log.Debugf("Nic ID: %v", d.NicId)
-		} else {
-			d.AdditionalNicsIds = append(d.AdditionalNicsIds, *nic.Id)
-		}
-	}
-
-	if d.WaitForIpChange {
-		err := d.client().WaitForNicIpChange(d.DatacenterId, d.ServerId, d.NicId, d.WaitForIpChangeTimeout)
-		if err != nil {
-			return err
-		}
-	}
-
+func (d *Driver) CreateIonosNatAndSetIp() (err error) {
 	nic, err := d.client().GetNic(d.DatacenterId, d.ServerId, d.NicId)
 	if err != nil {
 		return fmt.Errorf("error getting NIC: %w", err)
@@ -922,7 +875,7 @@ func (d *Driver) Create() (err error) {
 	// --- NAT ---
 	if d.CreateNat {
 		// TODO: Were CreateNat in a deeper scope, we wouldn't have the need of these variables (they are here to avoid function-wide side-effects)
-		natPublicIps := reservedIps
+		natPublicIps := d.ReservedIps
 		if d.NatPublicIps != nil {
 			natPublicIps = &d.NatPublicIps
 		}
@@ -967,6 +920,87 @@ func (d *Driver) Create() (err error) {
 			d.IPAddress = (*nicIps)[0]
 			log.Infof(d.IPAddress)
 		}
+	}
+	return nil
+}
+
+func (d *Driver) CreateIonosMachine() (err error) {
+	log.Infof("Creating SSH key...")
+	if d.SSHKey == "" {
+		d.SSHKey, err = d.createSSHKey()
+		if err != nil {
+			return fmt.Errorf("error creating SSH keys: %w", err)
+		}
+		log.Debugf("SSH Key generated in file: %v", d.publicSSHKeyPath())
+	}
+	err = d.CreateDataCenterIfNeeded()
+	if err != nil {
+		return err
+	}
+	err = d.CreateLanIfNeeded()
+	if err != nil {
+		return err
+	}
+
+	lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
+	if err != nil {
+		return fmt.Errorf("error getting LAN: %w", err)
+	}
+	if lanProp, ok := lan.GetPropertiesOk(); ok && lanProp != nil {
+		if public, ok := lanProp.GetPublicOk(); ok && public != nil {
+			d.IsLanPrivate = !*public
+		}
+	}
+
+	// Reserve IP if needed
+	if !d.IsLanPrivate && !(len(d.NicIps) != 0) ||
+		d.CreateNat && d.NatPublicIps == nil {
+		ipBlock, err := d.client().CreateIpBlock(1, d.Location)
+		if err != nil {
+			return fmt.Errorf("error creating ipblock: %w", err)
+		}
+		if ipBlockId, ok := ipBlock.GetIdOk(); ok && ipBlockId != nil {
+			d.IpBlockId = *ipBlockId
+			log.Debugf("IpBlock ID: %v", d.IpBlockId)
+		}
+		d.ReservedIps, err = d.client().GetIpBlockIps(ipBlock)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = d.CreateIonosServer()
+	if err != nil {
+		return err
+	}
+
+	server, err := d.client().GetServer(d.DatacenterId, d.ServerId, 2)
+	if err != nil {
+		return fmt.Errorf("error getting server by id: %w", err)
+	}
+	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
+	log.Debugf("Volume ID: %v", d.VolumeId)
+
+	nics := server.Entities.GetNics()
+	for _, nic := range *nics.Items {
+		if *nic.Properties.Name == d.MachineName {
+			d.NicId = *nic.Id
+			log.Debugf("Nic ID: %v", d.NicId)
+		} else {
+			d.AdditionalNicsIds = append(d.AdditionalNicsIds, *nic.Id)
+		}
+	}
+
+	if d.WaitForIpChange {
+		err := d.client().WaitForNicIpChange(d.DatacenterId, d.ServerId, d.NicId, d.WaitForIpChangeTimeout)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = d.CreateIonosNatAndSetIp()
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -1223,7 +1257,7 @@ func (d *Driver) isSwarmMaster() bool {
 	return d.SwarmMaster
 }
 
-func (d *Driver) getImageId(imageName string) (string, error) {
+func (d *Driver) getImageIdOrAlias(imageName string) (string, error) {
 	d.UseAlias = false
 	// First, look if the provided parameter matches an alias, if a match is found we return the image alias
 	regionId, locationId := d.getRegionIdAndLocationId()
