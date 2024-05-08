@@ -43,7 +43,6 @@ func (d *Driver) CreateDataCenterIfNeeded() (err error) {
 	var dc *sdkgo.Datacenter
 	if d.DatacenterId == "" {
 		d.DCExists = false
-		var err error
 		log.Debugf("Creating datacenter...")
 		dc, err = d.client().CreateDatacenter(d.DatacenterName, d.Location)
 		if err != nil {
@@ -65,18 +64,19 @@ func (d *Driver) CreateDataCenterIfNeeded() (err error) {
 }
 
 func (d *Driver) CreateLanIfNeeded() (err error) {
-	if d.LanId == "" {
-		lan, err := d.client().CreateLan(d.DatacenterId, d.LanName, !d.PrivateLan)
-		if err != nil {
-			err = fmt.Errorf("error creating LAN: %w", err)
-			return err
-			// TODO: <---
-		}
-		if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
-			d.LanId = *lanId
-			log.Debugf("Lan ID: %v", d.LanId)
-		}
+	if d.LanId != "" {
+		return nil
 	}
+
+	lan, err := d.client().CreateLan(d.DatacenterId, d.LanName, !d.PrivateLan)
+	if err != nil {
+		return err
+	}
+	if lanId, ok := lan.GetIdOk(); ok && lanId != nil {
+		d.LanId = *lanId
+		log.Debugf("Lan ID: %v", d.LanId)
+	}
+
 	return nil
 }
 
@@ -292,7 +292,7 @@ func (d *Driver) CreateIonosNatAndSetIp() (err error) {
 }
 
 func (d *Driver) CreateIonosMachine() (err error) {
-	log.Infof("Creating SSH key123...")
+	log.Infof("Creating SSH key...")
 	if d.SSHKey == "" {
 		d.SSHKey, err = d.createSSHKey()
 		if err != nil {
@@ -306,7 +306,7 @@ func (d *Driver) CreateIonosMachine() (err error) {
 	}
 	err = d.CreateLanIfNeeded()
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating LAN: %w", err)
 	}
 
 	lan, err := d.client().GetLan(d.DatacenterId, d.LanId)
