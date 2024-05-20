@@ -205,6 +205,9 @@ var (
 			Name:      &testVar,
 		},
 	}
+	nats = &sdkgo.NatGateways{
+		Items: &[]sdkgo.NatGateway{*nat},
+	}
 	dcs = &sdkgo.Datacenters{
 		Items: &[]sdkgo.Datacenter{*dc},
 	}
@@ -362,9 +365,10 @@ func TestPreCreateCheckDataCenterIdErr(t *testing.T) {
 	driver.DatacenterId = datacenterId
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(nil, fmt.Errorf("no image found with this id"))
 	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&lans, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
 	err := driver.PreCreateCheck()
 	assert.NoError(t, err)
 }
@@ -410,6 +414,7 @@ func TestPreCreateLans(t *testing.T) {
 	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
 	clientMock.EXPECT().GetImages().Return(&images, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
 	err := driver.PreCreateCheck()
 	assert.True(t, reflect.DeepEqual(driver.AdditionalLansIds, []int{lanId1Int}))
 	assert.NoError(t, err)
@@ -505,6 +510,7 @@ func TestCreateLanProvided(t *testing.T) {
 		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
 		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
 		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
 
 		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
 		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
@@ -587,6 +593,7 @@ func TestCreatePropertiesSet(t *testing.T) {
 		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
 		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
 		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
 
 		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
 		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
@@ -674,6 +681,7 @@ func TestCreateCubePropertiesSet(t *testing.T) {
 		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
 		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
 		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
 
 		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
 		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
@@ -746,6 +754,7 @@ func TestCreateNatPublicIps(t *testing.T) {
 		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
 		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
 		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
 
 		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
 		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
@@ -821,6 +830,7 @@ func TestCreateNat(t *testing.T) {
 		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
 		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
 		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
 
 		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
 		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
