@@ -894,7 +894,9 @@ func (d *Driver) Create() (err error) {
 
 	nics := server.Entities.GetNics()
 	for _, nic := range *nics.Items {
+		log.Infof("%v", *nic.Properties.Name)
 		if *nic.Properties.Name == d.MachineName {
+			log.Infof("altceva")
 			d.NicId = *nic.Id
 			log.Debugf("Nic ID: %v", d.NicId)
 		} else {
