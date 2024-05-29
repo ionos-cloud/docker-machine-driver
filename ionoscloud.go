@@ -570,7 +570,7 @@ func (d *Driver) PreCreateCheck() error {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}
 
-	if d.NatId != "" && d.DatacenterId != "" {
+	if d.NatId == "" && d.DatacenterId != "" {
 		nats, err := d.client().GetNats(d.DatacenterId)
 		if err != nil {
 			return err
@@ -894,7 +894,9 @@ func (d *Driver) Create() (err error) {
 
 	nics := server.Entities.GetNics()
 	for _, nic := range *nics.Items {
+		log.Infof("%v", *nic.Properties.Name)
 		if *nic.Properties.Name == d.MachineName {
+			log.Infof("altceva")
 			d.NicId = *nic.Id
 			log.Debugf("Nic ID: %v", d.NicId)
 		} else {
@@ -918,10 +920,6 @@ func (d *Driver) Create() (err error) {
 	if nicProp, ok := nic.GetPropertiesOk(); ok && nicProp != nil {
 		nicIps = nicProp.GetIps()
 	}
-	if len(*nicIps) > 0 {
-		d.IPAddress = (*nicIps)[0]
-		log.Infof(d.IPAddress)
-	}
 
 	// --- NAT ---
 	if d.CreateNat {
@@ -943,6 +941,34 @@ func (d *Driver) Create() (err error) {
 		d.NatId = *nat.Id // NatId is used later to retrieve public IP, etc.
 		d.IPAddress = (*natPublicIps)[0]
 		log.Infof(d.IPAddress)
+	} else if d.NatId != "" {
+		nat, _ := d.client().GetNat(d.DatacenterId, d.NatId)
+
+		foundNatLan := false
+		lanIdInt, _ := strconv.Atoi(d.LanId)
+		for _, natLan := range *nat.Properties.Lans {
+			if *natLan.Id == int32(lanIdInt) {
+				foundNatLan = true
+				break
+			}
+		}
+		if !foundNatLan {
+			// connect lan to nat
+			natLans := append(*nat.Properties.Lans, sdkgo.NatGatewayLanProperties{Id: pointer.From(int32(lanIdInt)), GatewayIps: nil})
+			_, err = d.client().PatchNat(d.DatacenterId, d.NatId, *nat.Properties.Name, *nat.Properties.PublicIps, natLans)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		d.IPAddress = (*nat.Properties.PublicIps)[0]
+		log.Infof(d.IPAddress)
+	} else {
+		if len(*nicIps) > 0 {
+			d.IPAddress = (*nicIps)[0]
+			log.Infof(d.IPAddress)
+		}
 	}
 
 	return nil

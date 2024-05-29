@@ -1,6 +1,7 @@
 package ionoscloud
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net"
 	"reflect"
@@ -21,34 +22,111 @@ const (
 
 var (
 	// Common variables used
-	testRegion     = "us/ewr"
-	testFalse      = false
-	testVar        = "test"
-	testImageIdVar = "test-image-id"
-	locationId     = "las"
-	imageType      = "HDD"
-	imageName      = defaultImageAlias
-	imageLocation  = "us/las"
-	dcVersion      = int32(1)
-	testErr        = fmt.Errorf("errFoo")
-	lanId1         = "2"
-	lanId1Int      = 2
-	lanName1       = "test"
-	lanId2         = "5"
-	lanName2       = "test2"
+	datacenterName         = "datacenter_name"
+	datacenterId           = "datacenter_id"
+	lanId                  = "1"
+	serverName             = "server_name"
+	serverId               = "server_id"
+	volumeName             = "volume_name"
+	volumeId               = "volume_id"
+	nicId                  = "nic_id"
+	testRegion             = "us/ewr"
+	testVar                = "test"
+	testImageIdVar         = "test-image-id"
+	locationId             = "las"
+	imageType              = "HDD"
+	imageAlias             = "ubuntu:20.04"
+	dcVersion              = int32(1)
+	testErr                = fmt.Errorf("errFoo")
+	lanId1                 = "2"
+	lanId1Int              = 2
+	lanName1               = "test_lan1"
+	lanId2                 = "5"
+	lanName2               = "test2"
+	localhost_ip           = "test_local_ip"
+	cpuFamily              = "INTEL_XEON"
+	imagePassword          = "<testdata>"
+	nicDhcp                = false
+	nicIps                 = []string{localhost_ip, "127.0.0.3"}
+	diskType               = "SSD"
+	volumeAvailabilityZone = "ZONE_1"
+	serverAvailabilityZone = "ZONE_2"
+	cores                  = 4
+	cloudInit              = "#cloud-config\nHostname: testdata"
+	ram                    = 2048
+	diskSize               = 100
 )
 
 var (
 	// Sdk resources used
 	dc = &sdkgo.Datacenter{
-		Id: &testVar,
+		Id: sdkgo.ToPtr(datacenterId),
 		Properties: &sdkgo.DatacenterProperties{
-			Name:        &testVar,
-			Description: &testVar,
-			Location:    &testRegion,
-			Version:     &dcVersion,
+			Name:        sdkgo.ToPtr(datacenterName),
+			Description: sdkgo.ToPtr("datacenter_description"),
+			Location:    sdkgo.ToPtr(testRegion),
+			Version:     sdkgo.ToPtr(int32(1)),
 		},
 	}
+	lan_post = &sdkgo.LanPost{
+		Id: sdkgo.ToPtr(lanId),
+		Properties: &sdkgo.LanPropertiesPost{
+			Name:   &lanName1,
+			Public: sdkgo.ToPtr(true),
+		},
+	}
+	lan_post_private = &sdkgo.LanPost{
+		Id: sdkgo.ToPtr(lanId),
+		Properties: &sdkgo.LanPropertiesPost{
+			Name:   &lanName1,
+			Public: sdkgo.ToPtr(false),
+		},
+	}
+	lan_get = &sdkgo.Lan{
+		Id: sdkgo.ToPtr(lanId),
+		Properties: &sdkgo.LanProperties{
+			Name:   &lanName1,
+			Public: sdkgo.ToPtr(true),
+		},
+	}
+	lan_get_private = &sdkgo.Lan{
+		Id: sdkgo.ToPtr(lanId),
+		Properties: &sdkgo.LanProperties{
+			Name:   &lanName1,
+			Public: sdkgo.ToPtr(false),
+		},
+	}
+
+	server = &sdkgo.Server{
+		Id: sdkgo.ToPtr(serverId),
+		Properties: &sdkgo.ServerProperties{
+			Name:             sdkgo.ToPtr(serverName),
+			Ram:              sdkgo.ToPtr(int32(2048)),
+			Cores:            sdkgo.ToPtr(int32(2)),
+			CpuFamily:        sdkgo.ToPtr("AMD_OPTERON"),
+			AvailabilityZone: sdkgo.ToPtr("AUTO"),
+		},
+		Entities: &sdkgo.ServerEntities{
+			Volumes: &sdkgo.AttachedVolumes{
+				Items: &[]sdkgo.Volume{
+					{
+						Id: sdkgo.ToPtr(volumeId),
+					},
+				},
+			},
+			Nics: &sdkgo.Nics{
+				Items: &[]sdkgo.Nic{
+					{
+						Id: sdkgo.ToPtr(nicId),
+						Properties: &sdkgo.NicProperties{
+							Name: sdkgo.ToPtr(defaultHostName),
+						},
+					},
+				},
+			},
+		},
+	}
+
 	location = &sdkgo.Location{
 		Id: &locationId,
 		Properties: &sdkgo.LocationProperties{
@@ -61,21 +139,26 @@ var (
 	image = sdkgo.Image{
 		Id: &testVar,
 		Properties: &sdkgo.ImageProperties{
-			Name:      &imageName,
+			Name:      &imageAlias,
 			ImageType: &imageType,
-			Location:  &imageLocation,
+			Location:  &testRegion,
 		},
 	}
 	imageFoundById = sdkgo.Image{
 		Id: &testImageIdVar,
 		Properties: &sdkgo.ImageProperties{
-			Name:      &imageName,
+			Name:      &imageAlias,
 			ImageType: &imageType,
-			Location:  &imageLocation,
+			Location:  &testRegion,
 		},
 	}
 	ipblock = &sdkgo.IpBlock{
-		Id: &testVar,
+		Id: sdkgo.ToPtr("IPBlock_ID"),
+		Properties: &sdkgo.IpBlockProperties{
+			Name:     sdkgo.ToPtr("ipblock_name"),
+			Location: &testRegion,
+			Ips:      &[]string{"ip1", "ip2"},
+		},
 	}
 	lan1 = &sdkgo.Lan{
 		Id: &testVar,
@@ -85,15 +168,15 @@ var (
 	}
 	privateLan = &sdkgo.Lan{
 		Id:         &testVar,
-		Properties: &sdkgo.LanProperties{Public: &testFalse},
+		Properties: &sdkgo.LanProperties{Public: sdkgo.ToPtr(false)},
 	}
 	privateLan2 = &sdkgo.Lan{
 		Id:         &lanId1,
-		Properties: &sdkgo.LanProperties{Public: &testFalse, Name: &lanName1},
+		Properties: &sdkgo.LanProperties{Public: sdkgo.ToPtr(false), Name: &lanName1},
 	}
 	privateLan3 = &sdkgo.Lan{
 		Id:         &lanId2,
-		Properties: &sdkgo.LanProperties{Public: &testFalse, Name: &lanName2},
+		Properties: &sdkgo.LanProperties{Public: sdkgo.ToPtr(false), Name: &lanName2},
 	}
 	lans = sdkgo.Lans{
 		Items: &[]sdkgo.Lan{},
@@ -102,41 +185,45 @@ var (
 		Items: &[]sdkgo.Lan{*privateLan2, *privateLan3},
 	}
 
-	server = &sdkgo.Server{
-		Id: &testVar,
-		Properties: &sdkgo.ServerProperties{
-			Name:             sdkgo.PtrString("test"),
-			Ram:              sdkgo.PtrInt32(2048),
-			Cores:            sdkgo.PtrInt32(2),
-			CpuFamily:        sdkgo.PtrString("AMD_OPTERON"),
-			AvailabilityZone: sdkgo.PtrString("AUTO"),
-		},
-	}
-
 	volume = &sdkgo.Volume{
 		Id: &testVar,
 	}
 	nic = &sdkgo.Nic{
 		Id: &testVar,
 		Properties: &sdkgo.NicProperties{
-			Ips:  &[]string{"127.0.0.1"},
+			Ips:  &[]string{localhost_ip},
 			Name: sdkgo.PtrString("test"),
 		},
 	}
-	lansGateways = []sdkgo.NatGatewayLanProperties{{Id: &dcVersion, GatewayIps: &[]string{"x.x.x.x"}}}
-
-	nat = &sdkgo.NatGateway{
+	lansGateways  = []sdkgo.NatGatewayLanProperties{{Id: sdkgo.PtrInt32(1), GatewayIps: &[]string{"x.x.x.x"}}}
+	lansGateways2 = []sdkgo.NatGatewayLanProperties{{Id: sdkgo.PtrInt32(2), GatewayIps: &[]string{"x.x.x.x"}}}
+	natName       = "nat-name"
+	nat           = &sdkgo.NatGateway{
 		Id: &testVar,
 		Properties: &sdkgo.NatGatewayProperties{
 			PublicIps: &[]string{"x.x.x.x"},
 			Lans:      &lansGateways,
-			Name:      &testVar,
+			Name:      sdkgo.PtrString(natName),
 		},
 	}
+	nats = &sdkgo.NatGateways{
+		Items: &[]sdkgo.NatGateway{*nat},
+	}
 	dcs = &sdkgo.Datacenters{
-		Items: &[]sdkgo.Datacenter{},
+		Items: &[]sdkgo.Datacenter{*dc},
 	}
 	ips = []string{testVar}
+
+	cube_template = &sdkgo.Template{
+		Id: sdkgo.PtrString("template-id"),
+		Properties: &sdkgo.TemplateProperties{
+			Name: sdkgo.PtrString("CUBES XS"),
+		},
+	}
+
+	cube_templates = &sdkgo.Templates{
+		Items: &[]sdkgo.Template{*cube_template},
+	}
 )
 
 var (
@@ -276,19 +363,20 @@ func TestPreCreateCheckPasswordErr(t *testing.T) {
 
 func TestPreCreateCheckDataCenterIdErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(nil, fmt.Errorf("no image found with this id"))
 	clientMock.EXPECT().GetImages().Return(&images, nil)
 	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&lans, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
 	err := driver.PreCreateCheck()
 	assert.NoError(t, err)
 }
 
 func TestPreCreateCheckDataCenterErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(nil, fmt.Errorf("error getting datacenter: 404 not found"))
 
 	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&lans, nil)
@@ -298,7 +386,7 @@ func TestPreCreateCheckDataCenterErr(t *testing.T) {
 
 func TestPreCreateImageIdErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&lans, nil)
 	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
 	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
@@ -327,6 +415,7 @@ func TestPreCreateLans(t *testing.T) {
 	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
 	clientMock.EXPECT().GetImages().Return(&images, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
 	err := driver.PreCreateCheck()
 	assert.True(t, reflect.DeepEqual(driver.AdditionalLansIds, []int{lanId1Int}))
 	assert.NoError(t, err)
@@ -346,236 +435,783 @@ func TestCreateErr(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
-	driver.ServerId = testVar
-	driver.NicId = testVar
-	driver.VolumeId = testVar
-	driver.LanId = ""
-	driver.IPAddress = testVar
+	driver.CpuFamily = "INTEL_SKYLAKE"
+	driver.Location = testRegion
+	driver.DatacenterName = datacenterName
+	driver.ImagePassword = "<testdata>"
+	driver.LanName = lanName1
+	driver.AdditionalLans = []string{lanName1, lanName2}
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{}}, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
 
-	attached_volumes := sdkgo.NewAttachedVolumesWithDefaults()
-	attached_volumes.Items = &[]sdkgo.Volume{*volume}
-	server.Entities = sdkgo.NewServerEntitiesWithDefaults()
-	server.Entities.SetVolumes(*attached_volumes)
-	attached_nics := sdkgo.NewNicsWithDefaults()
-	attached_nics.Items = &[]sdkgo.Nic{*nic}
-	server.Entities.SetNics(*attached_nics)
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().CreateDatacenter(datacenterName, testRegion).Return(dc, nil),
+		clientMock.EXPECT().CreateLan(*dc.Id, lanName1, true).Return(lan_post, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_post.Id).Return(lan_get, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateIpBlock(int32(1), testRegion).Return(ipblock, nil),
+		clientMock.EXPECT().GetIpBlockIps(ipblock).Return(ipblock.Properties.Ips, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
+				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
+				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
+				assert.Nil(t, serverToCreate.Properties.Type)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 1)
+				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{testVar}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testImageIdVar, *volumes[0].Properties.Image)
+				assert.Equal(t, float32(driver.DiskSize), *volumes[0].Properties.Size)
+				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[0].Properties.ImageAlias)
 
-	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(&images, nil)
-	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
-	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
-	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
-	clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(driver.CloudInit, nil)
-	clientMock.EXPECT().GetNic(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("sv"), gomock.AssignableToTypeOf("nic")).Return(nic, nil)
-	clientMock.EXPECT().CreateLan(driver.DatacenterId, "docker-machine-lan", true).Return(lan, nil).Times(1)
-	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
-	clientMock.EXPECT().CreateServer(driver.DatacenterId, gomock.AssignableToTypeOf(sdkgo.Server{})).Return(server, nil)
-	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(2)).Return(server, nil)
-	err := driver.Create()
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 1)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, *ipblock.Properties.Ips, *nics[0].Properties.Ips)
+				assert.Equal(t, driver.NicDhcp, *nics[0].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
 	assert.NoError(t, err)
 }
 
 func TestCreateLanProvided(t *testing.T) {
-	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
-	driver.ServerId = testVar
-	//driver.NicId = testVar
-	//driver.VolumeId = testVar
-	driver.LanId = testVar
-	driver.Image = "e20d97c2-38ae-11ed-be62-eec5f4d7ee1e"
-	//driver.IPAddress = testVar
-	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById("e20d97c2-38ae-11ed-be62-eec5f4d7ee1e").Return(&sdkgo.Image{}, nil)
-	clientMock.EXPECT().GetImages().Return(&images, nil)
-	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
-	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
-	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
-	clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(driver.CloudInit, nil)
-	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
-	clientMock.EXPECT().CreateServer(driver.DatacenterId, gomock.AssignableToTypeOf(sdkgo.Server{})).Return(server, nil)
-	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(2)).Return(server, nil)
-	clientMock.EXPECT().GetNic(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("sv"), gomock.AssignableToTypeOf("nic")).Return(nic, nil)
-	err := driver.Create()
+	driver.CpuFamily = "INTEL_SKYLAKE"
+	driver.Location = testRegion
+	driver.DatacenterName = datacenterName
+	driver.ImagePassword = "<testdata>"
+	driver.LanName = lanName1
+	driver.AdditionalLans = []string{lanName1, lanName2}
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{*dc}}, nil),
+		clientMock.EXPECT().GetLans(*dc.Id).Return(&sdkgo.Lans{Items: &[]sdkgo.Lan{*lan_get}}, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
+
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateIpBlock(int32(1), testRegion).Return(ipblock, nil),
+		clientMock.EXPECT().GetIpBlockIps(ipblock).Return(ipblock.Properties.Ips, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
+				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
+				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
+				assert.Nil(t, serverToCreate.Properties.Type)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 1)
+				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{testVar}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testImageIdVar, *volumes[0].Properties.Image)
+				assert.Equal(t, float32(driver.DiskSize), *volumes[0].Properties.Size)
+				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[0].Properties.ImageAlias)
+
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 1)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, *ipblock.Properties.Ips, *nics[0].Properties.Ips)
+				assert.Equal(t, driver.NicDhcp, *nics[0].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
 	assert.NoError(t, err)
 }
 
-func TestCreateNicDhcpIps(t *testing.T) {
-	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
+func TestCreatePropertiesSet(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
-	driver.ServerId = testVar
-	driver.NicId = testVar
-	driver.VolumeId = testVar
-	driver.LanId = ""
-	driver.IPAddress = testVar
-	driver.NicDhcp = true
-	driver.NicIps = []string{"127.0.0.1", "127.0.0.3"}
-	driver.AdditionalLansIds = []int{1, 2}
+	driver.DatacenterName = datacenterName
+	driver.LanName = lanName1
+	driver.AdditionalLans = []string{lanName1, lanName2}
 
-	attached_volumes := sdkgo.NewAttachedVolumesWithDefaults()
-	attached_volumes.Items = &[]sdkgo.Volume{*volume}
-	server.Entities = sdkgo.NewServerEntitiesWithDefaults()
-	server.Entities.SetVolumes(*attached_volumes)
-	attached_nics := sdkgo.NewNicsWithDefaults()
-	attached_nics.Items = &[]sdkgo.Nic{*nic}
-	server.Entities.SetNics(*attached_nics)
+	driver.CpuFamily = cpuFamily
+	driver.Location = testRegion
+	driver.ImagePassword = imagePassword
+	driver.NicDhcp = nicDhcp
+	driver.NicIps = nicIps
+	driver.DiskType = diskType
+	driver.VolumeAvailabilityZone = volumeAvailabilityZone
+	driver.ServerAvailabilityZone = serverAvailabilityZone
+	driver.Cores = cores
+	driver.Ram = ram
+	driver.CloudInit = cloudInit
+	driver.DiskSize = diskSize
 
-	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(&images, nil)
-	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
-	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
-	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
-	clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(driver.CloudInit, nil)
-	clientMock.EXPECT().CreateLan(driver.DatacenterId, "docker-machine-lan", true).Return(lan, nil).Times(1)
-	clientMock.EXPECT().CreateServer(driver.DatacenterId, gomock.AssignableToTypeOf(sdkgo.Server{})).Return(server, nil)
-	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(2)).Return(server, nil)
-	clientMock.EXPECT().GetNic(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("sv"), gomock.AssignableToTypeOf("nic")).Return(nic, nil)
-	err := driver.Create()
+	lan_get2 := &sdkgo.Lan{
+		Id: sdkgo.ToPtr(lanId2),
+		Properties: &sdkgo.LanProperties{
+			Name:   &lanName2,
+			Public: sdkgo.ToPtr(true),
+		},
+	}
+
+	server = &sdkgo.Server{
+		Id: sdkgo.ToPtr(serverId),
+		Properties: &sdkgo.ServerProperties{
+			Name:             sdkgo.ToPtr(serverName),
+			Ram:              sdkgo.ToPtr(int32(2048)),
+			Cores:            sdkgo.ToPtr(int32(2)),
+			CpuFamily:        sdkgo.ToPtr("AMD_OPTERON"),
+			AvailabilityZone: sdkgo.ToPtr("AUTO"),
+		},
+		Entities: &sdkgo.ServerEntities{
+			Volumes: &sdkgo.AttachedVolumes{
+				Items: &[]sdkgo.Volume{
+					{
+						Id: sdkgo.ToPtr(volumeId),
+					},
+				},
+			},
+			Nics: &sdkgo.Nics{
+				Items: &[]sdkgo.Nic{
+					{
+						Id: sdkgo.ToPtr(nicId),
+						Properties: &sdkgo.NicProperties{
+							Name: sdkgo.ToPtr(defaultHostName),
+						},
+					},
+					{
+						Id: sdkgo.ToPtr("nic_id-2"),
+						Properties: &sdkgo.NicProperties{
+							Name: sdkgo.ToPtr("different_name"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{*dc}}, nil),
+		clientMock.EXPECT().GetLans(*dc.Id).Return(&sdkgo.Lans{Items: &[]sdkgo.Lan{*lan_get, *lan_get2}}, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
+
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Equal(t, cpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Equal(t, int32(ram), *serverToCreate.Properties.Ram)
+				assert.Equal(t, int32(cores), *serverToCreate.Properties.Cores)
+				assert.Equal(t, serverAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
+				assert.Nil(t, serverToCreate.Properties.Type)
+				assert.Nil(t, serverToCreate.Properties.TemplateUuid)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 1)
+				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{testVar}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testImageIdVar, *volumes[0].Properties.Image)
+				assert.Equal(t, float32(diskSize), *volumes[0].Properties.Size)
+				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[0].Properties.ImageAlias)
+
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 2)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, nicIps, *nics[0].Properties.Ips)
+				assert.Equal(t, nicDhcp, *nics[0].Properties.Dhcp)
+
+				assert.Equal(t, driver.MachineName+" "+lanId2, *nics[1].Properties.Name)
+				assert.Equal(t, int32(5), *nics[1].Properties.Lan)
+				assert.Nil(t, nics[1].Properties.Ips)
+				assert.Equal(t, true, *nics[1].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
 	assert.NoError(t, err)
 }
 
+func TestCreateCubePropertiesSet(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.SSHKey = testVar
+	driver.DatacenterName = datacenterName
+	driver.LanName = lanName1
+	driver.AdditionalLans = []string{lanName1, lanName2}
+
+	driver.ServerType = "CUBE"
+	driver.CpuFamily = cpuFamily
+	driver.Location = testRegion
+	driver.ImagePassword = imagePassword
+	driver.NicDhcp = nicDhcp
+	driver.NicIps = nicIps
+	driver.DiskType = diskType
+	driver.VolumeAvailabilityZone = volumeAvailabilityZone
+	driver.ServerAvailabilityZone = serverAvailabilityZone
+	driver.Cores = cores
+	driver.Ram = ram
+	driver.CloudInit = cloudInit
+	driver.DiskSize = diskSize
+	driver.WaitForIpChange = true
+	driver.WaitForIpChangeTimeout = 176
+
+	lan_get2 := &sdkgo.Lan{
+		Id: sdkgo.ToPtr(lanId2),
+		Properties: &sdkgo.LanProperties{
+			Name:   &lanName2,
+			Public: sdkgo.ToPtr(true),
+		},
+	}
+
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{*dc}}, nil),
+		clientMock.EXPECT().GetLans(*dc.Id).Return(&sdkgo.Lans{Items: &[]sdkgo.Lan{*lan_get, *lan_get2}}, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
+
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().GetTemplates().Return(cube_templates, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Nil(t, serverToCreate.Properties.CpuFamily)
+				assert.Nil(t, serverToCreate.Properties.Ram)
+				assert.Nil(t, serverToCreate.Properties.Cores)
+				assert.Nil(t, serverToCreate.Properties.AvailabilityZone)
+				assert.Equal(t, "CUBE", *serverToCreate.Properties.Type)
+				assert.Equal(t, *cube_template.Id, *serverToCreate.Properties.TemplateUuid)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 1)
+				assert.Equal(t, "DAS", *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{testVar}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testImageIdVar, *volumes[0].Properties.Image)
+				assert.Nil(t, volumes[0].Properties.Size)
+				assert.Nil(t, volumes[0].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[0].Properties.ImageAlias)
+
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 2)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, nicIps, *nics[0].Properties.Ips)
+				assert.Equal(t, nicDhcp, *nics[0].Properties.Dhcp)
+
+				assert.Equal(t, driver.MachineName+" "+lanId2, *nics[1].Properties.Name)
+				assert.Equal(t, int32(5), *nics[1].Properties.Lan)
+				assert.Nil(t, nics[1].Properties.Ips)
+				assert.Equal(t, true, *nics[1].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(server, nil),
+		clientMock.EXPECT().WaitForNicIpChange(*dc.Id, serverId, nicId, 176).Return(nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
+	assert.NoError(t, err)
+}
 func TestCreateNatPublicIps(t *testing.T) {
-	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
-	driver.ServerId = testVar
-	driver.NicId = testVar
-	driver.VolumeId = testVar
-	driver.LanId = ""
-	driver.IPAddress = testVar
-	driver.NicDhcp = true
-	driver.PrivateLan = true
-	driver.NicIps = []string{"127.0.0.1", "127.0.0.3"}
+	driver.CpuFamily = "INTEL_SKYLAKE"
+	driver.Location = testRegion
+	driver.DatacenterName = datacenterName
+	driver.ImagePassword = "<testdata>"
+	driver.LanName = lanName1
+	driver.NicIps = nicIps
 	driver.NatPublicIps = []string{"127.0.0.4"}
 	driver.CreateNat = true
 
 	driver.NatLansToGateways = map[string][]string{"1": {"127.0.0.3"}}
 
-	attached_volumes := sdkgo.NewAttachedVolumesWithDefaults()
-	attached_volumes.Items = &[]sdkgo.Volume{*volume}
-	server.Entities = sdkgo.NewServerEntitiesWithDefaults()
-	server.Entities.SetVolumes(*attached_volumes)
-	attached_nics := sdkgo.NewNicsWithDefaults()
-	attached_nics.Items = &[]sdkgo.Nic{*nic}
-	server.Entities.SetNics(*attached_nics)
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{*dc}}, nil),
+		clientMock.EXPECT().GetLans(*dc.Id).Return(&sdkgo.Lans{Items: &[]sdkgo.Lan{*lan_get_private}}, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get_private.Id).Return(lan_get_private, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
 
-	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(&images, nil)
-	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
-	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
-	clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(driver.CloudInit, nil)
-	clientMock.EXPECT().CreateLan(driver.DatacenterId, "docker-machine-lan", false).Return(lan, nil).Times(1)
-	clientMock.EXPECT().CreateServer(driver.DatacenterId, gomock.AssignableToTypeOf(sdkgo.Server{})).Return(server, nil)
-	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(2)).Return(server, nil)
-	clientMock.EXPECT().GetNic(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("sv"), gomock.AssignableToTypeOf("nic")).Return(nic, nil)
-	clientMock.EXPECT().CreateNat(
-		driver.DatacenterId, "docker-machine-nat", driver.NatPublicIps, driver.NatFlowlogs, driver.NatRules, driver.NatLansToGateways,
-		net.ParseIP((driver.NicIps)[0]).Mask(net.CIDRMask(24, 32)).String()+"/24", driver.SkipDefaultNatRules,
-	).Return(nat, nil)
-	err := driver.Create()
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get_private.Id).Return(lan_get_private, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
+				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
+				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
+				assert.Nil(t, serverToCreate.Properties.Type)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 1)
+				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{testVar}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testImageIdVar, *volumes[0].Properties.Image)
+				assert.Equal(t, float32(driver.DiskSize), *volumes[0].Properties.Size)
+				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[0].Properties.ImageAlias)
+
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 1)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, nicIps, *nics[0].Properties.Ips)
+				assert.Equal(t, driver.NicDhcp, *nics[0].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+		clientMock.EXPECT().CreateNat(
+			*dc.Id, "docker-machine-nat", driver.NatPublicIps, driver.NatFlowlogs, driver.NatRules, driver.NatLansToGateways,
+			net.ParseIP((driver.NicIps)[0]).Mask(net.CIDRMask(24, 32)).String()+"/24", driver.SkipDefaultNatRules,
+		).Return(nat, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
 	assert.NoError(t, err)
 }
 
 func TestCreateNat(t *testing.T) {
-	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
-	driver.ServerId = testVar
-	driver.NicId = testVar
-	driver.VolumeId = testVar
-	driver.LanId = ""
-	driver.IPAddress = testVar
-	driver.NicDhcp = true
-	driver.SkipDefaultNatRules = true
+	driver.CpuFamily = "INTEL_SKYLAKE"
+	driver.Location = testRegion
+	driver.DatacenterName = datacenterName
+	driver.ImagePassword = "<testdata>"
+	driver.LanName = lanName1
 	driver.PrivateLan = true
+	driver.NicIps = nicIps
+	driver.NatPublicIps = []string{"127.0.0.4"}
+	driver.SkipDefaultNatRules = true
 	driver.CreateNat = true
 	driver.NatFlowlogs = []string{"test_name:ACCEPTED:INGRESS:test_bucket", "test_name2:REGECTED:EGRESS:test_bucket"}
 	driver.NatRules = []string{
 		"name1:SNAT:TCP::10.0.1.0/24:10.0.2.0/24:100:500",
 		"name2:SNAT:ALL::10.0.1.0/24::1023:1500",
 	}
-
 	driver.NatLansToGateways = map[string][]string{"1": {"127.0.0.3"}}
 
-	attached_volumes := sdkgo.NewAttachedVolumesWithDefaults()
-	attached_volumes.Items = &[]sdkgo.Volume{*volume}
-	server.Entities = sdkgo.NewServerEntitiesWithDefaults()
-	server.Entities.SetVolumes(*attached_volumes)
-	attached_nics := sdkgo.NewNicsWithDefaults()
-	attached_nics.Items = &[]sdkgo.Nic{*nic}
-	server.Entities.SetNics(*attached_nics)
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{*dc}}, nil),
+		clientMock.EXPECT().GetLans(*dc.Id).Return(&sdkgo.Lans{Items: &[]sdkgo.Lan{}}, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
 
-	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
-	clientMock.EXPECT().GetImages().Return(&images, nil)
-	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
-	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(privateLan, nil)
-	clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(driver.CloudInit, nil)
-	clientMock.EXPECT().CreateLan(driver.DatacenterId, "docker-machine-lan", false).Return(lan, nil).Times(1)
-	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
-	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
-	clientMock.EXPECT().CreateServer(driver.DatacenterId, gomock.AssignableToTypeOf(sdkgo.Server{})).Return(server, nil)
-	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(2)).Return(server, nil)
-	clientMock.EXPECT().GetNic(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("sv"), gomock.AssignableToTypeOf("nic")).Return(nic, nil)
-	clientMock.EXPECT().CreateNat(
-		driver.DatacenterId, "docker-machine-nat", ips, driver.NatFlowlogs, driver.NatRules, driver.NatLansToGateways,
-		net.ParseIP(([]string{"127.0.0.1"})[0]).Mask(net.CIDRMask(24, 32)).String()+"/24", driver.SkipDefaultNatRules,
-	).Return(nat, nil)
-	err := driver.Create()
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().CreateLan(*dc.Id, lanName1, false).Return(lan_post_private, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get_private.Id).Return(lan_get_private, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
+				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
+				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
+				assert.Nil(t, serverToCreate.Properties.Type)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 1)
+				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{testVar}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testImageIdVar, *volumes[0].Properties.Image)
+				assert.Equal(t, float32(driver.DiskSize), *volumes[0].Properties.Size)
+				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[0].Properties.ImageAlias)
+
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 1)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, nicIps, *nics[0].Properties.Ips)
+				assert.Equal(t, driver.NicDhcp, *nics[0].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+		clientMock.EXPECT().CreateNat(
+			*dc.Id, "docker-machine-nat", driver.NatPublicIps, driver.NatFlowlogs, driver.NatRules, driver.NatLansToGateways,
+			net.ParseIP((driver.NicIps)[0]).Mask(net.CIDRMask(24, 32)).String()+"/24", driver.SkipDefaultNatRules,
+		).Return(nat, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
 	assert.NoError(t, err)
 }
 
-func TestCreateImageId(t *testing.T) {
-	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
+func TestCreateExistingNatPatch(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
-	driver.ServerId = testVar
-	driver.NicId = testVar
-	driver.VolumeId = testVar
-	driver.LanId = testVar
-	driver.IPAddress = testVar
-	driver.Image = testImageIdVar
-	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImageById(testImageIdVar).Return(&imageFoundById, nil)
-	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
-	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
-	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
-	clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(driver.CloudInit, nil)
-	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
-	clientMock.EXPECT().CreateServer(driver.DatacenterId, gomock.AssignableToTypeOf(sdkgo.Server{})).Return(server, nil)
-	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(2)).Return(server, nil)
-	clientMock.EXPECT().GetNic(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("sv"), gomock.AssignableToTypeOf("nic")).Return(nic, nil)
-	err := driver.Create()
+	driver.CpuFamily = "INTEL_SKYLAKE"
+	driver.Location = testRegion
+	driver.DatacenterName = datacenterName
+	driver.ImagePassword = "<testdata>"
+	driver.LanName = lanName1
+	driver.PrivateLan = true
+	driver.NicIps = nicIps
+	driver.NatPublicIps = []string{"127.0.0.4"}
+	driver.SkipDefaultNatRules = true
+	driver.NatFlowlogs = []string{"test_name:ACCEPTED:INGRESS:test_bucket", "test_name2:REGECTED:EGRESS:test_bucket"}
+	driver.NatRules = []string{
+		"name1:SNAT:TCP::10.0.1.0/24:10.0.2.0/24:100:500",
+		"name2:SNAT:ALL::10.0.1.0/24::1023:1500",
+	}
+	driver.NatLansToGateways = map[string][]string{"1": {"127.0.0.3"}}
+
+	nat = &sdkgo.NatGateway{
+		Id: &testVar,
+		Properties: &sdkgo.NatGatewayProperties{
+			PublicIps: &[]string{"x.x.x.x"},
+			Lans:      &lansGateways2,
+			Name:      sdkgo.PtrString(defaultNatName),
+		},
+	}
+
+	nats = &sdkgo.NatGateways{
+		Items: &[]sdkgo.NatGateway{*nat},
+	}
+
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{*dc}}, nil),
+		clientMock.EXPECT().GetLans(*dc.Id).Return(&sdkgo.Lans{Items: &[]sdkgo.Lan{}}, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
+
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().CreateLan(*dc.Id, lanName1, false).Return(lan_post_private, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get_private.Id).Return(lan_get_private, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
+				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
+				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
+				assert.Nil(t, serverToCreate.Properties.Type)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 1)
+				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{testVar}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testImageIdVar, *volumes[0].Properties.Image)
+				assert.Equal(t, float32(driver.DiskSize), *volumes[0].Properties.Size)
+				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[0].Properties.ImageAlias)
+
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 1)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, nicIps, *nics[0].Properties.Ips)
+				assert.Equal(t, driver.NicDhcp, *nics[0].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+		clientMock.EXPECT().GetNat(*dc.Id, *nat.Id).Return(nat, nil),
+		clientMock.EXPECT().PatchNat(*dc.Id, *nat.Id, *nat.Properties.Name, *nat.Properties.PublicIps, gomock.AssignableToTypeOf([]sdkgo.NatGatewayLanProperties{})).DoAndReturn(
+			func(datacenterId, NatId, NatName string, PublicIps []string, NatLans []sdkgo.NatGatewayLanProperties) (*sdkgo.NatGateway, error) {
+
+				return nat, nil
+			}),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
 	assert.NoError(t, err)
 }
 
-func TestCreateImageAlias(t *testing.T) {
+func TestCreateExistingNatNoPatch(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.SSHKey = testVar
+	driver.CpuFamily = "INTEL_SKYLAKE"
+	driver.Location = testRegion
+	driver.DatacenterName = datacenterName
+	driver.ImagePassword = "<testdata>"
+	driver.LanName = lanName1
+	driver.PrivateLan = true
+	driver.NicIps = nicIps
+	driver.NatPublicIps = []string{"127.0.0.4"}
+	driver.SkipDefaultNatRules = true
+	driver.NatFlowlogs = []string{"test_name:ACCEPTED:INGRESS:test_bucket", "test_name2:REGECTED:EGRESS:test_bucket"}
+	driver.NatRules = []string{
+		"name1:SNAT:TCP::10.0.1.0/24:10.0.2.0/24:100:500",
+		"name2:SNAT:ALL::10.0.1.0/24::1023:1500",
+	}
+	driver.NatLansToGateways = map[string][]string{"1": {"127.0.0.3"}}
+	driver.NatName = natName
+
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{*dc}}, nil),
+		clientMock.EXPECT().GetLans(*dc.Id).Return(&sdkgo.Lans{Items: &[]sdkgo.Lan{}}, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
+
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().CreateLan(*dc.Id, lanName1, false).Return(lan_post_private, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get_private.Id).Return(lan_get_private, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
+				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
+				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
+				assert.Nil(t, serverToCreate.Properties.Type)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 1)
+				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{testVar}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testImageIdVar, *volumes[0].Properties.Image)
+				assert.Equal(t, float32(driver.DiskSize), *volumes[0].Properties.Size)
+				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[0].Properties.ImageAlias)
+
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 1)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, nicIps, *nics[0].Properties.Ips)
+				assert.Equal(t, driver.NicDhcp, *nics[0].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+		clientMock.EXPECT().GetNat(*dc.Id, *nat.Id).Return(nat, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
+	assert.NoError(t, err)
+}
+
+func TestCreateImageIdSSHInCloudInit(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
-	driver.ServerId = testVar
-	driver.NicId = testVar
-	driver.VolumeId = testVar
-	driver.LanId = testVar
-	driver.IPAddress = testVar
+	driver.SSHUser = "username"
+	driver.DatacenterId = "value"
+	driver.LanId = lanId
 	driver.Image = testVar
-	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
-	clientMock.EXPECT().GetImages().Return(&images, nil)
-	clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil)
-	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
-	clientMock.EXPECT().GetLan(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("lan")).Return(lan1, nil)
-	clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(driver.CloudInit, nil)
-	clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil)
-	clientMock.EXPECT().CreateServer(driver.DatacenterId, gomock.AssignableToTypeOf(sdkgo.Server{})).Return(server, nil)
-	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(2)).Return(server, nil)
-	clientMock.EXPECT().GetNic(gomock.AssignableToTypeOf("dc"), gomock.AssignableToTypeOf("sv"), gomock.AssignableToTypeOf("nic")).Return(nic, nil)
+	driver.ImagePassword = imagePassword
+	driver.SSHInCloudInit = true
+	location.Properties.ImageAliases = &[]string{}
+
+	test := []interface{}{map[interface{}]interface{}{
+		"name":                driver.SSHUser,
+		"lock_passwd":         true,
+		"sudo":                "ALL=(ALL) NOPASSWD:ALL",
+		"create_groups":       false,
+		"no_user_group":       true,
+		"ssh_authorized_keys": []string{driver.SSHKey},
+	}}
+
+	gomock.InOrder(
+		clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil),
+		clientMock.EXPECT().GetImageById(driver.Image).Return(&imageFoundById, nil),
+		clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, lanId).Return(lan1, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "users", test, false, "append").Return("test_string", nil),
+		clientMock.EXPECT().UpdateCloudInitFile("test_string", "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil),
+		clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
+				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
+				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
+				assert.Nil(t, serverToCreate.Properties.Type)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 1)
+				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testImageIdVar, *volumes[0].Properties.Image)
+				assert.Nil(t, volumes[0].Properties.ImageAlias)
+				assert.Equal(t, float32(driver.DiskSize), *volumes[0].Properties.Size)
+				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
+
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 1)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, ips, *nics[0].Properties.Ips)
+				assert.Equal(t, driver.NicDhcp, *nics[0].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, *server.Id, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, *server.Id, nicId).Return(nic, nil),
+	)
+	err := driver.Create()
+	assert.NoError(t, err)
+}
+
+func TestCreateImageAliasSSHUser(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
+	driver.SSHKey = testVar
+	driver.SSHUser = "username"
+	driver.DatacenterId = "value"
+	driver.LanId = lanId
+	driver.Image = testVar
+	driver.ImagePassword = imagePassword
+	location.Properties.ImageAliases = &[]string{testVar}
+
+	test := []interface{}{map[interface{}]interface{}{
+		"name":                driver.SSHUser,
+		"lock_passwd":         true,
+		"sudo":                "ALL=(ALL) NOPASSWD:ALL",
+		"create_groups":       false,
+		"no_user_group":       true,
+		"ssh_authorized_keys": []string{driver.SSHKey},
+	}}
+
+	gomock.InOrder(
+		clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil),
+		clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, lanId).Return(lan1, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "users", test, false, "append").Return("test_string", nil),
+		clientMock.EXPECT().UpdateCloudInitFile("test_string", "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateIpBlock(int32(1), driver.Location).Return(ipblock, nil),
+		clientMock.EXPECT().GetIpBlockIps(ipblock).Return(&ips, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
+				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
+				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
+				assert.Nil(t, serverToCreate.Properties.Type)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 1)
+				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{driver.SSHKey}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testVar, *volumes[0].Properties.ImageAlias)
+				assert.Nil(t, volumes[0].Properties.Image)
+				assert.Equal(t, float32(driver.DiskSize), *volumes[0].Properties.Size)
+				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
+
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 1)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, ips, *nics[0].Properties.Ips)
+				assert.Equal(t, driver.NicDhcp, *nics[0].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, *server.Id, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, *server.Id, nicId).Return(nic, nil),
+	)
 	err := driver.Create()
 	assert.NoError(t, err)
 }
@@ -583,7 +1219,7 @@ func TestCreateImageAlias(t *testing.T) {
 func TestCreateIpBlockErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.UseAlias = true
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
@@ -616,7 +1252,7 @@ func TestCreateGetImageErr(t *testing.T) {
 func TestCreateGetDatacenterErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
 	clientMock.EXPECT().GetImages().Return(&images, nil)
@@ -641,9 +1277,9 @@ func TestCreateDatacenterErr(t *testing.T) {
 func TestCreateLanErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.LanId = ""
-	driver.IpBlockId = testVar
+	driver.IpBlockId = *ipblock.Id
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
 	clientMock.EXPECT().GetImages().Return(&images, nil)
@@ -662,11 +1298,11 @@ func TestCreateLanErr(t *testing.T) {
 func TestCreateServerErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	driver.LanId = testVar
 	driver.IPAddress = testVar
-	driver.IpBlockId = testVar
+	driver.IpBlockId = *ipblock.Id
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
 	clientMock.EXPECT().GetImages().Return(&images, nil)
@@ -688,11 +1324,11 @@ func TestCreateServerErr(t *testing.T) {
 func TestCreateServerRemove(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	driver.LanId = testVar
 	driver.IPAddress = testVar
-	driver.IpBlockId = testVar
+	driver.IpBlockId = *ipblock.Id
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
 	clientMock.EXPECT().GetImages().Return(&images, nil)
@@ -714,7 +1350,7 @@ func TestCreateServerRemove(t *testing.T) {
 func TestCreateGetIpBlockErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	driver.NicId = testVar
 	driver.VolumeId = testVar
@@ -738,13 +1374,13 @@ func TestCreateGetIpBlockErr(t *testing.T) {
 func TestCreateServerErr2(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = testVar
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	driver.NicId = testVar
 	driver.VolumeId = testVar
 	driver.LanId = testVar
 	driver.IPAddress = testVar
-	driver.IpBlockId = testVar
+	driver.IpBlockId = *ipblock.Id
 	driver.AdditionalLansIds = []int{2, 4}
 	clientMock.EXPECT().GetLocationById("us", "las").Return(location, nil)
 	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
@@ -767,7 +1403,7 @@ func TestCreateServerErr2(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	driver.NicId = testVar
 	driver.VolumeId = testVar
@@ -786,7 +1422,7 @@ func TestRemove(t *testing.T) {
 
 func TestRemoveErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	driver.NicId = testVar
 	driver.VolumeId = testVar
@@ -805,7 +1441,7 @@ func TestRemoveErr(t *testing.T) {
 
 func TestStartErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(server, nil)
 	err := driver.Start()
@@ -815,7 +1451,7 @@ func TestStartErr(t *testing.T) {
 func TestStart(t *testing.T) {
 	s := serverWithState(testVar, "PAUSED")
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, nil)
 	clientMock.EXPECT().StartServer(driver.DatacenterId, driver.ServerId).Return(nil)
@@ -826,7 +1462,7 @@ func TestStart(t *testing.T) {
 func TestStartServerErr(t *testing.T) {
 	s := serverWithState(testVar, "INACTIVE")
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, nil)
 	clientMock.EXPECT().StartServer(driver.DatacenterId, driver.ServerId).Return(fmt.Errorf("error starting server"))
@@ -837,7 +1473,7 @@ func TestStartServerErr(t *testing.T) {
 func TestStartRunningServer(t *testing.T) {
 	s := serverWithState(testVar, "RUNNING")
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, nil)
 	err := driver.Start()
@@ -846,7 +1482,7 @@ func TestStartRunningServer(t *testing.T) {
 
 func TestStopErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	s := &sdkgo.Server{}
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, nil)
@@ -857,7 +1493,7 @@ func TestStopErr(t *testing.T) {
 func TestStop(t *testing.T) {
 	s := serverWithState(testVar, "SHUTOFF")
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, nil)
 	clientMock.EXPECT().StopServer(driver.DatacenterId, driver.ServerId).Return(nil)
@@ -868,7 +1504,7 @@ func TestStop(t *testing.T) {
 func TestStopServerErr(t *testing.T) {
 	s := serverWithState(testVar, "PAUSED")
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, nil)
 	clientMock.EXPECT().StopServer(driver.DatacenterId, driver.ServerId).Return(fmt.Errorf("error stoping server"))
@@ -879,7 +1515,7 @@ func TestStopServerErr(t *testing.T) {
 func TestStopStoppedServer(t *testing.T) {
 	s := serverWithState(testVar, "BLOCKED")
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, nil)
 	err := driver.Stop()
@@ -888,7 +1524,7 @@ func TestStopStoppedServer(t *testing.T) {
 
 func TestRestartErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().RestartServer(driver.DatacenterId, driver.ServerId).Return(fmt.Errorf("error restarting server"))
 	err := driver.Restart()
@@ -897,7 +1533,7 @@ func TestRestartErr(t *testing.T) {
 
 func TestRestart(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().RestartServer(driver.DatacenterId, driver.ServerId).Return(nil)
 	err := driver.Restart()
@@ -906,7 +1542,7 @@ func TestRestart(t *testing.T) {
 
 func TestKillErr(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().StopServer(driver.DatacenterId, driver.ServerId).Return(fmt.Errorf("error stoping server"))
 	err := driver.Kill()
@@ -915,7 +1551,7 @@ func TestKillErr(t *testing.T) {
 
 func TestKill(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().StopServer(driver.DatacenterId, driver.ServerId).Return(nil)
 	err := driver.Kill()
@@ -925,7 +1561,7 @@ func TestKill(t *testing.T) {
 func TestGetSSHHostnameErr(t *testing.T) {
 	s := serverWithState(testVar, "CRASHED")
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, nil)
 	_, err := driver.GetSSHHostname()
@@ -935,7 +1571,7 @@ func TestGetSSHHostnameErr(t *testing.T) {
 func TestGetURLErr(t *testing.T) {
 	s := serverWithState(testVar, "SHUTOFF")
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, nil)
 	_, err := driver.GetURL()
@@ -945,7 +1581,7 @@ func TestGetURLErr(t *testing.T) {
 func TestGetIPErr(t *testing.T) {
 	s := serverWithState(testVar, "AVAILABLE")
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(2)).Return(s, testErr)
 	_, err := driver.GetIP()
@@ -955,7 +1591,7 @@ func TestGetIPErr(t *testing.T) {
 func TestGetStateErr(t *testing.T) {
 	s := serverWithNicAttached(testVar, "AVAILABLE", testVar)
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, testErr)
 	_, err := driver.GetState()
@@ -965,7 +1601,7 @@ func TestGetStateErr(t *testing.T) {
 func TestGetStateShutDown(t *testing.T) {
 	s := serverWithNicAttached(testVar, "SHUTDOWN", testVar)
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, nil)
 	_, err := driver.GetState()
@@ -975,7 +1611,7 @@ func TestGetStateShutDown(t *testing.T) {
 func TestGetStateCrashed(t *testing.T) {
 	s := serverWithNicAttached(testVar, "CRASHED", testVar)
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
-	driver.DatacenterId = testVar
+	driver.DatacenterId = datacenterId
 	driver.ServerId = testVar
 	clientMock.EXPECT().GetServer(driver.DatacenterId, driver.ServerId, int32(1)).Return(s, nil)
 	_, err := driver.GetState()
@@ -1005,7 +1641,7 @@ func TestGetImageId(t *testing.T) {
 	clientMock.EXPECT().GetImages().Return(&images, nil)
 	driver.Location = defaultRegion
 	driver.DiskType = "SSD"
-	_, err := driver.getImageId(imageName)
+	_, err := driver.getImageId(imageAlias)
 	assert.NoError(t, err)
 }
 

@@ -304,6 +304,21 @@ func (mr *MockClientServiceMockRecorder) GetTemplates() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTemplates", reflect.TypeOf((*MockClientService)(nil).GetTemplates))
 }
 
+// PatchNat mocks base method.
+func (m *MockClientService) PatchNat(datacenterId, natId, name string, publicIps []string, lansToGateways []ionoscloud.NatGatewayLanProperties) (*ionoscloud.NatGateway, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PatchNat", datacenterId, natId, name, publicIps, lansToGateways)
+	ret0, _ := ret[0].(*ionoscloud.NatGateway)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchNat indicates an expected call of PatchNat.
+func (mr *MockClientServiceMockRecorder) PatchNat(datacenterId, natId, name, publicIps, lansToGateways interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchNat", reflect.TypeOf((*MockClientService)(nil).PatchNat), datacenterId, natId, name, publicIps, lansToGateways)
+}
+
 // RemoveDatacenter mocks base method.
 func (m *MockClientService) RemoveDatacenter(datacenterId string) error {
 	m.ctrl.T.Helper()
