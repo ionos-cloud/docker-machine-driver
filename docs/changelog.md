@@ -1,5 +1,13 @@
 # Changelog
 
+## \[7.0.5]
+### Changed
+* Fixed:
+  * driver not using NAT when one already existing on the server, now it adds the main lan to the NAT if it does not already exist
+  * refactor driver to catch all error and rollback, avoid reaching a state where the machine creation failed but the resources still exist
+* improvement:
+  * add multiple checks to unit tests, improved coverage
+
 ## \[7.0.4]
 ### Changed
 * improvement:
