@@ -9,8 +9,8 @@ import (
 	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	"gopkg.in/yaml.v3"
 
-	"github.com/docker/machine/libmachine/log"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
+	"github.com/rancher/machine/libmachine/log"
 )
 
 const waitCount = 1000

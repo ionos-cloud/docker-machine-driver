@@ -11,14 +11,14 @@ import (
 
 	"github.com/ionos-cloud/docker-machine-driver/pkg/extflag"
 
-	"github.com/docker/machine/libmachine/drivers"
-	"github.com/docker/machine/libmachine/log"
-	"github.com/docker/machine/libmachine/mcnflag"
-	"github.com/docker/machine/libmachine/ssh"
-	"github.com/docker/machine/libmachine/state"
 	"github.com/hashicorp/go-multierror"
 	"github.com/ionos-cloud/docker-machine-driver/internal/utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
+	"github.com/rancher/machine/libmachine/drivers"
+	"github.com/rancher/machine/libmachine/log"
+	"github.com/rancher/machine/libmachine/mcnflag"
+	"github.com/rancher/machine/libmachine/ssh"
+	"github.com/rancher/machine/libmachine/state"
 )
 
 const (
