@@ -2,31 +2,15 @@
 ## explicit; go 1.16
 github.com/Azure/go-ansiterm
 github.com/Azure/go-ansiterm/winterm
-# github.com/davecgh/go-spew v1.1.1
+# github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
 # github.com/docker/docker v20.10.27+incompatible
 ## explicit
 github.com/docker/docker/pkg/term
-# github.com/docker/machine v0.16.2
-## explicit
-github.com/docker/machine/libmachine/drivers
-github.com/docker/machine/libmachine/drivers/plugin
-github.com/docker/machine/libmachine/drivers/plugin/localbinary
-github.com/docker/machine/libmachine/drivers/rpc
-github.com/docker/machine/libmachine/log
-github.com/docker/machine/libmachine/mcnflag
-github.com/docker/machine/libmachine/mcnutils
-github.com/docker/machine/libmachine/ssh
-github.com/docker/machine/libmachine/state
-github.com/docker/machine/libmachine/version
-github.com/docker/machine/version
 # github.com/golang/mock v1.6.0
 ## explicit; go 1.11
 github.com/golang/mock/gomock
-# github.com/golang/protobuf v1.5.3
-## explicit; go 1.9
-github.com/golang/protobuf/proto
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
@@ -40,9 +24,23 @@ github.com/ionos-cloud/sdk-go/v6
 ## explicit; go 1.18
 github.com/moby/term
 github.com/moby/term/windows
-# github.com/pmezard/go-difflib v1.0.0
+# github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 ## explicit
 github.com/pmezard/go-difflib/difflib
+# github.com/rancher/machine v0.15.0-rancher119
+## explicit; go 1.22.0
+github.com/rancher/machine/libmachine/drivers
+github.com/rancher/machine/libmachine/drivers/plugin
+github.com/rancher/machine/libmachine/drivers/plugin/localbinary
+github.com/rancher/machine/libmachine/drivers/rpc
+github.com/rancher/machine/libmachine/log
+github.com/rancher/machine/libmachine/mcnflag
+github.com/rancher/machine/libmachine/mcnutils
+github.com/rancher/machine/libmachine/ssh
+github.com/rancher/machine/libmachine/state
+github.com/rancher/machine/libmachine/util
+github.com/rancher/machine/libmachine/version
+github.com/rancher/machine/version
 # github.com/stretchr/testify v1.9.0
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
@@ -55,70 +53,29 @@ github.com/tidwall/match
 # github.com/tidwall/pretty v1.2.1
 ## explicit; go 1.16
 github.com/tidwall/pretty
-# golang.org/x/crypto v0.20.0
-## explicit; go 1.18
+# golang.org/x/crypto v0.26.0
+## explicit; go 1.20
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
-golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/internal/alias
 golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/oauth2 v0.17.0
+# golang.org/x/oauth2 v0.22.0
 ## explicit; go 1.18
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.17.0
+# golang.org/x/sys v0.25.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.17.0
+# golang.org/x/term v0.23.0
 ## explicit; go 1.18
 golang.org/x/term
-# google.golang.org/appengine v1.6.8
-## explicit; go 1.11
-google.golang.org/appengine/internal
-google.golang.org/appengine/internal/base
-google.golang.org/appengine/internal/datastore
-google.golang.org/appengine/internal/log
-google.golang.org/appengine/internal/remote_api
-google.golang.org/appengine/internal/urlfetch
-google.golang.org/appengine/urlfetch
-# google.golang.org/protobuf v1.33.0
-## explicit; go 1.17
-google.golang.org/protobuf/encoding/prototext
-google.golang.org/protobuf/encoding/protowire
-google.golang.org/protobuf/internal/descfmt
-google.golang.org/protobuf/internal/descopts
-google.golang.org/protobuf/internal/detrand
-google.golang.org/protobuf/internal/editiondefaults
-google.golang.org/protobuf/internal/encoding/defval
-google.golang.org/protobuf/internal/encoding/messageset
-google.golang.org/protobuf/internal/encoding/tag
-google.golang.org/protobuf/internal/encoding/text
-google.golang.org/protobuf/internal/errors
-google.golang.org/protobuf/internal/filedesc
-google.golang.org/protobuf/internal/filetype
-google.golang.org/protobuf/internal/flags
-google.golang.org/protobuf/internal/genid
-google.golang.org/protobuf/internal/impl
-google.golang.org/protobuf/internal/order
-google.golang.org/protobuf/internal/pragma
-google.golang.org/protobuf/internal/set
-google.golang.org/protobuf/internal/strs
-google.golang.org/protobuf/internal/version
-google.golang.org/protobuf/proto
-google.golang.org/protobuf/reflect/protodesc
-google.golang.org/protobuf/reflect/protoreflect
-google.golang.org/protobuf/reflect/protoregistry
-google.golang.org/protobuf/runtime/protoiface
-google.golang.org/protobuf/runtime/protoimpl
-google.golang.org/protobuf/types/descriptorpb
-google.golang.org/protobuf/types/gofeaturespb
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3

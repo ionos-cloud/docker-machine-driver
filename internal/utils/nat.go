@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/machine/libmachine/log"
 	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
 	"github.com/ionos-cloud/docker-machine-driver/pkg/sdk_utils"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
+	"github.com/rancher/machine/libmachine/log"
 )
 
 func (c *Client) GetNats(datacenterId string) (*sdkgo.NatGateways, error) {
