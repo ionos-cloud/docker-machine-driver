@@ -96,6 +96,8 @@ use kubetl to create a node driver resource
   kubectl create -f ionos.yaml
   ```
 
+> **_NOTE:_** 'privateCredentialFields' must be set for Cloud credentials to work and must not be set for RKE1 template to work
+
 ## Adding the UI drivers
 
 The old UI can the added by editing the driver in the node drivers list and changing the UI URL to where the component is available
