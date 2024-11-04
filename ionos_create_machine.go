@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/docker/machine/libmachine/log"
 	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
+	"github.com/rancher/machine/libmachine/log"
 )
 
 func (d *Driver) getCubeTemplateUuid() (string, error) {
