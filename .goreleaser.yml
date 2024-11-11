@@ -1,3 +1,4 @@
+version: 2
 project_name: docker-machine-driver
 
 before:
@@ -37,7 +38,10 @@ checksum:
   name_template: '{{ .ProjectName }}-{{ .Version }}-SHA256SUMS'
   algorithm: sha256
 release:
+  github:
+    owner: ionos-cloud
+    name: docker-machine-driver
 # If you want to manually examine the release before its live, uncomment this line:
 # draft: true
 changelog:
-  skip: true
+  disable: true
