@@ -4,6 +4,7 @@
 ### Changed
 * Fixed:
   * endpoint not being set in the ui drivers
+  * issues with updating fields on an existing cloud credential
   * locations, cpu family and cube template select options were outdated, updated lists
 * improvement:
   * added calls to retreive locations, cpu family and cube template lists from the API, will use the credentials set by the user, default values are used if the calls fail
