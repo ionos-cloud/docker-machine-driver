@@ -100,6 +100,8 @@ Using Rancher Extensions requires Rancher v2.7.0 or above.
   kubectl create -f <FILE>
   ```
 
+> **_NOTE:_** 'privateCredentialFields' must be set for Cloud credentials to work and must not be set for RKE1 template to work
+
   * you can also add the old UI if you want to use RKE1
     * Go to Tools ➜ Drivers ➜ Node Drivers
     * Edit the Ionoscloud driver

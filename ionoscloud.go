@@ -67,7 +67,7 @@ const (
 	defaultRegion                 = "us/las"
 	defaultImageAlias             = "ubuntu:20.04"
 	defaultImagePassword          = "" // Must contain both letters and numbers, at least 8 characters
-	defaultCpuFamily              = "AMD_OPTERON"
+	defaultCpuFamily              = "INTEL_ICELAKE"
 	defaultAvailabilityZone       = "AUTO"
 	defaultDiskType               = "HDD"
 	defaultServerType             = "ENTERPRISE"
@@ -95,7 +95,7 @@ type Driver struct {
 	*drivers.BaseDriver
 	client func() utils.ClientService
 
-	URL      string
+	Endpoint string
 	Username string
 	Password string
 	Token    string
@@ -176,7 +176,7 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 		httpUserAgent = fmt.Sprintf("docker-machine-driver-ionoscloud/%v", driver.Version)
 	}
 	driver.client = func() utils.ClientService {
-		return utils.New(context.TODO(), driver.Username, driver.Password, driver.Token, driver.URL, httpUserAgent)
+		return utils.New(context.TODO(), driver.Username, driver.Password, driver.Token, driver.Endpoint, httpUserAgent)
 	}
 	return driver
 }
@@ -261,7 +261,6 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.StringFlag{
 			Name:   flagEndpoint,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagEndpoint),
-			Value:  sdkgo.DefaultIonosServerUrl,
 			Usage:  "Ionos Cloud API Endpoint",
 		},
 		mcnflag.StringFlag{
@@ -337,7 +336,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagServerCpuFamily,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerCpuFamily),
 			Value:  defaultCpuFamily,
-			Usage:  "Ionos Cloud Server CPU families (AMD_OPTERON, INTEL_XEON, INTEL_SKYLAKE, INTEL_ICELAKE, AMD_EPYC)",
+			Usage:  "Ionos Cloud Server CPU families (INTEL_XEON, INTEL_SKYLAKE, INTEL_ICELAKE, AMD_EPYC)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagDatacenterId,
@@ -371,7 +370,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagServerAvailabilityZone,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerAvailabilityZone),
 			Value:  defaultAvailabilityZone,
-			Usage:  "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2, ZONE_3)",
+			Usage:  "Ionos Cloud Server Availability Zone (AUTO, ZONE_1, ZONE_2)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagCloudInit,
@@ -406,7 +405,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.NatFlowlogs = opts.StringSlice(flagNatFlowlogs)
 	d.NatRules = opts.StringSlice(flagNatRules)
 	d.NatLansToGateways = extflag.ToMapOfStringToStringSlice(opts.String(flagNatLansToGateways))
-	d.URL = opts.String(flagEndpoint)
+	d.Endpoint = opts.String(flagEndpoint)
 	d.Username = opts.String(flagUsername)
 	d.Password = opts.String(flagPassword)
 	d.Token = opts.String(flagToken)
@@ -443,8 +442,8 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.SwarmDiscovery = opts.String("swarm-discovery")
 	d.SetSwarmConfigFromFlags(opts)
 
-	if d.URL == "" {
-		d.URL = sdkgo.DefaultIonosServerUrl
+	if d.Endpoint == "" {
+		d.Endpoint = sdkgo.DefaultIonosServerUrl
 	}
 
 	return nil
