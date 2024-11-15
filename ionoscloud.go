@@ -67,11 +67,11 @@ const (
 	defaultRegion                 = "us/las"
 	defaultImageAlias             = "ubuntu:20.04"
 	defaultImagePassword          = "" // Must contain both letters and numbers, at least 8 characters
-	defaultCpuFamily              = "INTEL_ICELAKE"
+	defaultCpuFamily              = "INTEL_XEON"
 	defaultAvailabilityZone       = "AUTO"
 	defaultDiskType               = "HDD"
 	defaultServerType             = "ENTERPRISE"
-	defaultTemplate               = "CUBES XS"
+	defaultTemplate               = "Basic Cube XS"
 	defaultSSHUser                = "root"
 	defaultDatacenterName         = "docker-machine-data-center"
 	defaultLanName                = "docker-machine-lan"
