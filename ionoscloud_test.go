@@ -44,7 +44,7 @@ var (
 	lanId2                 = "5"
 	lanName2               = "test2"
 	localhost_ip           = "test_local_ip"
-	cpuFamily              = "INTEL_XEON"
+	cpuFamily              = "INTEL_ICELAKE"
 	imagePassword          = "<testdata>"
 	nicDhcp                = false
 	nicIps                 = []string{localhost_ip, "127.0.0.3"}
@@ -219,7 +219,7 @@ var (
 	cube_template = &sdkgo.Template{
 		Id: sdkgo.PtrString("template-id"),
 		Properties: &sdkgo.TemplateProperties{
-			Name: sdkgo.PtrString("CUBES XS"),
+			Name: sdkgo.PtrString("Basic Cube XS"),
 		},
 	}
 
