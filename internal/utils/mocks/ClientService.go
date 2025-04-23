@@ -65,10 +65,10 @@ func (mr *MockClientServiceMockRecorder) CreateIpBlock(size, location interface{
 }
 
 // CreateLan mocks base method.
-func (m *MockClientService) CreateLan(datacenterId, name string, public bool) (*ionoscloud.LanPost, error) {
+func (m *MockClientService) CreateLan(datacenterId, name string, public bool) (*ionoscloud.Lan, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateLan", datacenterId, name, public)
-	ret0, _ := ret[0].(*ionoscloud.LanPost)
+	ret0, _ := ret[0].(*ionoscloud.Lan)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

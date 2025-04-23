@@ -68,16 +68,16 @@ var (
 			Version:     sdkgo.ToPtr(int32(1)),
 		},
 	}
-	lan_post = &sdkgo.LanPost{
+	lan_post = &sdkgo.Lan{
 		Id: sdkgo.ToPtr(lanId),
-		Properties: &sdkgo.LanPropertiesPost{
+		Properties: &sdkgo.LanProperties{
 			Name:   &lanName1,
 			Public: sdkgo.ToPtr(true),
 		},
 	}
-	lan_post_private = &sdkgo.LanPost{
+	lan_post_private = &sdkgo.Lan{
 		Id: sdkgo.ToPtr(lanId),
-		Properties: &sdkgo.LanPropertiesPost{
+		Properties: &sdkgo.LanProperties{
 			Name:   &lanName1,
 			Public: sdkgo.ToPtr(false),
 		},
@@ -164,9 +164,9 @@ var (
 		Id:         &testVar,
 		Properties: &sdkgo.LanProperties{Name: &lanName1},
 	}
-	lan = &sdkgo.LanPost{
+	lan = &sdkgo.Lan{
 		Id:         &testVar,
-		Properties: &sdkgo.LanPropertiesPost{Public: sdkgo.ToPtr(false), Name: &lanName1},
+		Properties: &sdkgo.LanProperties{Public: sdkgo.ToPtr(false), Name: &lanName1},
 	}
 	privateLan = &sdkgo.Lan{
 		Id:         &testVar,
