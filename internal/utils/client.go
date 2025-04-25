@@ -118,8 +118,8 @@ func (c *Client) RemoveIpBlock(ipBlockId string) error {
 }
 
 func (c *Client) CreateDatacenter(name, location string) (*sdkgo.Datacenter, error) {
-	dc, dcResp, err := c.DataCentersApi.DatacentersPost(c.ctx).Datacenter(sdkgo.Datacenter{
-		Properties: &sdkgo.DatacenterProperties{
+	dc, dcResp, err := c.DataCentersApi.DatacentersPost(c.ctx).Datacenter(sdkgo.DatacenterPost{
+		Properties: &sdkgo.DatacenterPropertiesPost{
 			Name:     &name,
 			Location: &location,
 		}}).Execute()
@@ -174,9 +174,9 @@ func (c *Client) RemoveDatacenter(datacenterId string) error {
 	return nil
 }
 
-func (c *Client) CreateLan(datacenterId, name string, public bool) (*sdkgo.LanPost, error) {
-	lan, lanResp, err := c.LANsApi.DatacentersLansPost(c.ctx, datacenterId).Lan(sdkgo.LanPost{
-		Properties: &sdkgo.LanPropertiesPost{
+func (c *Client) CreateLan(datacenterId, name string, public bool) (*sdkgo.Lan, error) {
+	lan, lanResp, err := c.LANsApi.DatacentersLansPost(c.ctx, datacenterId).Lan(sdkgo.Lan{
+		Properties: &sdkgo.LanProperties{
 			Name:   &name,
 			Public: &public,
 		}}).Execute()

@@ -11,7 +11,7 @@ type ClientService interface {
 	GetDatacenter(datacenterId string) (*ionoscloud.Datacenter, error)
 	GetDatacenters() (*ionoscloud.Datacenters, error)
 	RemoveDatacenter(datacenterId string) error
-	CreateLan(datacenterId, name string, public bool) (*ionoscloud.LanPost, error)
+	CreateLan(datacenterId, name string, public bool) (*ionoscloud.Lan, error)
 	RemoveLan(datacenterId, lanId string) error
 
 	CreateNat(datacenterId, name string, publicIps, flowlogs, natRules []string, lansToGateways map[string][]string, sourceSubnet string, skipDefaultRules bool) (*ionoscloud.NatGateway, error)
