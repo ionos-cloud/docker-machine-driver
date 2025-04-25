@@ -1,14 +1,13 @@
-# github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78
-## explicit
+# github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c
+## explicit; go 1.16
 github.com/Azure/go-ansiterm
 github.com/Azure/go-ansiterm/winterm
 # github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
+# github.com/docker/docker v20.10.17+incompatible
 ## explicit
 github.com/docker/docker/pkg/term
-github.com/docker/docker/pkg/term/windows
 # github.com/golang/mock v1.6.0
 ## explicit; go 1.11
 github.com/golang/mock/gomock
@@ -21,6 +20,10 @@ github.com/hashicorp/go-multierror
 # github.com/ionos-cloud/sdk-go/v6 v6.3.3
 ## explicit; go 1.21
 github.com/ionos-cloud/sdk-go/v6
+# github.com/moby/term v0.5.2
+## explicit; go 1.18
+github.com/moby/term
+github.com/moby/term/windows
 # github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 ## explicit
 github.com/pmezard/go-difflib/difflib
@@ -38,9 +41,6 @@ github.com/rancher/machine/libmachine/state
 github.com/rancher/machine/libmachine/util
 github.com/rancher/machine/libmachine/version
 github.com/rancher/machine/version
-# github.com/sirupsen/logrus v1.9.3
-## explicit; go 1.13
-github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.10.0
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
@@ -80,5 +80,3 @@ golang.org/x/term
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# gotest.tools v2.2.0+incompatible
-## explicit
