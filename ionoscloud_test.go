@@ -35,7 +35,7 @@ var (
 	testImageIdVar         = "test-image-id"
 	locationId             = "las"
 	imageType              = "HDD"
-	imageAlias             = "ubuntu:20.04"
+	imageAlias             = "ubuntu:latest"
 	dcVersion              = int32(1)
 	testErr                = fmt.Errorf("errFoo")
 	lanId1                 = "2"
@@ -1122,7 +1122,8 @@ func TestCreateImageIdSSHInCloudInit(t *testing.T) {
 		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
 			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
 				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
-				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+
+				assert.Nil(t, serverToCreate.Properties.CpuFamily)
 				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
 				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
 				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
@@ -1186,7 +1187,7 @@ func TestCreateImageAliasSSHUser(t *testing.T) {
 		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
 			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
 				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
-				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Nil(t, serverToCreate.Properties.CpuFamily)
 				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
 				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
 				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)

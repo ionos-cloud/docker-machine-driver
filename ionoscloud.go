@@ -299,7 +299,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagImage,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagImage),
 			Value:  defaultImageAlias,
-			Usage:  "Ionos Cloud Image Id or Alias (ubuntu:latest, ubuntu:20.04)",
+			Usage:  "Ionos Cloud Image Id or Alias (ubuntu:latest, debian:latest, etc.)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagImagePassword,
