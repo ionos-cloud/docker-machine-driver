@@ -60,6 +60,7 @@ const (
 	flagPrivateLan             = "ionoscloud-private-lan"
 	flagAdditionalLans         = "ionoscloud-additional-lans"
 	flagCreateNat              = "ionoscloud-create-nat"
+	flagRKEProvisionUserData   = "rancher-provision-user-data"
 	// ---
 )
 
@@ -138,6 +139,7 @@ type Driver struct {
 	NatId                  string
 	CloudInit              string
 	CloudInitB64           string
+	RKEProvisionUserData   string
 	NatPublicIps           []string
 	NatFlowlogs            []string
 	NatRules               []string
@@ -383,6 +385,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
 		mcnflag.StringFlag{
+			Name:   flagRKEProvisionUserData,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagRKEProvisionUserData),
+			Usage:  "Placeholder flag for rancher machine creation flow to populate with rke2 install user-data instructions",
+		},
+		mcnflag.StringFlag{
 			Name:   flagSSHUser,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagSSHUser),
 			Value:  defaultSSHUser,
@@ -431,6 +438,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.ServerAvailabilityZone = opts.String(flagServerAvailabilityZone)
 	d.SkipDefaultNatRules = opts.Bool(flagSkipDefaultNatRules)
 	d.CloudInit = opts.String(flagCloudInit)
+	d.RKEProvisionUserData = opts.String(flagRKEProvisionUserData)
 	d.SSHUser = opts.String(flagSSHUser)
 	d.SSHInCloudInit = opts.Bool(flagSSHInCloudInit)
 	d.CloudInitB64 = opts.String(flagCloudInitB64)
@@ -616,7 +624,7 @@ func getPropertyWithFallback[T comparable](p1 T, p2 T, empty T) T {
 func (d *Driver) Create() (err error) {
 	err = d.CreateIonosMachine()
 	if err != nil {
-		log.Warn(rollingBackNotice)
+		log.Warnf("%s: %s", rollingBackNotice, err)
 		if removeErr := d.Remove(); removeErr != nil {
 			return fmt.Errorf("failed to create machine due to error: %w\n Removing created resources: %v", err, removeErr)
 		}
