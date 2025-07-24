@@ -5,7 +5,6 @@ go 1.24.0
 toolchain go1.24.4
 
 require (
-	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/ionos-cloud/sdk-go/v6 v6.3.4
 	github.com/rancher/machine v0.15.0-rancher131
@@ -14,6 +13,7 @@ require (
 
 require (
 	github.com/tidwall/gjson v1.18.0
+	go.uber.org/mock v0.5.2
 	gopkg.in/yaml.v3 v3.0.1
 )
 

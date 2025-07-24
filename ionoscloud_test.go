@@ -7,12 +7,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/ionos-cloud/docker-machine-driver/internal/utils"
 	mockutils "github.com/ionos-cloud/docker-machine-driver/internal/utils/mocks"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 	"github.com/rancher/machine/libmachine/drivers"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 const (
