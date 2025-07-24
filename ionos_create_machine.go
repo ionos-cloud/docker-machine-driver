@@ -148,8 +148,10 @@ func (d *Driver) CreateIonosServer() (err error) {
 			Name:             &d.MachineName,
 			Ram:              pointer.From(int32(d.Ram)),
 			Cores:            pointer.From(int32(d.Cores)),
-			CpuFamily:        &d.CpuFamily,
 			AvailabilityZone: &d.ServerAvailabilityZone,
+		}
+		if d.CpuFamily != "" {
+			serverToCreate.Properties.CpuFamily = &d.CpuFamily
 		}
 		volumeProperties.Size = &floatDiskSize
 		volumeProperties.AvailabilityZone = &d.VolumeAvailabilityZone
