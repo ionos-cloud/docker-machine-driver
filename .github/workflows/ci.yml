@@ -33,7 +33,9 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: Regenerate mocks
-        run: make mock_update
+        run: |
+          go install github.com/golang/mock/mockgen@latest
+          make mock_update
 
       - name: Check code format
         run: make gofmt_check
