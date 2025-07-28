@@ -34,7 +34,7 @@ jobs:
 
       - name: Regenerate mocks
         run: |
-          go install github.com/golang/mock/mockgen@latest
+          go install go.uber.org/mock/mockgen@latest
           make mock_update
 
       - name: Check code format
