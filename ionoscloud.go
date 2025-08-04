@@ -66,9 +66,8 @@ const (
 
 const (
 	defaultRegion                 = "us/las"
-	defaultImageAlias             = "ubuntu:20.04"
+	defaultImageAlias             = "ubuntu:latest"
 	defaultImagePassword          = "" // Must contain both letters and numbers, at least 8 characters
-	defaultCpuFamily              = "INTEL_XEON"
 	defaultAvailabilityZone       = "AUTO"
 	defaultDiskType               = "HDD"
 	defaultServerType             = "ENTERPRISE"
@@ -302,7 +301,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagImage,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagImage),
 			Value:  defaultImageAlias,
-			Usage:  "Ionos Cloud Image Id or Alias (ubuntu:latest, ubuntu:20.04)",
+			Usage:  "Ionos Cloud Image Id or Alias (ubuntu:latest, debian:latest, etc.)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagImagePassword,
@@ -337,8 +336,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.StringFlag{
 			Name:   flagServerCpuFamily,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagServerCpuFamily),
-			Value:  defaultCpuFamily,
-			Usage:  "Ionos Cloud Server CPU families (INTEL_XEON, INTEL_SKYLAKE, INTEL_ICELAKE, AMD_EPYC)",
+			Usage:  "Ionos Cloud Server CPU families (INTEL_XEON, INTEL_SKYLAKE, INTEL_ICELAKE, AMD_EPYC, INTEL_SIERRAFOREST)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagDatacenterId,

@@ -32,6 +32,11 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
+      - name: Regenerate mocks
+        run: |
+          go install go.uber.org/mock/mockgen@latest
+          make mock_update
+
       - name: Check code format
         run: make gofmt_check
         if: matrix.os == 'ubuntu-latest'

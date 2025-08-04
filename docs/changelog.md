@@ -1,5 +1,12 @@
 # Changelog
 
+
+## \[7.0.6]
+### Changed
+* Changes:
+  * remove default value for cpu_family, sending nothing will let the API select an available CPU architecture
+  * changed default value for image
+
 ## \[7.0.6]
 ### Changed
 * Fixed:
