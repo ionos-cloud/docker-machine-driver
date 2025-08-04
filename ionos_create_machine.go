@@ -4,12 +4,14 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 
 	"github.com/ionos-cloud/docker-machine-driver/internal/pointer"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 	"github.com/rancher/machine/libmachine/log"
+	"gopkg.in/yaml.v3"
 )
 
 func (d *Driver) getCubeTemplateUuid() (string, error) {
@@ -99,8 +101,57 @@ func (d *Driver) GetFinalUserData() (userdata string, err error) {
 	if err != nil {
 		return "", err
 	}
+
+	if d.RKEProvisionUserData != "" {
+		d.CloudInit, err = d.appendRKEProvisionToCloudInit()
+		if err != nil {
+			return "", fmt.Errorf("failed to append RKE provision to cloud init: %w", err)
+		}
+	}
+
 	ud := base64.StdEncoding.EncodeToString([]byte(d.CloudInit))
 	return ud, nil
+}
+
+func (d *Driver) appendRKEProvisionToCloudInit() (string, error) {
+	var (
+		finalCf string
+		err     error
+	)
+	userdata, err := os.ReadFile(d.RKEProvisionUserData)
+	if err != nil {
+		return "", fmt.Errorf("failed to read rke provision user data: %w", err)
+	}
+
+	var cf map[string]interface{}
+	err = yaml.Unmarshal([]byte(userdata), &cf)
+	if err != nil {
+		return "", fmt.Errorf("failed to unmarshal RKE provision data: %w", err)
+	}
+
+	if runcmd, exists := cf["runcmd"]; exists {
+		if runcmdArray, ok := runcmd.([]interface{}); ok {
+			finalCf, err = d.client().UpdateCloudInitFile(
+				d.CloudInit, "runcmd", runcmdArray, false, "append",
+			)
+			if err != nil {
+				return "", fmt.Errorf("failed to append rke provision runcmd to cloud init: %w", err)
+			}
+		}
+	}
+
+	if writeFiles, exists := cf["write_files"]; exists {
+		if writeFilesArray, ok := writeFiles.([]interface{}); ok {
+			finalCf, err = d.client().UpdateCloudInitFile(
+				finalCf, "write_files", writeFilesArray, false, "append",
+			)
+			if err != nil {
+				return "", fmt.Errorf("failed to append write_files to cloud init: %w", err)
+			}
+		}
+	}
+
+	return finalCf, nil
 }
 
 func (d *Driver) CreateIonosServer() (err error) {
