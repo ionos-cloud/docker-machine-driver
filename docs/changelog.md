@@ -1,8 +1,11 @@
 # Changelog
 
 
-## \[7.0.6]
+## \[7.0.7]
 ### Changed
+* Features:
+  * Append rke provisioning to userdata by @dennislapchenko
+  * Added feature flag for rke provisioning being appended to userdata
 * Changes:
   * remove default value for cpu_family, sending nothing will let the API select an available CPU architecture
   * changed default value for image

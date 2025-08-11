@@ -56,6 +56,8 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-skip-default-nat-rules`                 | Should the driver skip creating default nat rules if creating a NAT, creating only the specified rules, the UI drivers always set this flag                                                                                                                                                                |
 | `--ionoscloud-ssh-user`                 | The user to connect to via SSH                                                                                                                                                                |
 | `--ionoscloud-ssh-in-cloud-init`        | Should the driver only add the SSH info in the user data? (required for custom images)                                                                                                                                                                |
+| `--ionoscloud-rancher-provision-user-data`        | Placeholder flag for rancher machine creation flow to populate with rke2 install user-data instructions                                                                                                                                                                |
+| `--ionoscloud-append-rke-userdata`        | Should the driver append the rke user-data to the user-data sent to the ionos server                                                                                                                                                                |
 | `--swarm`                               | Configure Machine to join a Swarm cluster                                                                                                                                                     |
 | `--swarm-addr`                          | addr to advertise for Swarm \(default: detect and use the machine IP\)                                                                                                                        |
 | `--swarm-discovery`                     | Discovery service to use with Swarm                                                                                                                                                           |
@@ -79,42 +81,44 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 
 Environment variables are also supported for setting options. This is a list of the environment variables available for Docker Machine Driver.
 
-| Option                                   | Environment variable                   |
-|:-----------------------------------------|:---------------------------------------|
-| `--ionoscloud-username`                  | `IONOSCLOUD_USERNAME`                  |
-| `--ionoscloud-password`                  | `IONOSCLOUD_PASSWORD`                  |
-| `--ionoscloud-token`                     | `IONOSCLOUD_TOKEN`                     |
-| `--ionoscloud-endpoint`                  | `IONOSCLOUD_ENDPOINT`                  | 
-| `--ionoscloud-datacenter-id`             | `IONOSCLOUD_DATACENTER_ID`             |
-| `--ionoscloud-datacenter-name`           | `IONOSCLOUD_DATACENTER_NAME`           |
-| `--ionoscloud-lan-id`                    | `IONOSCLOUD_LAN_ID`                    |
-| `--ionoscloud-lan-name`                  | `IONOSCLOUD_LAN_NAME`                  |
-| `--ionoscloud-additional-lans`           | `IONOSCLOUD_ADDITIONAL_LANS`           |
-| `--ionoscloud-disk-size`                 | `IONOSCLOUD_DISK_SIZE`                 |
-| `--ionoscloud-disk-type`                 | `IONOSCLOUD_DISK_TYPE`                 |
-| `--ionoscloud-image`                     | `IONOSCLOUD_IMAGE`                     |
-| `--ionoscloud-image-password`            | `IONOSCLOUD_IMAGE_PASSWORD`            |
-| `--ionoscloud-server-type`               | `IONOSCLOUD_SERVER_TYPE`               |
-| `--ionoscloud-template`                  | `IONOSCLOUD_TEMPLATE`                  |
-| `--ionoscloud-location`                  | `IONOSCLOUD_LOCATION`                  |
-| `--ionoscloud-server-availability-zone`  | `IONOSCLOUD_SERVER_AVAILABILITY_ZONE`  |
-| `--ionoscloud-cores`                     | `IONOSCLOUD_CORES`                     |
-| `--ionoscloud-cpu-family`                | `IONOSCLOUD_CPU_FAMILY`                |
-| `--ionoscloud-ram`                       | `IONOSCLOUD_RAM`                       |
-| `--ionoscloud-volume-availability-zone`  | `IONOSCLOUD_VOLUME_AVAILABILITY_ZONE`  |
-| `--ionoscloud-cloud-init`                | `IONOSCLOUD_CLOUD_INIT`                |
-| `--ionoscloud-cloud-init-b64`            | `IONOSCLOUD_CLOUD_INIT_B64`            |
-| `--ionoscloud-nic-dhcp`                  | `IONOSCLOUD_NIC_DHCP`                  |
-| `--ionoscloud-nic-ips`                   | `IONOSCLOUD_NIC_IPS`                   |
-| `--ionoscloud-wait-for-ip-change`        | `IONOSCLOUD_WAIT_FOR_IP_CHANGE`        |
-| `--ionoscloud-wait-for-ip-change-timeout`| `IONOSCLOUD_WAIT_FOR_IP_CHANGE_TIMEOUT`|
-| `--ionoscloud-create-nat`                | `IONOSCLOUD_CREATE_NAT`                |
-| `--ionoscloud-nat-name`                  | `IONOSCLOUD_NAT_NAME`                  |
-| `--ionoscloud-nat-public-ips`            | `IONOSCLOUD_NAT_PUBLIC_IPS`            |
-| `--ionoscloud-nat-lans-to-gateways`      | `IONOSCLOUD_NAT_LANS_TO_GATEWAYS`      |
-| `--ionoscloud-nat-flowlogs`              | `IONOSCLOUD_NAT_FLOWLOG`               |
-| `--ionoscloud-nat-rules`                 | `IONOSCLOUD_NAT_RULES`                 |
-| `--ionoscloud-skip-default-nat-rules`    | `IONOSCLOUD_SKIP_DEFAULT_NAT_RULES`    |
-| `--ionoscloud-private-lan`               | `IONOSCLOUD_PRIVATE_LAN`               |
-| `--ionoscloud-ssh-user`                  | `IONOSCLOUD_SSH_USER`                  |
-| `--ionoscloud-ssh-in-cloud-init`         | `IONOSCLOUD_SSH_IN_CLOUD_INIT`         |
+| Option                                    | Environment variable                   |
+|:------------------------------------------|:---------------------------------------|
+| `--ionoscloud-username`                   | `IONOSCLOUD_USERNAME`                  |
+| `--ionoscloud-password`                   | `IONOSCLOUD_PASSWORD`                  |
+| `--ionoscloud-token`                      | `IONOSCLOUD_TOKEN`                     |
+| `--ionoscloud-endpoint`                   | `IONOSCLOUD_ENDPOINT`                  | 
+| `--ionoscloud-datacenter-id`              | `IONOSCLOUD_DATACENTER_ID`             |
+| `--ionoscloud-datacenter-name`            | `IONOSCLOUD_DATACENTER_NAME`           |
+| `--ionoscloud-lan-id`                     | `IONOSCLOUD_LAN_ID`                    |
+| `--ionoscloud-lan-name`                   | `IONOSCLOUD_LAN_NAME`                  |
+| `--ionoscloud-additional-lans`            | `IONOSCLOUD_ADDITIONAL_LANS`           |
+| `--ionoscloud-disk-size`                  | `IONOSCLOUD_DISK_SIZE`                 |
+| `--ionoscloud-disk-type`                  | `IONOSCLOUD_DISK_TYPE`                 |
+| `--ionoscloud-image`                      | `IONOSCLOUD_IMAGE`                     |
+| `--ionoscloud-image-password`             | `IONOSCLOUD_IMAGE_PASSWORD`            |
+| `--ionoscloud-server-type`                | `IONOSCLOUD_SERVER_TYPE`               |
+| `--ionoscloud-template`                   | `IONOSCLOUD_TEMPLATE`                  |
+| `--ionoscloud-location`                   | `IONOSCLOUD_LOCATION`                  |
+| `--ionoscloud-server-availability-zone`   | `IONOSCLOUD_SERVER_AVAILABILITY_ZONE`  |
+| `--ionoscloud-cores`                      | `IONOSCLOUD_CORES`                     |
+| `--ionoscloud-cpu-family`                 | `IONOSCLOUD_CPU_FAMILY`                |
+| `--ionoscloud-ram`                        | `IONOSCLOUD_RAM`                       |
+| `--ionoscloud-volume-availability-zone`   | `IONOSCLOUD_VOLUME_AVAILABILITY_ZONE`  |
+| `--ionoscloud-cloud-init`                 | `IONOSCLOUD_CLOUD_INIT`                |
+| `--ionoscloud-cloud-init-b64`             | `IONOSCLOUD_CLOUD_INIT_B64`            |
+| `--ionoscloud-nic-dhcp`                   | `IONOSCLOUD_NIC_DHCP`                  |
+| `--ionoscloud-nic-ips`                    | `IONOSCLOUD_NIC_IPS`                   |
+| `--ionoscloud-wait-for-ip-change`         | `IONOSCLOUD_WAIT_FOR_IP_CHANGE`        |
+| `--ionoscloud-wait-for-ip-change-timeout` | `IONOSCLOUD_WAIT_FOR_IP_CHANGE_TIMEOUT`|
+| `--ionoscloud-create-nat`                 | `IONOSCLOUD_CREATE_NAT`                |
+| `--ionoscloud-nat-name`                   | `IONOSCLOUD_NAT_NAME`                  |
+| `--ionoscloud-nat-public-ips`             | `IONOSCLOUD_NAT_PUBLIC_IPS`            |
+| `--ionoscloud-nat-lans-to-gateways`       | `IONOSCLOUD_NAT_LANS_TO_GATEWAYS`      |
+| `--ionoscloud-nat-flowlogs`               | `IONOSCLOUD_NAT_FLOWLOG`               |
+| `--ionoscloud-nat-rules`                  | `IONOSCLOUD_NAT_RULES`                 |
+| `--ionoscloud-skip-default-nat-rules`     | `IONOSCLOUD_SKIP_DEFAULT_NAT_RULES`    |
+| `--ionoscloud-private-lan`                | `IONOSCLOUD_PRIVATE_LAN`               |
+| `--ionoscloud-ssh-user`                   | `IONOSCLOUD_SSH_USER`                  |
+| `--ionoscloud-ssh-in-cloud-init`          | `IONOSCLOUD_SSH_IN_CLOUD_INIT`         |
+| `--ionoscloud-rancher-provision-user-data`| `IONOSCLOUD_RANCHER_PROVISION_USERDATA`|
+| `--ionoscloud-append-rke-userdata`        | `IONOSCLOUD_APPEND_RKE_USERDATA`       |
