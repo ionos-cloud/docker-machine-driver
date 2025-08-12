@@ -122,7 +122,6 @@ func TestGetFinalUserDataWithRKEProvisionFlagFalse(t *testing.T) {
 		return utils.New(context.TODO(), driver.Username, driver.Password, driver.Token, driver.Endpoint, "user-agent")
 	}
 	driver.CloudInit = `#cloud-config
-hostname: test.example.com
 packages:
   - somepackage
 runcmd:
@@ -145,6 +144,16 @@ write_files:
 - path: /etc/rke.sh
   content: some install content
 `
+	expectedResult := `#cloud-config
+hostname: test-host
+packages:
+    - somepackage
+runcmd:
+    - sh user_script.sh
+write_files:
+    - content: some user content
+      path: /etc/user_script.sh
+`
 	if _, err := tmpFile.WriteString(rkeContent); err != nil {
 		t.Fatalf("Failed to write to temp file: %v", err)
 	}
@@ -156,5 +165,5 @@ write_files:
 
 	result, err := driver.GetFinalUserData()
 	assert.NoError(t, err)
-	assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(driver.CloudInit)), result)
+	assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(expectedResult)), result)
 }
