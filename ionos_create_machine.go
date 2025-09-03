@@ -491,11 +491,11 @@ func (d *Driver) getImageIdOrAlias(imageName string) (string, error) {
 }
 
 func (d *Driver) getRegionIdAndLocationId() (regionId, locationId string) {
-	ids := strings.Split(d.Location, "/")
+	region, location, found := strings.Cut(d.Location, "/")
 	// location has standard format: {regionId}/{locationId}
-	if len(ids) != 2 {
+	if !found {
 		log.Errorf("error getting Region Id and Location Id from %s", d.Location)
 		return "", ""
 	}
-	return ids[0], ids[1]
+	return region, location
 }
