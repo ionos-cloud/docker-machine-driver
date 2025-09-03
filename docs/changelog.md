@@ -1,5 +1,10 @@
 # Changelog
 
+## \[7.0.8]
+### Fixed
+* Fixes:
+  * Change location parsing to support de/fra/2
+  * Change location used for ipblock creation to de/fra when location is de/fra/2
 
 ## \[7.0.7]
 ### Changed

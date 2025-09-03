@@ -73,6 +73,7 @@ func (c *Client) UpdateCloudInitFile(
 }
 
 func (c *Client) CreateIpBlock(size int32, location string) (*sdkgo.IpBlock, error) {
+	// use de/fra for creating ipblocks when the location is de/fra/2 as this is what the api expects
 	usedLocation := location
 	if location == "de/fra/2" {
 		usedLocation = "de/fra"
