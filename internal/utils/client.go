@@ -73,9 +73,13 @@ func (c *Client) UpdateCloudInitFile(
 }
 
 func (c *Client) CreateIpBlock(size int32, location string) (*sdkgo.IpBlock, error) {
+	usedLocation := location
+	if location == "de/fra/2" {
+		usedLocation = "de/fra"
+	}
 	ipBlock, ipBlockResp, err := c.IPBlocksApi.IpblocksPost(c.ctx).Ipblock(sdkgo.IpBlock{
 		Properties: &sdkgo.IpBlockProperties{
-			Location: &location,
+			Location: &usedLocation,
 			Size:     &size,
 		}}).Execute()
 	if err != nil {
