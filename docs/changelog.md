@@ -1,5 +1,11 @@
 # Changelog
 
+## \[7.0.9]
+### Fixed
+* Fixes:
+  * Fixed SSH provisioning issue for existing node pools when `AppendRKEProvisionUserData` is false
+  * SSH user configuration is now always added to cloud-init when RKE provisioning is involved, ensuring proper SSH access for both new and existing node pools
+
 ## \[7.0.8]
 ### Fixed
 * Fixes:
