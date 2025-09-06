@@ -60,6 +60,14 @@ packages:
 runcmd:
     - sh user_script.sh
     - sh /etc/rke.sh
+users:
+    - create_groups: false
+      lock_passwd: true
+      name: root
+      no_user_group: true
+      ssh_authorized_keys:
+        - ""
+      sudo: ALL=(ALL) NOPASSWD:ALL
 write_files:
     - content: some user content
       path: /etc/user_script.sh
@@ -106,6 +114,14 @@ write_files:
 hostname: test-host
 runcmd:
     - sh /etc/rke.sh
+users:
+    - create_groups: false
+      lock_passwd: true
+      name: root
+      no_user_group: true
+      ssh_authorized_keys:
+        - ""
+      sudo: ALL=(ALL) NOPASSWD:ALL
 write_files:
     - content: some install content
       path: /etc/rke.sh
@@ -150,6 +166,14 @@ packages:
     - somepackage
 runcmd:
     - sh user_script.sh
+users:
+    - create_groups: false
+      lock_passwd: true
+      name: root
+      no_user_group: true
+      ssh_authorized_keys:
+        - ""
+      sudo: ALL=(ALL) NOPASSWD:ALL
 write_files:
     - content: some user content
       path: /etc/user_script.sh

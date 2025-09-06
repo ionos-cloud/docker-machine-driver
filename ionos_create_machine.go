@@ -89,7 +89,10 @@ func (d *Driver) GetFinalUserData() (userdata string, err error) {
 		d.CloudInit = ud
 	}
 
-	if d.SSHUser != "root" || d.SSHInCloudInit {
+	// Always add SSH user configuration when RKE provisioning is involved
+	// This ensures SSH access works for both new and existing node pools
+	needsSSHUser := d.SSHUser != "root" || d.SSHInCloudInit || d.RKEProvisionUserData != ""
+	if needsSSHUser {
 		d.CloudInit, err = d.addSSHUserToYaml()
 		if err != nil {
 			return "", err
