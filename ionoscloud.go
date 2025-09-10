@@ -22,46 +22,46 @@ import (
 )
 
 const (
-	flagEndpoint                   = "ionoscloud-endpoint"
-	flagUsername                   = "ionoscloud-username"
-	flagPassword                   = "ionoscloud-password"
-	flagToken                      = "ionoscloud-token"
-	flagServerCores                = "ionoscloud-cores"
-	flagServerRam                  = "ionoscloud-ram"
-	flagServerCpuFamily            = "ionoscloud-cpu-family"
-	flagServerAvailabilityZone     = "ionoscloud-server-availability-zone"
-	flagDiskSize                   = "ionoscloud-disk-size"
-	flagDiskType                   = "ionoscloud-disk-type"
-	flagServerType                 = "ionoscloud-server-type"
-	flagTemplate                   = "ionoscloud-template"
-	flagImage                      = "ionoscloud-image"
-	flagImagePassword              = "ionoscloud-image-password"
-	flagLocation                   = "ionoscloud-location"
-	flagDatacenterId               = "ionoscloud-datacenter-id"
-	flagDatacenterName             = "ionoscloud-datacenter-name"
-	flagLanId                      = "ionoscloud-lan-id"
-	flagNicDhcp                    = "ionoscloud-nic-dhcp"
-	flagNicIps                     = "ionoscloud-nic-ips"
-	flagLanName                    = "ionoscloud-lan-name"
-	flagVolumeAvailabilityZone     = "ionoscloud-volume-availability-zone"
-	flagCloudInit                  = "ionoscloud-cloud-init"
-	flagSSHInCloudInit             = "ionoscloud-ssh-in-cloud-init"
-	flagSSHUser                    = "ionoscloud-ssh-user"
-	flagCloudInitB64               = "ionoscloud-cloud-init-b64"
-	flagWaitForIpChange            = "ionoscloud-wait-for-ip-change"
-	flagWaitForIpChangeTimeout     = "ionoscloud-wait-for-ip-change-timeout"
-	flagNatId                      = "ionoscloud-nat-id"
-	flagNatName                    = "ionoscloud-nat-name"
-	flagNatPublicIps               = "ionoscloud-nat-public-ips"
-	flagNatFlowlogs                = "ionoscloud-nat-flowlogs"
-	flagNatRules                   = "ionoscloud-nat-rules"
-	flagSkipDefaultNatRules        = "ionoscloud-skip-default-nat-rules"
-	flagNatLansToGateways          = "ionoscloud-nat-lans-to-gateways"
-	flagPrivateLan                 = "ionoscloud-private-lan"
-	flagAdditionalLans             = "ionoscloud-additional-lans"
-	flagCreateNat                  = "ionoscloud-create-nat"
-	flagRKEProvisionUserData       = "ionoscloud-rancher-provision-user-data"
-	flagAppendRKEProvisionUserData = "ionoscloud-append-rke-userdata"
+	flagEndpoint               = "ionoscloud-endpoint"
+	flagUsername               = "ionoscloud-username"
+	flagPassword               = "ionoscloud-password"
+	flagToken                  = "ionoscloud-token"
+	flagServerCores            = "ionoscloud-cores"
+	flagServerRam              = "ionoscloud-ram"
+	flagServerCpuFamily        = "ionoscloud-cpu-family"
+	flagServerAvailabilityZone = "ionoscloud-server-availability-zone"
+	flagDiskSize               = "ionoscloud-disk-size"
+	flagDiskType               = "ionoscloud-disk-type"
+	flagServerType             = "ionoscloud-server-type"
+	flagTemplate               = "ionoscloud-template"
+	flagImage                  = "ionoscloud-image"
+	flagImagePassword          = "ionoscloud-image-password"
+	flagLocation               = "ionoscloud-location"
+	flagDatacenterId           = "ionoscloud-datacenter-id"
+	flagDatacenterName         = "ionoscloud-datacenter-name"
+	flagLanId                  = "ionoscloud-lan-id"
+	flagNicDhcp                = "ionoscloud-nic-dhcp"
+	flagNicIps                 = "ionoscloud-nic-ips"
+	flagLanName                = "ionoscloud-lan-name"
+	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
+	flagCloudInit              = "ionoscloud-cloud-init"
+	flagSSHInCloudInit         = "ionoscloud-ssh-in-cloud-init"
+	flagSSHUser                = "ionoscloud-ssh-user"
+	flagCloudInitB64           = "ionoscloud-cloud-init-b64"
+	flagWaitForIpChange        = "ionoscloud-wait-for-ip-change"
+	flagWaitForIpChangeTimeout = "ionoscloud-wait-for-ip-change-timeout"
+	flagNatId                  = "ionoscloud-nat-id"
+	flagNatName                = "ionoscloud-nat-name"
+	flagNatPublicIps           = "ionoscloud-nat-public-ips"
+	flagNatFlowlogs            = "ionoscloud-nat-flowlogs"
+	flagNatRules               = "ionoscloud-nat-rules"
+	flagSkipDefaultNatRules    = "ionoscloud-skip-default-nat-rules"
+	flagNatLansToGateways      = "ionoscloud-nat-lans-to-gateways"
+	flagPrivateLan             = "ionoscloud-private-lan"
+	flagAdditionalLans         = "ionoscloud-additional-lans"
+	flagCreateNat              = "ionoscloud-create-nat"
+	flagRKEProvisionUserData   = "ionoscloud-rancher-provision-user-data"
+	flagAppendRKEProvision     = "ionoscloud-append-rke-provision"
 	// ---
 )
 
@@ -101,56 +101,57 @@ type Driver struct {
 	Password string
 	Token    string
 
-	Ram                        int
-	Cores                      int
-	SSHKey                     string
-	SSHUser                    string
-	DiskSize                   int
-	DiskType                   string
-	Image                      string
-	ImagePassword              string
-	Size                       int
-	NicDhcp                    bool
-	NicIps                     []string
-	ReservedIps                *[]string
-	Location                   string
-	CpuFamily                  string
-	ServerType                 string
-	Template                   string
-	DCExists                   bool
-	LanExists                  bool
-	NatExists                  bool
-	UseAlias                   bool
-	VolumeAvailabilityZone     string
-	ServerAvailabilityZone     string
-	LanId                      string
-	LanName                    string
-	AdditionalLans             []string
-	AdditionalLansIds          []int
-	AdditionalNicsIds          []string
-	DatacenterId               string
-	DatacenterName             string
-	VolumeId                   string
-	NicId                      string
-	ServerId                   string
-	IpBlockId                  string
-	CreateNat                  bool
-	NatName                    string
-	NatId                      string
-	CloudInit                  string
-	CloudInitB64               string
-	RKEProvisionUserData       string
-	AppendRKEProvisionUserData bool
-	NatPublicIps               []string
-	NatFlowlogs                []string
-	NatRules                   []string
-	SkipDefaultNatRules        bool
-	NatLansToGateways          map[string][]string
-	PrivateLan                 bool
-	IsLanPrivate               bool
-	SSHInCloudInit             bool
-	WaitForIpChange            bool
-	WaitForIpChangeTimeout     int
+	Ram                          int
+	Cores                        int
+	SSHKey                       string
+	SSHUser                      string
+	DiskSize                     int
+	DiskType                     string
+	Image                        string
+	ImagePassword                string
+	Size                         int
+	NicDhcp                      bool
+	NicIps                       []string
+	ReservedIps                  *[]string
+	Location                     string
+	CpuFamily                    string
+	ServerType                   string
+	Template                     string
+	DCExists                     bool
+	LanExists                    bool
+	NatExists                    bool
+	UseAlias                     bool
+	VolumeAvailabilityZone       string
+	ServerAvailabilityZone       string
+	LanId                        string
+	LanName                      string
+	AdditionalLans               []string
+	AdditionalLansIds            []int
+	AdditionalNicsIds            []string
+	DatacenterId                 string
+	DatacenterName               string
+	VolumeId                     string
+	NicId                        string
+	ServerId                     string
+	IpBlockId                    string
+	CreateNat                    bool
+	NatName                      string
+	NatId                        string
+	CloudInit                    string
+	CloudInitB64                 string
+	RKEProvisionUserData         string
+	AppendRKEProvision           bool
+	NatPublicIps                 []string
+	NatFlowlogs                  []string
+	NatRules                     []string
+	SkipDefaultNatRules          bool
+	NatLansToGateways            map[string][]string
+	PrivateLan                   bool
+	IsLanPrivate                 bool
+	SSHInCloudInit               bool
+	WaitForIpChange              bool
+	WaitForIpChangeTimeout       int
+	skipRKEProvisionUserDataFlag bool
 
 	// Driver Version
 	Version string
@@ -186,7 +187,7 @@ func NewDerivedDriver(hostName, storePath string) *Driver {
 
 // GetCreateFlags returns list of create flags driver accepts.
 func (d *Driver) GetCreateFlags() []mcnflag.Flag {
-	return []mcnflag.Flag{
+	flags := []mcnflag.Flag{
 		mcnflag.StringFlag{
 			Name:   flagNatName,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatName),
@@ -384,14 +385,9 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagCloudInitB64),
 			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
-		mcnflag.StringFlag{
-			Name:   flagRKEProvisionUserData,
-			EnvVar: extflag.KebabCaseToEnvVarCase(flagRKEProvisionUserData),
-			Usage:  "Placeholder flag for rancher machine creation flow to populate with rke2 install user-data instructions",
-		},
 		mcnflag.BoolFlag{
-			Name:   flagAppendRKEProvisionUserData,
-			EnvVar: extflag.KebabCaseToEnvVarCase(flagAppendRKEProvisionUserData),
+			Name:   flagAppendRKEProvision,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagAppendRKEProvision),
 			Usage:  "Should the driver append the rke user-data to the user-data sent to the ionos server",
 		},
 		mcnflag.StringFlag{
@@ -406,6 +402,16 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Should the driver only add the SSH info in the user data? (required for custom images)",
 		},
 	}
+
+	if !d.skipRKEProvisionUserDataFlag {
+		flags = append(flags,
+			mcnflag.StringFlag{
+				Name:   flagRKEProvisionUserData,
+				EnvVar: extflag.KebabCaseToEnvVarCase(flagRKEProvisionUserData),
+				Usage:  "Placeholder flag for rancher machine creation flow to populate with rke2 install user-data instructions",
+			})
+	}
+	return flags
 }
 
 // SetConfigFromFlags initializes driver values from the command line values.
@@ -444,7 +450,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.SkipDefaultNatRules = opts.Bool(flagSkipDefaultNatRules)
 	d.CloudInit = opts.String(flagCloudInit)
 	d.RKEProvisionUserData = opts.String(flagRKEProvisionUserData)
-	d.AppendRKEProvisionUserData = opts.Bool(flagAppendRKEProvisionUserData)
+	d.AppendRKEProvision = opts.Bool(flagAppendRKEProvision)
 	d.SSHUser = opts.String(flagSSHUser)
 	d.SSHInCloudInit = opts.Bool(flagSSHInCloudInit)
 	d.CloudInitB64 = opts.String(flagCloudInitB64)

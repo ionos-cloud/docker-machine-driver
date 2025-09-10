@@ -102,11 +102,14 @@ func (d *Driver) GetFinalUserData() (userdata string, err error) {
 		return "", err
 	}
 
-	if d.RKEProvisionUserData != "" && d.AppendRKEProvisionUserData {
+	if d.RKEProvisionUserData != "" && d.AppendRKEProvision {
 		d.CloudInit, err = d.appendRKEProvisionToCloudInit()
 		if err != nil {
 			return "", fmt.Errorf("failed to append RKE provision to cloud init: %w", err)
 		}
+	} else {
+		// skip returning the flag with the rke provisioning so rancher waits for ssh from the machine
+		d.skipRKEProvisionUserDataFlag = true
 	}
 
 	ud := base64.StdEncoding.EncodeToString([]byte(d.CloudInit))
