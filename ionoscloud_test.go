@@ -518,6 +518,7 @@ func TestCreate(t *testing.T) {
 				assert.Len(t, volumes, 1)
 				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
 				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Nil(t, serverToCreate.Properties.NicMultiQueue)
 				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
 				assert.Equal(t, []string{testVar}, *volumes[0].Properties.SshKeys)
 				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
@@ -573,6 +574,7 @@ func TestCreateDeFra2(t *testing.T) {
 				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
 				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
 				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
+				assert.Nil(t, serverToCreate.Properties.NicMultiQueue)
 				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
 				assert.Nil(t, serverToCreate.Properties.Type)
 				volumes := *serverToCreate.Entities.Volumes.Items
@@ -683,6 +685,7 @@ func TestCreatePropertiesSet(t *testing.T) {
 	driver.NicDhcp = nicDhcp
 	driver.NicIps = nicIps
 	driver.DiskType = diskType
+	driver.NicMultiQueue = true
 	driver.VolumeAvailabilityZone = volumeAvailabilityZone
 	driver.ServerAvailabilityZone = serverAvailabilityZone
 	driver.Cores = cores
@@ -706,6 +709,7 @@ func TestCreatePropertiesSet(t *testing.T) {
 			Cores:            sdkgo.ToPtr(int32(2)),
 			CpuFamily:        sdkgo.ToPtr("AMD_OPTERON"),
 			AvailabilityZone: sdkgo.ToPtr("AUTO"),
+			NicMultiQueue:    sdkgo.ToPtr(true),
 		},
 		Entities: &sdkgo.ServerEntities{
 			Volumes: &sdkgo.AttachedVolumes{
@@ -757,6 +761,7 @@ func TestCreatePropertiesSet(t *testing.T) {
 				assert.Equal(t, serverAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
 				assert.Nil(t, serverToCreate.Properties.Type)
 				assert.Nil(t, serverToCreate.Properties.TemplateUuid)
+				assert.True(t, *serverToCreate.Properties.NicMultiQueue)
 				volumes := *serverToCreate.Entities.Volumes.Items
 				assert.Len(t, volumes, 1)
 				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
@@ -806,6 +811,7 @@ func TestCreatePropertiesSetDeFra2(t *testing.T) {
 	driver.NicDhcp = nicDhcp
 	driver.NicIps = nicIps
 	driver.DiskType = diskType
+	driver.NicMultiQueue = false
 	driver.VolumeAvailabilityZone = volumeAvailabilityZone
 	driver.ServerAvailabilityZone = serverAvailabilityZone
 	driver.Cores = cores
@@ -829,6 +835,7 @@ func TestCreatePropertiesSetDeFra2(t *testing.T) {
 			Cores:            sdkgo.ToPtr(int32(2)),
 			CpuFamily:        sdkgo.ToPtr("AMD_OPTERON"),
 			AvailabilityZone: sdkgo.ToPtr("AUTO"),
+			NicMultiQueue:    sdkgo.ToPtr(false),
 		},
 		Entities: &sdkgo.ServerEntities{
 			Volumes: &sdkgo.AttachedVolumes{
@@ -880,6 +887,7 @@ func TestCreatePropertiesSetDeFra2(t *testing.T) {
 				assert.Equal(t, serverAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
 				assert.Nil(t, serverToCreate.Properties.Type)
 				assert.Nil(t, serverToCreate.Properties.TemplateUuid)
+				assert.Nil(t, serverToCreate.Properties.NicMultiQueue)
 				volumes := *serverToCreate.Entities.Volumes.Items
 				assert.Len(t, volumes, 1)
 				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)

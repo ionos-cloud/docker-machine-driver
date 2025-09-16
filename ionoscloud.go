@@ -263,7 +263,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNicIps),
 			Usage:  "Ionos Cloud NIC IPs",
 		},
-		mcnflag.StringSliceFlag{
+		mcnflag.BoolFlag{
 			Name:   flagNicMultiQueue,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNicMultiQueue),
 			Usage:  "Activate or deactivate the Multi Queue feature on all NICs of this server.",

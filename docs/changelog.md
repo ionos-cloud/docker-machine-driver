@@ -1,5 +1,9 @@
 # Changelog
 
+## \[7.1.0]
+### Added
+* added ionoscloud-nic-multi-queue, defaults to false, used to activate or deactivate the Multi Queue feature on all NICs of the server.
+
 ## \[7.0.8]
 ### Fixed
 * Fixes:
