@@ -102,7 +102,7 @@ func (d *Driver) GetFinalUserData() (userdata string, err error) {
 		return "", err
 	}
 
-	if d.RKEProvisionUserData != "" && d.AppendRKEProvision {
+	if d.RKEProvisionUserData != "" && d.AppendRKECloudInit {
 		d.CloudInit, err = d.appendRKEProvisionToCloudInit()
 		if err != nil {
 			return "", fmt.Errorf("failed to append RKE provision to cloud init: %w", err)

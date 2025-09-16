@@ -61,7 +61,7 @@ const (
 	flagAdditionalLans         = "ionoscloud-additional-lans"
 	flagCreateNat              = "ionoscloud-create-nat"
 	flagRKEProvisionUserData   = "ionoscloud-rancher-provision-user-data"
-	flagAppendRKEProvision     = "ionoscloud-append-rke-provision"
+	flagAppendRKECloudInit     = "ionoscloud-append-rke-cloud-init"
 	// ---
 )
 
@@ -140,7 +140,7 @@ type Driver struct {
 	CloudInit                    string
 	CloudInitB64                 string
 	RKEProvisionUserData         string
-	AppendRKEProvision           bool
+	AppendRKECloudInit           bool
 	NatPublicIps                 []string
 	NatFlowlogs                  []string
 	NatRules                     []string
@@ -386,8 +386,8 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "The cloud-init configuration for the volume as base64 encoded string",
 		},
 		mcnflag.BoolFlag{
-			Name:   flagAppendRKEProvision,
-			EnvVar: extflag.KebabCaseToEnvVarCase(flagAppendRKEProvision),
+			Name:   flagAppendRKECloudInit,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagAppendRKECloudInit),
 			Usage:  "Should the driver append the rke user-data to the user-data sent to the ionos server",
 		},
 		mcnflag.StringFlag{
@@ -450,7 +450,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.SkipDefaultNatRules = opts.Bool(flagSkipDefaultNatRules)
 	d.CloudInit = opts.String(flagCloudInit)
 	d.RKEProvisionUserData = opts.String(flagRKEProvisionUserData)
-	d.AppendRKEProvision = opts.Bool(flagAppendRKEProvision)
+	d.AppendRKECloudInit = opts.Bool(flagAppendRKECloudInit)
 	d.SSHUser = opts.String(flagSSHUser)
 	d.SSHInCloudInit = opts.Bool(flagSSHInCloudInit)
 	d.CloudInitB64 = opts.String(flagCloudInitB64)
