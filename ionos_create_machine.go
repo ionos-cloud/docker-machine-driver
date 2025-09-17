@@ -222,6 +222,12 @@ func (d *Driver) CreateIonosServer() (err error) {
 		volumeProperties.Type = pointer.From("DAS")
 	}
 
+	// sending this flag as false with a contract that doar not have the feature enabled will cause an
+	// error, so we only send it if is set as true
+	if d.NicMultiQueue {
+		serverToCreate.Properties.NicMultiQueue = &d.NicMultiQueue
+	}
+
 	attachedVolumes := sdkgo.NewAttachedVolumesWithDefaults()
 	attachedVolumes.Items = &[]sdkgo.Volume{
 		{

@@ -42,6 +42,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-volume-availability-zone` | Ionos Cloud Volume Availability Zone \(AUTO, ZONE\_1, ZONE\_2, ZONE\_3\)                                                                                                                      |
 | `--ionoscloud-cloud-init`               | The cloud-init configuration for the volume as multiline text                                                                                                                                 |
 | `--ionoscloud-cloud-init-b64`           | The cloud-init configuration for the volume as base64 encoded string. Prioritized                                                                                                             |
+| `--ionoscloud-nic-multi-queue`                 | Activate or deactivate the Multi Queue feature on all NICs of this server., defaults to false |
 | `--ionoscloud-nic-dhcp`                 | Wether the created NIC should have DHCP set, defaults to false |
 | `--ionoscloud-nic-ips`                  | The ips used for the nic                                                                                                                                                           |
 | `--ionoscloud-wait-for-ip-change`                  | Should the driver wait for the NIC IP to be set by external sources?                                                                                                                                                           |
@@ -106,6 +107,7 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-volume-availability-zone`   | `IONOSCLOUD_VOLUME_AVAILABILITY_ZONE`  |
 | `--ionoscloud-cloud-init`                 | `IONOSCLOUD_CLOUD_INIT`                |
 | `--ionoscloud-cloud-init-b64`             | `IONOSCLOUD_CLOUD_INIT_B64`            |
+| `--ionoscloud-nic-multi-queue`            | `IONOSCLOUD_NIC_MULTI_QUEUE`           |
 | `--ionoscloud-nic-dhcp`                   | `IONOSCLOUD_NIC_DHCP`                  |
 | `--ionoscloud-nic-ips`                    | `IONOSCLOUD_NIC_IPS`                   |
 | `--ionoscloud-wait-for-ip-change`         | `IONOSCLOUD_WAIT_FOR_IP_CHANGE`        |

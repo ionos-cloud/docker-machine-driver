@@ -1,6 +1,8 @@
 # Changelog
 
 ## \[7.1.0]
+### Added
+* added ionoscloud-nic-multi-queue, defaults to false, used to activate or deactivate the Multi Queue feature on all NICs of the server.
 ### Fixed
 * Fixed provisioning not working when not using the rke provisioning supplied by rancher. We recommend setting the append rke flag to true as the solution may not work based no Rancher changes, it currently stops returning the userdata field as a driver field to make Rancher wait for SSH instead of skipping the step.
 ### Changed

@@ -42,6 +42,7 @@ const (
 	flagLanId                  = "ionoscloud-lan-id"
 	flagNicDhcp                = "ionoscloud-nic-dhcp"
 	flagNicIps                 = "ionoscloud-nic-ips"
+	flagNicMultiQueue          = "ionoscloud-nic-multi-queue"
 	flagLanName                = "ionoscloud-lan-name"
 	flagVolumeAvailabilityZone = "ionoscloud-volume-availability-zone"
 	flagCloudInit              = "ionoscloud-cloud-init"
@@ -112,6 +113,7 @@ type Driver struct {
 	Size                         int
 	NicDhcp                      bool
 	NicIps                       []string
+	NicMultiQueue                bool
 	ReservedIps                  *[]string
 	Location                     string
 	CpuFamily                    string
@@ -261,6 +263,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagNicIps,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNicIps),
 			Usage:  "Ionos Cloud NIC IPs",
+		},
+		mcnflag.BoolFlag{
+			Name:   flagNicMultiQueue,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagNicMultiQueue),
+			Usage:  "Activate or deactivate the Multi Queue feature on all NICs of this server.",
 		},
 		mcnflag.StringFlag{
 			Name:   flagEndpoint,
@@ -442,6 +449,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.LanId = opts.String(flagLanId)
 	d.LanName = opts.String(flagLanName)
 	d.NicDhcp = opts.Bool(flagNicDhcp)
+	d.NicMultiQueue = opts.Bool(flagNicMultiQueue)
 	d.WaitForIpChange = opts.Bool(flagWaitForIpChange)
 	d.WaitForIpChangeTimeout = opts.Int(flagWaitForIpChangeTimeout)
 	d.NicIps = opts.StringSlice(flagNicIps)
