@@ -1,5 +1,11 @@
 # Changelog
 
+## \[7.1.0]
+### Fixed
+* Fixed provisioning not working when not using the rke provisioning supplied by rancher. We recommend setting the append rke flag to true as the solution may not work based no Rancher changes, it currently stops returning the userdata field as a driver field to make Rancher wait for SSH instead of skipping the step.
+### Changed
+* Renamed ionoscloud-append-rke-userdata to ionoscloud-append-rke-cloud-init, so it does not register as a userdata field to Rancher. Note that this will cause some compatibility issues with the UI extensions. Versions 0.4.0 and 0.4.1 will not be able to change the append rke field so the default value will be used
+
 ## \[7.0.8]
 ### Fixed
 * Fixes:

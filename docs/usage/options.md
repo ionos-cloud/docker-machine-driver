@@ -57,7 +57,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-ssh-user`                 | The user to connect to via SSH                                                                                                                                                                |
 | `--ionoscloud-ssh-in-cloud-init`        | Should the driver only add the SSH info in the user data? (required for custom images)                                                                                                                                                                |
 | `--ionoscloud-rancher-provision-user-data`        | Placeholder flag for rancher machine creation flow to populate with rke2 install user-data instructions                                                                                                                                                                |
-| `--ionoscloud-append-rke-userdata`        | Should the driver append the rke user-data to the user-data sent to the ionos server                                                                                                                                                                |
+| `--ionoscloud-append-rke-cloud-init`        | Should the driver append the rke user-data to the user-data sent to the ionos server                                                                                                                                                                |
 | `--swarm`                               | Configure Machine to join a Swarm cluster                                                                                                                                                     |
 | `--swarm-addr`                          | addr to advertise for Swarm \(default: detect and use the machine IP\)                                                                                                                        |
 | `--swarm-discovery`                     | Discovery service to use with Swarm                                                                                                                                                           |
@@ -121,4 +121,4 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-ssh-user`                   | `IONOSCLOUD_SSH_USER`                  |
 | `--ionoscloud-ssh-in-cloud-init`          | `IONOSCLOUD_SSH_IN_CLOUD_INIT`         |
 | `--ionoscloud-rancher-provision-user-data`| `IONOSCLOUD_RANCHER_PROVISION_USERDATA`|
-| `--ionoscloud-append-rke-userdata`        | `IONOSCLOUD_APPEND_RKE_USERDATA`       |
+| `--ionoscloud-append-rke-cloud-init`      | `IONOSCLOUD_APPEND_RKE_CLOUD_INIT`     |
