@@ -19,7 +19,7 @@ func TestGetFinalUserDataWithRKEProvision(t *testing.T) {
 	driver.client = func() utils.ClientService {
 		return utils.New(context.TODO(), driver.Username, driver.Password, driver.Token, driver.Endpoint, "user-agent")
 	}
-	driver.AppendRKEProvisionUserData = true
+	driver.AppendRKECloudInit = true
 	driver.CloudInit = `#cloud-config
 hostname: test.example.com
 packages:
@@ -77,7 +77,7 @@ func TestGetFinalUserDataWithRKEProvisionEmptyCloudInit(t *testing.T) {
 	driver.client = func() utils.ClientService {
 		return utils.New(context.TODO(), driver.Username, driver.Password, driver.Token, driver.Endpoint, "user-agent")
 	}
-	driver.AppendRKEProvisionUserData = true
+	driver.AppendRKECloudInit = true
 
 	tmpFile, err := os.CreateTemp("", "rke-provision-*.yaml")
 	if err != nil {
