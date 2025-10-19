@@ -32,6 +32,7 @@ const (
 	flagServerAvailabilityZone = "ionoscloud-server-availability-zone"
 	flagDiskSize               = "ionoscloud-disk-size"
 	flagDiskType               = "ionoscloud-disk-type"
+	flagAdditionalDisks        = "ionoscloud-additional-disks"
 	flagServerType             = "ionoscloud-server-type"
 	flagTemplate               = "ionoscloud-template"
 	flagImage                  = "ionoscloud-image"
@@ -93,6 +94,12 @@ const (
 // it will be set to `DEV`.
 var DriverVersion string
 
+// DiskProperties hold information of the properties of additional disks
+type DiskProperties struct {
+	Type string
+	Size int
+}
+
 type Driver struct {
 	*drivers.BaseDriver
 	client func() utils.ClientService
@@ -108,6 +115,7 @@ type Driver struct {
 	SSHUser                      string
 	DiskSize                     int
 	DiskType                     string
+	AdditionalDisks              []DiskProperties
 	Image                        string
 	ImagePassword                string
 	Size                         int
@@ -232,6 +240,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagNatLansToGateways,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatLansToGateways),
 			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=10.0.0.1,10.0.0.2:2=10.0.0.10\"",
+		},
+		mcnflag.StringSliceFlag{
+			Name:   flagAdditionalDisks,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagAdditionalDisks),
+			Usage:  "Additional Disks to attach to the VM, must provide volume name, type (HDD,SSD) and size (in GB). Example: \"HDD,10\"",
 		},
 		mcnflag.BoolFlag{
 			Name:   flagPrivateLan,
@@ -464,6 +477,27 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.CloudInitB64 = opts.String(flagCloudInitB64)
 	d.PrivateLan = opts.Bool(flagPrivateLan)
 	d.AdditionalLans = opts.StringSlice(flagAdditionalLans)
+
+	// Parse and validate additionalDisks flag
+	for _, disk := range opts.StringSlice(flagAdditionalDisks) {
+		props := strings.Split(disk, ",")
+		if len(props) != 2 {
+			return fmt.Errorf("invalid additional disk configuration: %s, must be \"type,size\"", disk)
+		}
+		if props[0] != "HDD" && props[0] != "SSD" {
+			return fmt.Errorf("invalid additional disk type: %s, must be HDD or SSD", disk)
+		}
+		diskProperties := DiskProperties{
+			Type: props[0],
+		}
+		if size, err := strconv.Atoi(props[1]); err != nil {
+			return fmt.Errorf("invalid additional disk size: %s, must be an integer", props[1])
+		} else {
+			diskProperties.Size = size
+		}
+
+		d.AdditionalDisks = append(d.AdditionalDisks, diskProperties)
+	}
 
 	d.SwarmMaster = opts.Bool("swarm-master")
 	d.SwarmHost = opts.String("swarm-host")
