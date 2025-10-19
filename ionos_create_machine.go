@@ -423,6 +423,13 @@ func (d *Driver) CreateIonosMachine() (err error) {
 		return fmt.Errorf("error getting server by id: %w", err)
 	}
 	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
+	for i, id := range *server.Entities.GetVolumes().Items {
+		// skip first, as it is handled by volumeId
+		if i == 0 {
+			continue
+		}
+		d.AdditionalVolumeIds = append(d.AdditionalVolumeIds, *id.GetId())
+	}
 	log.Debugf("Volume ID: %v", d.VolumeId)
 
 	nics := server.Entities.GetNics()

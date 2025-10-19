@@ -138,6 +138,7 @@ type Driver struct {
 	AdditionalLans               []string
 	AdditionalLansIds            []int
 	AdditionalNicsIds            []string
+	AdditionalVolumeIds          []string
 	DatacenterId                 string
 	DatacenterName               string
 	VolumeId                     string
@@ -730,6 +731,19 @@ func (d *Driver) Remove() error {
 			}
 		}
 	}
+	var notDeleted []string
+	for _, volumeId := range d.AdditionalVolumeIds {
+		if d.DatacenterId != "" && volumeId != "" {
+			log.Debugf("Starting deleting Volume with Id: %v", volumeId)
+			err = d.client().RemoveVolume(d.DatacenterId, volumeId)
+			if err != nil {
+				result = multierror.Append(result, fmt.Errorf("error removing volume: %w", err))
+				notDeleted = append(notDeleted, volumeId)
+			}
+		}
+	}
+	d.AdditionalVolumeIds = notDeleted
+
 	if d.DatacenterId != "" && d.VolumeId != "" {
 		log.Debugf("Starting deleting Volume with Id: %v", d.VolumeId)
 		err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)
