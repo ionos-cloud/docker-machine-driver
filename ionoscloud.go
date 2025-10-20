@@ -245,7 +245,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.StringSliceFlag{
 			Name:   flagAdditionalDisks,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagAdditionalDisks),
-			Usage:  "Additional Disks to attach to the VM, must provide volume name, type (HDD,SSD) and size (in GB). Example: \"HDD,10\"",
+			Usage:  "Additional Disks to attach to the VM, must provide volume type (HDD,SSD) and size (in GB). Example: \"HDD,10\"",
 		},
 		mcnflag.BoolFlag{
 			Name:   flagPrivateLan,
@@ -486,7 +486,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 			return fmt.Errorf("invalid additional disk configuration: %s, must be \"type,size\"", disk)
 		}
 		if props[0] != "HDD" && props[0] != "SSD" {
-			return fmt.Errorf("invalid additional disk type: %s, must be HDD or SSD", disk)
+			return fmt.Errorf("invalid additional disk type: %s, must be HDD or SSD", props[0])
 		}
 		diskProperties := DiskProperties{
 			Type: props[0],
