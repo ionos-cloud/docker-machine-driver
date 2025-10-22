@@ -28,6 +28,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-lan-id`                   | Existing Ionos Cloud LAN ID (numeric) in which to create the Docker Host                                                                                                                      |
 | `--ionoscloud-lan-name`                 | Existing Ionos Cloud LAN Name (string) in which to create the Docker Host                                                                                                                     |
 | `--ionoscloud-additional-lans`          | Names of existing IONOS Lans to connect the machine to. Names that are not found are ignored                                                                                                                     |
+| `--ionoscloud-additional-disks`         | A list of disk types and sizes for additional volumes to be created on the machine, the format is DISK_TYPE:DISK_SIZE                                                                                                                   |
 | `--ionoscloud-disk-size`                | Ionos Cloud Volume Disk-Size in GB \(10, 50, 100, 200, 400\)                                                                                                                                  |
 | `--ionoscloud-disk-type`                | Ionos Cloud Volume Disk-Type \(HDD, SSD\)                                                                                                                                                     |
 | `--ionoscloud-image`                    | Ionos Cloud Image Id or Alias \(ubuntu:latest, debian:latest, etc.\). If Image Id is set, please make sure the disk type supports the image type.                                                    |
@@ -93,6 +94,7 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-lan-id`                     | `IONOSCLOUD_LAN_ID`                    |
 | `--ionoscloud-lan-name`                   | `IONOSCLOUD_LAN_NAME`                  |
 | `--ionoscloud-additional-lans`            | `IONOSCLOUD_ADDITIONAL_LANS`           |
+| `--ionoscloud-additional-disks`           | `IONOSCLOUD_ADDITIONAL_DISKS`          |
 | `--ionoscloud-disk-size`                  | `IONOSCLOUD_DISK_SIZE`                 |
 | `--ionoscloud-disk-type`                  | `IONOSCLOUD_DISK_TYPE`                 |
 | `--ionoscloud-image`                      | `IONOSCLOUD_IMAGE`                     |

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -479,14 +480,33 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.PrivateLan = opts.Bool(flagPrivateLan)
 	d.AdditionalLans = opts.StringSlice(flagAdditionalLans)
 
-	// Parse and validate additionalDisks flag
-	for _, disk := range opts.StringSlice(flagAdditionalDisks) {
-		props := strings.Split(disk, ",")
+	d.SwarmMaster = opts.Bool("swarm-master")
+	d.SwarmHost = opts.String("swarm-host")
+	d.SwarmDiscovery = opts.String("swarm-discovery")
+	d.SetSwarmConfigFromFlags(opts)
+
+	if d.Endpoint == "" {
+		d.Endpoint = sdkgo.DefaultIonosServerUrl
+	}
+
+	if err := d.SetAdditionalDisks(opts.StringSlice(flagAdditionalDisks)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SetAdditionalDisks goes over the received list of additional disks, checks that everything is ok and
+// initializes d.AdditionalDisks
+func (d *Driver) SetAdditionalDisks(additionalDisksStringList []string) error {
+	for _, disk := range additionalDisksStringList {
+		props := strings.Split(disk, ":")
 		if len(props) != 2 {
-			return fmt.Errorf("invalid additional disk configuration: %s, must be \"type,size\"", disk)
+			return fmt.Errorf("invalid additional disk configuration: %s, must be \"type:size\"", disk)
 		}
-		if props[0] != "HDD" && props[0] != "SSD" {
-			return fmt.Errorf("invalid additional disk type: %s, must be HDD or SSD", props[0])
+		diskTypes := []string{"HDD", "SSD", "SSD Standard", "SSD Premium"}
+		if !slices.Contains(diskTypes, props[0]) {
+			return fmt.Errorf("invalid additional disk type: %s, must be one of %q", props[0], diskTypes)
 		}
 		diskProperties := DiskProperties{
 			Type: props[0],
@@ -499,16 +519,6 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 
 		d.AdditionalDisks = append(d.AdditionalDisks, diskProperties)
 	}
-
-	d.SwarmMaster = opts.Bool("swarm-master")
-	d.SwarmHost = opts.String("swarm-host")
-	d.SwarmDiscovery = opts.String("swarm-discovery")
-	d.SetSwarmConfigFromFlags(opts)
-
-	if d.Endpoint == "" {
-		d.Endpoint = sdkgo.DefaultIonosServerUrl
-	}
-
 	return nil
 }
 
