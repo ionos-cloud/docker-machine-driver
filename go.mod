@@ -1,8 +1,6 @@
 module github.com/ionos-cloud/docker-machine-driver
 
-go 1.24.0
-
-toolchain go1.24.4
+go 1.25.3
 
 require (
 	github.com/hashicorp/go-multierror v1.1.1
