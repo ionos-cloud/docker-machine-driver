@@ -1767,12 +1767,37 @@ func TestRemove(t *testing.T) {
 	driver.LanId = testVar
 	driver.IPAddress = testVar
 	driver.DCExists = false
-	clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(nil)
-	clientMock.EXPECT().RemoveVolume(driver.DatacenterId, driver.VolumeId).Return(nil)
-	clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(nil)
-	clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(nil)
-	clientMock.EXPECT().RemoveDatacenter(driver.DatacenterId).Return(nil)
-	clientMock.EXPECT().RemoveIpBlock(driver.IpBlockId).Return(nil)
+
+	gomock.InOrder(
+		clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(nil),
+		clientMock.EXPECT().RemoveVolume(driver.DatacenterId, driver.VolumeId).Return(nil),
+		clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(nil),
+		clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(nil),
+		clientMock.EXPECT().RemoveDatacenter(driver.DatacenterId).Return(nil),
+		clientMock.EXPECT().RemoveIpBlock(driver.IpBlockId).Return(nil),
+	)
+	err := driver.Remove()
+	assert.NoError(t, err)
+}
+
+func TestRemoveCube(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.DatacenterId = datacenterId
+	driver.ServerId = testVar
+	driver.NicId = testVar
+	driver.VolumeId = testVar
+	driver.LanId = testVar
+	driver.IPAddress = testVar
+	driver.ServerType = "CUBE"
+	driver.DCExists = false
+
+	gomock.InOrder(
+		clientMock.EXPECT().RemoveNic(driver.DatacenterId, driver.ServerId, driver.NicId).Return(nil),
+		clientMock.EXPECT().RemoveServer(driver.DatacenterId, driver.ServerId).Return(nil),
+		clientMock.EXPECT().RemoveLan(driver.DatacenterId, driver.LanId).Return(nil),
+		clientMock.EXPECT().RemoveDatacenter(driver.DatacenterId).Return(nil),
+		clientMock.EXPECT().RemoveIpBlock(driver.IpBlockId).Return(nil),
+	)
 	err := driver.Remove()
 	assert.NoError(t, err)
 }

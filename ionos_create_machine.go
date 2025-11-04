@@ -197,7 +197,8 @@ func (d *Driver) CreateIonosServer() (err error) {
 	}
 
 	serverToCreate := sdkgo.Server{}
-	if d.ServerType == "ENTERPRISE" {
+	switch d.ServerType {
+	case "ENTERPRISE":
 		serverToCreate.Properties = &sdkgo.ServerProperties{
 			Name:             &d.MachineName,
 			Ram:              pointer.From(int32(d.Ram)),
@@ -209,7 +210,7 @@ func (d *Driver) CreateIonosServer() (err error) {
 		}
 		volumeProperties.Size = &floatDiskSize
 		volumeProperties.AvailabilityZone = &d.VolumeAvailabilityZone
-	} else {
+	case "CUBE":
 		TemplateUuid, err := d.getCubeTemplateUuid()
 		if err != nil {
 			return fmt.Errorf("error getting CUBE Template UUID from Template %s: %w", d.Template, err)
@@ -485,12 +486,8 @@ func (d *Driver) getImageIdOrAlias(imageName string) (string, error) {
 					}
 				}
 			}
-			diskType := d.DiskType
-			if d.DiskType == "SSD" {
-				diskType = defaultDiskType
-			}
 			if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(imageName)) &&
-				*image.Properties.ImageType == diskType && *image.Properties.Location == d.Location {
+				*image.Properties.ImageType == "HDD" && *image.Properties.Location == d.Location {
 				d.UseAlias = false
 				return *image.Id, nil
 			}
