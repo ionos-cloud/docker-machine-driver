@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -628,6 +629,10 @@ func (d *Driver) PreCreateCheck() error {
 	// d.PrivateLan is set above to false as a side effect if the LAN with the given ID is private. If concerns are separated in this func, be aware of this!
 	if !d.PrivateLan && (d.NatId != "" || d.CreateNat) {
 		return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable %s or provide a Private Lan ID for %s", flagPrivateLan, flagLanId)
+	}
+	serverTypes := []string{"ENTERPRISE", "CUBE"}
+	if !slices.Contains(serverTypes, d.ServerType) {
+		return fmt.Errorf("invalid additional server type: %s, must be one of %q", d.ServerType, serverTypes)
 	}
 
 	if d.DiskType == "DAS" && d.ServerType != "CUBE" {

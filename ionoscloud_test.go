@@ -446,6 +446,50 @@ func TestPreCreateImageIdErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestPreCreateServerTypeErr(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
+	driver.ServerType = "wrong_value"
+	clientMock.EXPECT().GetDatacenters().Return(dcs, nil)
+	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&additionalLans, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
+	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
+	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
+	err := driver.PreCreateCheck()
+	assert.Error(t, err)
+}
+
+func TestPreCreateServerTypeNoErr(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authDcIdFlagsSet)
+
+	driver.ServerType = "ENTERPRISE"
+	clientMock.EXPECT().GetDatacenters().Return(dcs, nil)
+	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&additionalLans, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
+	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
+	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+
+	driver.ServerType = "CUBE"
+	clientMock.EXPECT().GetDatacenters().Return(dcs, nil)
+	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&additionalLans, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
+	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
+	clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
+	err = driver.PreCreateCheck()
+	assert.NoError(t, err)
+
+}
+
 func TestPreCreateCheck(t *testing.T) {
 	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
 	clientMock.EXPECT().GetDatacenters().Return(dcs, nil)
