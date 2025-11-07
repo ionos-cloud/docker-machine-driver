@@ -179,13 +179,13 @@ func (d *Driver) CreateIonosServer() (err error) {
 		imagePassword = nil
 	}
 	floatDiskSize := float32(d.DiskSize)
-
 	volumeProperties := sdkgo.VolumeProperties{
 		Type:          &d.DiskType,
 		Name:          &d.MachineName,
 		ImagePassword: imagePassword,
 		SshKeys:       sshKeys,
 		UserData:      &ud,
+		BootOrder:     pointer.From("PRIMARY"),
 	}
 
 	if !d.UseAlias {
@@ -229,12 +229,27 @@ func (d *Driver) CreateIonosServer() (err error) {
 		serverToCreate.Properties.NicMultiQueue = &d.NicMultiQueue
 	}
 
-	attachedVolumes := sdkgo.NewAttachedVolumesWithDefaults()
-	attachedVolumes.Items = &[]sdkgo.Volume{
-		{
-			Properties: &volumeProperties,
-		},
+	// configure all volumes
+	volumes := make([]sdkgo.Volume, len(d.AdditionalDisks)+1)
+	volumes[0] = sdkgo.Volume{Properties: &volumeProperties}
+	for i := range d.AdditionalDisks {
+		name := fmt.Sprintf("%s-vol-%d", d.MachineName, i+1)
+		size := float32(d.AdditionalDisks[i].Size)
+		license := "OTHER"
+		volumes[i+1] = sdkgo.Volume{
+			Properties: &sdkgo.VolumeProperties{
+				Name:        &name,
+				Type:        &(d.AdditionalDisks[i].Type),
+				Size:        &size,
+				LicenceType: &license,
+				BootOrder:   pointer.From("NONE"),
+			},
+		}
 	}
+
+	attachedVolumes := sdkgo.NewAttachedVolumesWithDefaults()
+	attachedVolumes.Items = &volumes
+
 	serverToCreate.Entities = sdkgo.NewServerEntitiesWithDefaults()
 	serverToCreate.Entities.SetVolumes(*attachedVolumes)
 
@@ -409,6 +424,13 @@ func (d *Driver) CreateIonosMachine() (err error) {
 		return fmt.Errorf("error getting server by id: %w", err)
 	}
 	d.VolumeId = *(*server.Entities.GetVolumes().Items)[0].GetId()
+	for i, id := range *server.Entities.GetVolumes().Items {
+		// skip first, as it is handled by volumeId
+		if i == 0 {
+			continue
+		}
+		d.AdditionalVolumeIds = append(d.AdditionalVolumeIds, *id.GetId())
+	}
 	log.Debugf("Volume ID: %v", d.VolumeId)
 
 	nics := server.Entities.GetNics()

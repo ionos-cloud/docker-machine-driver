@@ -33,6 +33,7 @@ const (
 	flagServerAvailabilityZone = "ionoscloud-server-availability-zone"
 	flagDiskSize               = "ionoscloud-disk-size"
 	flagDiskType               = "ionoscloud-disk-type"
+	flagAdditionalDisks        = "ionoscloud-additional-disks"
 	flagServerType             = "ionoscloud-server-type"
 	flagTemplate               = "ionoscloud-template"
 	flagImage                  = "ionoscloud-image"
@@ -94,6 +95,12 @@ const (
 // it will be set to `DEV`.
 var DriverVersion string
 
+// DiskProperties hold information of the properties of additional disks
+type DiskProperties struct {
+	Type string
+	Size int
+}
+
 type Driver struct {
 	*drivers.BaseDriver
 	client func() utils.ClientService
@@ -109,6 +116,7 @@ type Driver struct {
 	SSHUser                      string
 	DiskSize                     int
 	DiskType                     string
+	AdditionalDisks              []DiskProperties
 	Image                        string
 	ImagePassword                string
 	Size                         int
@@ -131,6 +139,7 @@ type Driver struct {
 	AdditionalLans               []string
 	AdditionalLansIds            []int
 	AdditionalNicsIds            []string
+	AdditionalVolumeIds          []string
 	DatacenterId                 string
 	DatacenterName               string
 	VolumeId                     string
@@ -233,6 +242,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagNatLansToGateways,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagNatLansToGateways),
 			Usage:  "Ionos Cloud NAT map of LANs to a slice of their Gateway IPs. Example: \"1=10.0.0.1,10.0.0.2:2=10.0.0.10\"",
+		},
+		mcnflag.StringSliceFlag{
+			Name:   flagAdditionalDisks,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagAdditionalDisks),
+			Usage:  "Additional Disks to attach to the VM, must provide volume type (HDD,SSD) and size (in GB). Example: \"HDD,10\"",
 		},
 		mcnflag.BoolFlag{
 			Name:   flagPrivateLan,
@@ -475,6 +489,36 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 		d.Endpoint = sdkgo.DefaultIonosServerUrl
 	}
 
+	if err := d.SetAdditionalDisks(opts.StringSlice(flagAdditionalDisks)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SetAdditionalDisks goes over the received list of additional disks, checks that everything is ok and
+// initializes d.AdditionalDisks
+func (d *Driver) SetAdditionalDisks(additionalDisksStringList []string) error {
+	for _, disk := range additionalDisksStringList {
+		props := strings.Split(disk, ":")
+		if len(props) != 2 {
+			return fmt.Errorf("invalid additional disk configuration: %s, must be \"type:size\"", disk)
+		}
+		diskTypes := []string{"HDD", "SSD", "SSD Standard", "SSD Premium"}
+		if !slices.Contains(diskTypes, props[0]) {
+			return fmt.Errorf("invalid additional disk type: %s, must be one of %q", props[0], diskTypes)
+		}
+		diskProperties := DiskProperties{
+			Type: props[0],
+		}
+		if size, err := strconv.Atoi(props[1]); err != nil {
+			return fmt.Errorf("invalid additional disk size: %s, must be an integer", props[1])
+		} else {
+			diskProperties.Size = size
+		}
+
+		d.AdditionalDisks = append(d.AdditionalDisks, diskProperties)
+	}
 	return nil
 }
 
@@ -705,6 +749,19 @@ func (d *Driver) Remove() error {
 			}
 		}
 	}
+	var notDeleted []string
+	for _, volumeId := range d.AdditionalVolumeIds {
+		if d.DatacenterId != "" && volumeId != "" {
+			log.Debugf("Starting deleting Volume with Id: %v", volumeId)
+			err = d.client().RemoveVolume(d.DatacenterId, volumeId)
+			if err != nil {
+				result = multierror.Append(result, fmt.Errorf("error removing volume: %w", err))
+				notDeleted = append(notDeleted, volumeId)
+			}
+		}
+	}
+	d.AdditionalVolumeIds = notDeleted
+
 	if d.DatacenterId != "" && d.VolumeId != "" && d.ServerType != "CUBE" {
 		log.Debugf("Starting deleting Volume with Id: %v", d.VolumeId)
 		err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)

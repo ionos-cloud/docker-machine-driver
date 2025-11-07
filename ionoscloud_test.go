@@ -345,6 +345,56 @@ func TestSetConfigFromCustomFlags(t *testing.T) {
 	assert.Equal(t, defaultAvailabilityZone, driver.ServerAvailabilityZone)
 }
 
+func TestSetConfigFromCustomFlagsAdditionalDisks(t *testing.T) {
+	driver, _ := NewTestDriverFlagsSet(t, map[string]interface{}{
+		flagAdditionalDisks: []string{"HDD:10", "SSD Premium:13"},
+	})
+	assert.Equal(t, driver.AdditionalDisks, []DiskProperties{{"HDD", 10}, {"SSD Premium", 13}})
+
+	driver, _ = NewTestDriverFlagsSet(t, map[string]interface{}{
+		flagAdditionalDisks: []string{"SSD Standard:123", "SSD:124", "SSD Premium:412"},
+	})
+	assert.Equal(t, driver.AdditionalDisks, []DiskProperties{{"SSD Standard", 123}, {"SSD", 124}, {"SSD Premium", 412}})
+
+	driver, _ = NewTestDriverFlagsSet(t, map[string]interface{}{
+		flagAdditionalDisks: []string{},
+	})
+	assert.Equal(t, driver.AdditionalDisks, []DiskProperties(nil))
+}
+
+func TestSetConfigFromCustomFlagsAdditionalDisksError(t *testing.T) {
+	driver, _ := NewTestDriver(t, defaultHostName, defaultStorePath)
+	checkFlags := &drivers.CheckDriverOptions{
+		FlagsValues: map[string]interface{}{
+			flagAdditionalDisks: []string{"HDD:10qdwq::", "SSD Premium:13"},
+		},
+		CreateFlags: driver.GetCreateFlags(),
+	}
+	err := driver.SetConfigFromFlags(checkFlags)
+	assert.Equal(t, err.Error(), "invalid additional disk configuration: HDD:10qdwq::, must be \"type:size\"")
+	assert.Empty(t, checkFlags.InvalidFlags)
+
+	checkFlags = &drivers.CheckDriverOptions{
+		FlagsValues: map[string]interface{}{
+			flagAdditionalDisks: []string{"wrongDiskType:10", "SSD Premium:13"},
+		},
+		CreateFlags: driver.GetCreateFlags(),
+	}
+	err = driver.SetConfigFromFlags(checkFlags)
+	assert.Equal(t, err.Error(), "invalid additional disk type: wrongDiskType, must be one of [\"HDD\" \"SSD\" \"SSD Standard\" \"SSD Premium\"]")
+	assert.Empty(t, checkFlags.InvalidFlags)
+
+	checkFlags = &drivers.CheckDriverOptions{
+		FlagsValues: map[string]interface{}{
+			flagAdditionalDisks: []string{"SSD Standard:notInt", "SSD Premium:13"},
+		},
+		CreateFlags: driver.GetCreateFlags(),
+	}
+	err = driver.SetConfigFromFlags(checkFlags)
+	assert.Equal(t, err.Error(), "invalid additional disk size: notInt, must be an integer")
+	assert.Empty(t, checkFlags.InvalidFlags)
+}
+
 func TestDriverName(t *testing.T) {
 	driver, _ := NewTestDriverFlagsSet(t, authFlagsSet)
 	assert.Equal(t, driverName, driver.DriverName())
@@ -571,6 +621,178 @@ func TestCreate(t *testing.T) {
 				assert.Equal(t, float32(driver.DiskSize), *volumes[0].Properties.Size)
 				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
 				assert.Nil(t, volumes[0].Properties.ImageAlias)
+
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 1)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, *ipblock.Properties.Ips, *nics[0].Properties.Ips)
+				assert.Equal(t, driver.NicDhcp, *nics[0].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
+	assert.NoError(t, err)
+	userdataFlag := drivers.DriverUserdataFlag(driver)
+	assert.Empty(t, userdataFlag)
+}
+
+func TestCreateAdditionalDisks(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.SSHKey = testVar
+	driver.CpuFamily = "INTEL_SKYLAKE"
+	driver.Location = testRegion
+	driver.DatacenterName = datacenterName
+	driver.ImagePassword = "<testdata>"
+	driver.LanName = lanName1
+	driver.AdditionalLans = []string{lanName1, lanName2}
+	driver.AdditionalDisks = []DiskProperties{{"HDD", 10}}
+
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{}}, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+
+		clientMock.EXPECT().CreateDatacenter(datacenterName, testRegion).Return(dc, nil),
+		clientMock.EXPECT().CreateLan(*dc.Id, lanName1, true).Return(lan_post, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_post.Id).Return(lan_get, nil),
+		clientMock.EXPECT().CreateIpBlock(int32(1), testRegion).Return(ipblock, nil),
+		clientMock.EXPECT().GetIpBlockIps(ipblock).Return(ipblock.Properties.Ips, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
+				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
+				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
+				assert.Nil(t, serverToCreate.Properties.Type)
+				assert.Nil(t, serverToCreate.Properties.NicMultiQueue)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 2)
+				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{testVar}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testImageIdVar, *volumes[0].Properties.Image)
+				assert.Equal(t, float32(driver.DiskSize), *volumes[0].Properties.Size)
+				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[0].Properties.ImageAlias)
+
+				assert.Equal(t, "HDD", *volumes[1].Properties.Type)
+				assert.Equal(t, fmt.Sprintf("%s-vol-1", driver.MachineName), *volumes[1].Properties.Name)
+				assert.Nil(t, volumes[1].Properties.ImagePassword)
+				assert.Nil(t, volumes[1].Properties.SshKeys)
+				assert.Nil(t, volumes[1].Properties.UserData)
+				assert.Nil(t, volumes[1].Properties.Image)
+				assert.Equal(t, float32(10), *volumes[1].Properties.Size)
+				assert.Nil(t, volumes[1].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[1].Properties.ImageAlias)
+
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 1)
+				assert.Equal(t, driver.MachineName, *nics[0].Properties.Name)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, *ipblock.Properties.Ips, *nics[0].Properties.Ips)
+				assert.Equal(t, driver.NicDhcp, *nics[0].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
+	assert.NoError(t, err)
+	userdataFlag := drivers.DriverUserdataFlag(driver)
+	assert.Empty(t, userdataFlag)
+}
+
+func TestCreateAdditionalDisks2(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.SSHKey = testVar
+	driver.CpuFamily = "INTEL_SKYLAKE"
+	driver.Location = testRegion
+	driver.DatacenterName = datacenterName
+	driver.ImagePassword = "<testdata>"
+	driver.LanName = lanName1
+	driver.AdditionalLans = []string{lanName1, lanName2}
+	driver.AdditionalDisks = []DiskProperties{{"HDD", 10}, {"SSD Premium", 11}, {"SSD", 13}}
+
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{}}, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+
+		clientMock.EXPECT().CreateDatacenter(datacenterName, testRegion).Return(dc, nil),
+		clientMock.EXPECT().CreateLan(*dc.Id, lanName1, true).Return(lan_post, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_post.Id).Return(lan_get, nil),
+		clientMock.EXPECT().CreateIpBlock(int32(1), testRegion).Return(ipblock, nil),
+		clientMock.EXPECT().GetIpBlockIps(ipblock).Return(ipblock.Properties.Ips, nil),
+		clientMock.EXPECT().GetLocationById("us", "ewr").Return(location, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				assert.Equal(t, driver.MachineName, *serverToCreate.Properties.Name)
+				assert.Equal(t, driver.CpuFamily, *serverToCreate.Properties.CpuFamily)
+				assert.Equal(t, int32(driver.Ram), *serverToCreate.Properties.Ram)
+				assert.Equal(t, int32(driver.Cores), *serverToCreate.Properties.Cores)
+				assert.Equal(t, driver.ServerAvailabilityZone, *serverToCreate.Properties.AvailabilityZone)
+				assert.Nil(t, serverToCreate.Properties.Type)
+				assert.Nil(t, serverToCreate.Properties.NicMultiQueue)
+				volumes := *serverToCreate.Entities.Volumes.Items
+				assert.Len(t, volumes, 4)
+				assert.Equal(t, driver.DiskType, *volumes[0].Properties.Type)
+				assert.Equal(t, driver.MachineName, *volumes[0].Properties.Name)
+				assert.Equal(t, driver.ImagePassword, *volumes[0].Properties.ImagePassword)
+				assert.Equal(t, []string{testVar}, *volumes[0].Properties.SshKeys)
+				assert.Equal(t, base64.StdEncoding.EncodeToString([]byte(cloudInit)), *volumes[0].Properties.UserData)
+				assert.Equal(t, testImageIdVar, *volumes[0].Properties.Image)
+				assert.Equal(t, float32(driver.DiskSize), *volumes[0].Properties.Size)
+				assert.Equal(t, driver.VolumeAvailabilityZone, *volumes[0].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[0].Properties.ImageAlias)
+
+				assert.Equal(t, "HDD", *volumes[1].Properties.Type)
+				assert.Equal(t, fmt.Sprintf("%s-vol-1", driver.MachineName), *volumes[1].Properties.Name)
+				assert.Nil(t, volumes[1].Properties.ImagePassword)
+				assert.Nil(t, volumes[1].Properties.SshKeys)
+				assert.Nil(t, volumes[1].Properties.UserData)
+				assert.Nil(t, volumes[1].Properties.Image)
+				assert.Equal(t, float32(10), *volumes[1].Properties.Size)
+				assert.Nil(t, volumes[1].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[1].Properties.ImageAlias)
+
+				assert.Equal(t, "SSD Premium", *volumes[2].Properties.Type)
+				assert.Equal(t, fmt.Sprintf("%s-vol-2", driver.MachineName), *volumes[2].Properties.Name)
+				assert.Nil(t, volumes[2].Properties.ImagePassword)
+				assert.Nil(t, volumes[2].Properties.SshKeys)
+				assert.Nil(t, volumes[2].Properties.UserData)
+				assert.Nil(t, volumes[2].Properties.Image)
+				assert.Equal(t, float32(11), *volumes[2].Properties.Size)
+				assert.Nil(t, volumes[2].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[2].Properties.ImageAlias)
+
+				assert.Equal(t, "SSD", *volumes[3].Properties.Type)
+				assert.Equal(t, fmt.Sprintf("%s-vol-3", driver.MachineName), *volumes[3].Properties.Name)
+				assert.Nil(t, volumes[3].Properties.ImagePassword)
+				assert.Nil(t, volumes[3].Properties.SshKeys)
+				assert.Nil(t, volumes[3].Properties.UserData)
+				assert.Nil(t, volumes[3].Properties.Image)
+				assert.Equal(t, float32(13), *volumes[3].Properties.Size)
+				assert.Nil(t, volumes[3].Properties.AvailabilityZone)
+				assert.Nil(t, volumes[3].Properties.ImageAlias)
 
 				nics := *serverToCreate.Entities.Nics.Items
 				assert.Len(t, nics, 1)
