@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -629,6 +630,14 @@ func (d *Driver) PreCreateCheck() error {
 	if !d.PrivateLan && (d.NatId != "" || d.CreateNat) {
 		return fmt.Errorf("using a NAT Gateway requires usage of a private LAN. Please enable %s or provide a Private Lan ID for %s", flagPrivateLan, flagLanId)
 	}
+	serverTypes := []string{"ENTERPRISE", "CUBE"}
+	if !slices.Contains(serverTypes, d.ServerType) {
+		return fmt.Errorf("invalid additional server type: %s, must be one of %q", d.ServerType, serverTypes)
+	}
+
+	if d.DiskType == "DAS" && d.ServerType != "CUBE" {
+		return fmt.Errorf("creating a DAS volume is only possible in a CUBE server. Please change the disk type (%s) or server type (%s)", d.DiskType, d.ServerType)
+	}
 
 	return nil
 }
@@ -696,7 +705,7 @@ func (d *Driver) Remove() error {
 			}
 		}
 	}
-	if d.DatacenterId != "" && d.VolumeId != "" {
+	if d.DatacenterId != "" && d.VolumeId != "" && d.ServerType != "CUBE" {
 		log.Debugf("Starting deleting Volume with Id: %v", d.VolumeId)
 		err = d.client().RemoveVolume(d.DatacenterId, d.VolumeId)
 		if err != nil {
