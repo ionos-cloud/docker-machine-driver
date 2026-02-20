@@ -3,7 +3,7 @@ package ionoscloud
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -860,7 +860,7 @@ func (d *Driver) Stop() error {
 		err = fmt.Errorf("wrong server type: %s", d.ServerType)
 	}
 	if err != nil {
-		return fmt.Errorf("error stoping server: %w", err)
+		return fmt.Errorf("error stopping server: %w", err)
 	}
 	return nil
 }
@@ -959,7 +959,7 @@ func (d *Driver) createSSHKey() (string, error) {
 	if err := ssh.GenerateSSHKey(d.GetSSHKeyPath()); err != nil {
 		return "", err
 	}
-	publicKey, err := ioutil.ReadFile(d.publicSSHKeyPath())
+	publicKey, err := os.ReadFile(d.publicSSHKeyPath())
 	if err != nil {
 		return "", err
 	}
