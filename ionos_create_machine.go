@@ -336,7 +336,7 @@ func (d *Driver) CreateIonosNatAndSetIp() (err error) {
 		log.Debugf("Nat ID: %s", *nat.Id)
 		d.NatId = *nat.Id // NatId is used later to retrieve public IP, etc.
 		d.IPAddress = (*natPublicIps)[0]
-		log.Infof(d.IPAddress)
+		log.Infof("%s", d.IPAddress)
 	} else if d.NatId != "" {
 		nat, _ := d.client().GetNat(d.DatacenterId, d.NatId)
 
@@ -359,11 +359,11 @@ func (d *Driver) CreateIonosNatAndSetIp() (err error) {
 		}
 
 		d.IPAddress = (*nat.Properties.PublicIps)[0]
-		log.Infof(d.IPAddress)
+		log.Infof("%s", d.IPAddress)
 	} else {
 		if len(*nicIps) > 0 {
 			d.IPAddress = (*nicIps)[0]
-			log.Infof(d.IPAddress)
+			log.Infof("%s", d.IPAddress)
 		}
 	}
 	return nil
