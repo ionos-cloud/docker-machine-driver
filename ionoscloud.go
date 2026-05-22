@@ -125,6 +125,7 @@ type Driver struct {
 	NicMultiQueue                bool
 	ReservedIps                  *[]string
 	Location                     string
+	ParentLocation               string
 	CpuFamily                    string
 	ServerType                   string
 	Template                     string
@@ -637,6 +638,10 @@ func (d *Driver) PreCreateCheck() error {
 			}
 		}
 	}
+	// Resolve the parent location once, after d.Location is finalized. Some IONOS
+	// operations (IPBlock reservation, image alias lookup) target the parent
+	// instead of the child location, so the rest of the flow reads d.ParentLocation.
+	d.ParentLocation = d.getParentLocation()
 	if imageId, err := d.getImageIdOrAlias(d.Image); err != nil && imageId == "" {
 		return fmt.Errorf("error getting image/alias %s: %w", d.Image, err)
 	}

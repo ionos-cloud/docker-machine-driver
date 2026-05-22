@@ -400,7 +400,12 @@ func (d *Driver) CreateIonosMachine() (err error) {
 	// Reserve IP if needed
 	if !d.IsLanPrivate && !(len(d.NicIps) != 0) ||
 		d.CreateNat && d.NatPublicIps == nil {
-		ipBlock, err := d.client().CreateIpBlock(1, d.Location)
+		// IPBlocks must be reserved against the parent location for child locations
+		ipBlockLocation := d.Location
+		if d.ParentLocation != "" {
+			ipBlockLocation = d.ParentLocation
+		}
+		ipBlock, err := d.client().CreateIpBlock(1, ipBlockLocation)
 		if err != nil {
 			return fmt.Errorf("error creating ipblock: %w", err)
 		}
@@ -459,71 +464,61 @@ func (d *Driver) CreateIonosMachine() (err error) {
 }
 
 func (d *Driver) getImageIdOrAlias(imageName string) (string, error) {
-	d.UseAlias = false
-	// First, look if the provided parameter matches an alias, if a match is found we return the image alias
-	regionId, locationId := d.getRegionIdAndLocationId()
-	location, err := d.client().GetLocationById(regionId, locationId)
-	if err != nil {
-		return "", err
-	}
-	if locationProp, ok := location.GetPropertiesOk(); ok && locationProp != nil {
-		if imageAliases, ok := locationProp.GetImageAliasesOk(); ok && imageAliases != nil {
-			for _, alias := range *imageAliases {
-				if alias == imageName {
-					d.UseAlias = true
-					return imageName, nil
-				}
-			}
-		}
-	}
-	// Second, check if the imageName provided is actually an imageId.
-	// If an image is found, return the imageId
+	// Check if the imageName provided is actually an imageId.
 	imageFound, err := d.client().GetImageById(imageName)
 	if err != nil {
-		if !strings.Contains(err.Error(), "no image found") {
-			return "", err
-		}
+		errStr := err.Error()
+		log.Debugf("could not retrieve image with ID %s: %v", imageName, errStr)
 	} else {
 		if imageId, ok := imageFound.GetIdOk(); ok && imageId != nil {
 			d.UseAlias = false
 			return *imageId, nil
 		}
 	}
-	// If no alias and id match, we do extended search, considering the image parameter
+
+	// If no id match, we do extended search, considering the image parameter
 	// set by the user to be part of the image name and checking the location & image type.
 	// If the extended search is successful, return the imageId.
 	// Example: if the user sets: Ubuntu-20.04, the driver will know which image to use.
 	images, err := d.client().GetImages()
 	if err != nil {
-		return "", err
+		images = nil
 	}
 
-	if imagesItems, ok := images.GetItemsOk(); ok && imagesItems != nil {
-		for _, image := range *imagesItems {
-			imgName := ""
-			if imgProp, ok := image.GetPropertiesOk(); ok && imgProp != nil {
-				if name, ok := imgProp.GetNameOk(); ok && name != nil {
-					if *name != "" {
-						imgName = *name
+	if images != nil {
+		if imagesItems, ok := images.GetItemsOk(); ok && imagesItems != nil {
+			for _, image := range *imagesItems {
+				imgName := ""
+				if imgProp, ok := image.GetPropertiesOk(); ok && imgProp != nil {
+					if name, ok := imgProp.GetNameOk(); ok && name != nil {
+						if *name != "" {
+							imgName = *name
+						}
 					}
 				}
-			}
-			if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(imageName)) &&
-				*image.Properties.ImageType == "HDD" && *image.Properties.Location == d.Location {
-				d.UseAlias = false
-				return *image.Id, nil
+				if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(imageName)) &&
+					*image.Properties.ImageType == "HDD" && *image.Properties.Location == d.Location {
+					d.UseAlias = false
+					return *image.Id, nil
+				}
 			}
 		}
 	}
-	return "", nil
+
+	// Else, use the supplied info as an image alias
+	d.UseAlias = true
+	return imageName, nil
 }
 
-func (d *Driver) getRegionIdAndLocationId() (regionId, locationId string) {
-	region, location, found := strings.Cut(d.Location, "/")
-	// location has standard format: {regionId}/{locationId}
-	if !found {
-		log.Errorf("error getting Region Id and Location Id from %s", d.Location)
-		return "", ""
+// getParentLocation returns the parent of d.Location.
+func (d *Driver) getParentLocation() string {
+	if d.Location == "pc/txl/1" {
+		return "de/txl"
 	}
-	return region, location
+	parts := strings.Split(d.Location, "/")
+	if len(parts) >= 3 {
+		return strings.Join(parts[:2], "/")
+	}
+
+	return ""
 }
