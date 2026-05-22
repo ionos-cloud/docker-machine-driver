@@ -467,8 +467,7 @@ func (d *Driver) getImageIdOrAlias(imageName string) (string, error) {
 	// Check if the imageName provided is actually an imageId.
 	imageFound, err := d.client().GetImageById(imageName)
 	if err != nil {
-		errStr := err.Error()
-		log.Debugf("could not retrieve image with ID %s: %v", imageName, errStr)
+		log.Debugf("could not retrieve image with ID %s: %v", imageName, err.Error())
 	} else {
 		if imageId, ok := imageFound.GetIdOk(); ok && imageId != nil {
 			d.UseAlias = false
