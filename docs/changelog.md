@@ -1,5 +1,9 @@
 # Changelog
 
+## \[7.1.1]
+### Fixed
+* Ensure support for child locations for ipblock reservation and image aliases 
+
 ## \[7.1.0]
 ### Added
 * added ionoscloud-nic-multi-queue, defaults to false, used to activate or deactivate the Multi Queue feature on all NICs of the server.
