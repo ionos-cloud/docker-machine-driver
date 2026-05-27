@@ -536,6 +536,65 @@ func TestPreCreateLans(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+// Regression: when the primary NIC is selected by --ionoscloud-lan-id,
+// any names listed in --ionoscloud-additional-lans must still be resolved
+// to LAN ids instead of being silently dropped.
+func TestPreCreateAdditionalLansResolvedWhenLanIdSet(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.DatacenterId = "test"
+	driver.LanId = "100"
+	driver.AdditionalLans = []string{lanName1, lanName2}
+	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&additionalLans, nil)
+	clientMock.EXPECT().GetLan(driver.DatacenterId, driver.LanId).Return(privateLan, nil)
+	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	assert.Equal(t, "100", driver.LanId, "primary LanId must remain untouched")
+	assert.ElementsMatch(t, []int{lanId1Int, 5}, driver.AdditionalLansIds)
+}
+
+// --ionoscloud-additional-lans-ids must populate AdditionalLansIds directly
+// and merge with any ids resolved from --ionoscloud-additional-lans (no dupes).
+func TestPreCreateAdditionalLansIdsFromFlag(t *testing.T) {
+	flags := map[string]interface{}{
+		flagUsername:          "IONOSCLOUD_USERNAME",
+		flagPassword:          "IONOSCLOUD_PASSWORD",
+		flagAdditionalLans:    []string{lanName1},
+		flagAdditionalLansIds: []string{"2", "7"},
+	}
+	driver, clientMock := NewTestDriverFlagsSet(t, flags)
+	driver.DatacenterId = "test"
+	driver.LanId = "100"
+	clientMock.EXPECT().GetLans(driver.DatacenterId).Return(&additionalLans, nil)
+	clientMock.EXPECT().GetLan(driver.DatacenterId, driver.LanId).Return(privateLan, nil)
+	clientMock.EXPECT().GetDatacenter(driver.DatacenterId).Return(dc, nil)
+	clientMock.EXPECT().GetImageById(defaultImageAlias).Return(&sdkgo.Image{}, fmt.Errorf("no image found with this id"))
+	clientMock.EXPECT().GetImages().Return(&images, nil)
+	clientMock.EXPECT().GetNats(driver.DatacenterId).Return(nats, nil)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	assert.ElementsMatch(t, []int{2, 7}, driver.AdditionalLansIds)
+}
+
+// A non-numeric value for --ionoscloud-additional-lans-ids must fail fast
+// during flag parsing rather than silently dropping the entry.
+func TestSetConfigFromFlagsAdditionalLansIdsInvalid(t *testing.T) {
+	driver, _ := NewTestDriver(t, defaultHostName, defaultStorePath)
+	checkFlags := &drivers.CheckDriverOptions{
+		FlagsValues: map[string]interface{}{
+			flagUsername:          "IONOSCLOUD_USERNAME",
+			flagPassword:          "IONOSCLOUD_PASSWORD",
+			flagAdditionalLansIds: []string{"not-a-number"},
+		},
+		CreateFlags: driver.GetCreateFlags(),
+	}
+	err := driver.SetConfigFromFlags(checkFlags)
+	assert.Error(t, err)
+}
+
 func TestCreateSSHKeyErr(t *testing.T) {
 	driver, _ := NewTestDriverFlagsSet(t, authFlagsSet)
 	driver.SSHKey = ""

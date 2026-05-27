@@ -1,5 +1,11 @@
 # Changelog
 
+## \[Unreleased]
+### Added
+* `ionoscloud-additional-lans-ids` flag to attach additional LANs to the machine by numeric ID. Values are merged with any IDs resolved from `ionoscloud-additional-lans`.
+### Fixed
+* `ionoscloud-additional-lans` is no longer silently ignored when the primary NIC is configured via `ionoscloud-lan-id`. Name-to-ID resolution now runs regardless of how the primary LAN is selected.
+
 ## \[7.1.1]
 ### Fixed
 * Ensure support for child locations for ipblock reservation and image aliases 
