@@ -28,6 +28,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-lan-id`                   | Existing Ionos Cloud LAN ID (numeric) in which to create the Docker Host                                                                                                                      |
 | `--ionoscloud-lan-name`                 | Existing Ionos Cloud LAN Name (string) in which to create the Docker Host                                                                                                                     |
 | `--ionoscloud-additional-lans`          | Names of existing IONOS Lans to connect the machine to. Names that are not found are ignored                                                                                                                     |
+| `--ionoscloud-additional-lans-ids`      | Numeric IDs of existing IONOS LANs to connect the machine to. Merged with any IDs resolved from `--ionoscloud-additional-lans`                                                                                   |
 | `--ionoscloud-additional-disks`         | A list of disk types and sizes for additional volumes to be created on the machine, the format is DISK_TYPE:DISK_SIZE                                                                                                                   |
 | `--ionoscloud-disk-size`                | Ionos Cloud Volume Disk-Size in GB \(10, 50, 100, 200, 400\)                                                                                                                                  |
 | `--ionoscloud-disk-type`                | Ionos Cloud Volume Disk-Type \(HDD, SSD, SSD Standard, SSD Premium, DAS\). If server type is CUBE this value is ignored and "DAS" is used, "DAS" cannot be used with ENTERPRISE servers                                                                                                                                                 |
@@ -94,6 +95,7 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-lan-id`                     | `IONOSCLOUD_LAN_ID`                    |
 | `--ionoscloud-lan-name`                   | `IONOSCLOUD_LAN_NAME`                  |
 | `--ionoscloud-additional-lans`            | `IONOSCLOUD_ADDITIONAL_LANS`           |
+| `--ionoscloud-additional-lans-ids`        | `IONOSCLOUD_ADDITIONAL_LANS_IDS`       |
 | `--ionoscloud-additional-disks`           | `IONOSCLOUD_ADDITIONAL_DISKS`          |
 | `--ionoscloud-disk-size`                  | `IONOSCLOUD_DISK_SIZE`                 |
 | `--ionoscloud-disk-type`                  | `IONOSCLOUD_DISK_TYPE`                 |

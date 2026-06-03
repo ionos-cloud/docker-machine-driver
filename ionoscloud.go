@@ -62,6 +62,7 @@ const (
 	flagNatLansToGateways      = "ionoscloud-nat-lans-to-gateways"
 	flagPrivateLan             = "ionoscloud-private-lan"
 	flagAdditionalLans         = "ionoscloud-additional-lans"
+	flagAdditionalLansIds      = "ionoscloud-additional-lans-ids"
 	flagCreateNat              = "ionoscloud-create-nat"
 	flagRKEProvisionUserData   = "ionoscloud-rancher-provision-user-data"
 	flagAppendRKECloudInit     = "ionoscloud-append-rke-cloud-init"
@@ -258,6 +259,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagAdditionalLans,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagAdditionalLans),
 			Usage:  "Names of existing IONOS Lans to connect the machine to. Names that are not found are ignored",
+		},
+		mcnflag.StringSliceFlag{
+			Name:   flagAdditionalLansIds,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagAdditionalLansIds),
+			Usage:  "Numeric IDs of existing IONOS LANs to connect the machine to. Merged with any IDs resolved from --ionoscloud-additional-lans",
 		},
 		mcnflag.BoolFlag{
 			Name:   flagWaitForIpChange,
@@ -480,6 +486,14 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.CloudInitB64 = opts.String(flagCloudInitB64)
 	d.PrivateLan = opts.Bool(flagPrivateLan)
 	d.AdditionalLans = opts.StringSlice(flagAdditionalLans)
+	d.AdditionalLansIds = nil
+	for _, raw := range opts.StringSlice(flagAdditionalLansIds) {
+		id, err := strconv.Atoi(strings.TrimSpace(raw))
+		if err != nil {
+			return fmt.Errorf("invalid value for %s: %q must be a numeric LAN id", flagAdditionalLansIds, raw)
+		}
+		d.AdditionalLansIds = append(d.AdditionalLansIds, id)
+	}
 
 	d.SwarmMaster = opts.Bool("swarm-master")
 	d.SwarmHost = opts.String("swarm-host")
@@ -585,7 +599,7 @@ func (d *Driver) PreCreateCheck() error {
 	if d.DatacenterId != "" {
 		d.DCExists = true
 
-		if d.LanId == "" {
+		if d.LanId == "" || len(d.AdditionalLans) > 0 {
 			lans, err := d.client().GetLans(d.DatacenterId)
 			if err != nil {
 				return err
@@ -593,7 +607,7 @@ func (d *Driver) PreCreateCheck() error {
 
 			foundLan := false
 			for _, lan := range *lans.Items {
-				if *lan.Properties.Name == d.LanName {
+				if d.LanId == "" && *lan.Properties.Name == d.LanName {
 					if foundLan {
 						return fmt.Errorf("multiple LANs with name %v found", d.LanName)
 					}
@@ -607,7 +621,9 @@ func (d *Driver) PreCreateCheck() error {
 						if err != nil {
 							return fmt.Errorf("invalid LAN ID found: %v", *lanId)
 						}
-						d.AdditionalLansIds = append(d.AdditionalLansIds, lanIdInt)
+						if !slices.Contains(d.AdditionalLansIds, lanIdInt) {
+							d.AdditionalLansIds = append(d.AdditionalLansIds, lanIdInt)
+						}
 					}
 				}
 			}
