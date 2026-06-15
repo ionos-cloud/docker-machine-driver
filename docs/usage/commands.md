@@ -33,7 +33,7 @@ For more available options to manage a Docker Machine, use `docker-machine help`
 
 ## Rancher Machine Commands
 
-If you are using Ionos Cloud Docker Machine Driver with [Rancher Machine](https://github.com/rancher/machine), use `rancher-machine help` to see the available commands.
+If you are using IONOS CLOUD Docker Machine Driver with [Rancher Machine](https://github.com/rancher/machine), use `rancher-machine help` to see the available commands.
 
 ## Examples
 

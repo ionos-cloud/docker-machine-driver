@@ -2,13 +2,13 @@
 
 ## Authentication
 
-Before you create a Docker Machine with Ionos Cloud Docker Machine Driver, make sure you followed the [Authentication](../usage/authentication.md) steps.
+Before you create a Docker Machine with IONOS CLOUD Docker Machine Driver, make sure you followed the [Authentication](../usage/authentication.md) steps.
 
 ## Docker Machine Create Swarm Command
 
 You can use Docker Machine to provision Swarm clusters.
 
-Before you create a swarm of Ionos Cloud machines, run this command:
+Before you create a swarm of IONOS CLOUD machines, run this command:
 
 ```text
 docker swarm init

@@ -12,7 +12,7 @@ assignees: LiviusP
 Environment version (i.e. rancher / docker-machine / rancher-machine): 
 ```
 ```
-Docker Machine Driver Ionoscloud version:
+Docker Machine Driver IONOS CLOUD version:
 ```
 ```
 OS: 

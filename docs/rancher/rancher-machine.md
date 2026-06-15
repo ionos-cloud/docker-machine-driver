@@ -2,11 +2,11 @@
 
 ## Authentication
 
-Before you create a Rancher Machine with Ionos Cloud Docker Machine Driver, make sure you followed the [Authentication](../usage/authentication.md) steps.
+Before you create a Rancher Machine with IONOS CLOUD Docker Machine Driver, make sure you followed the [Authentication](../usage/authentication.md) steps.
 
 ## Rancher Machine Create Command
 
-In order to create Rancher Machine with Ionos Cloud Rancher Machine Driver, run:
+In order to create Rancher Machine with IONOS CLOUD Rancher Machine Driver, run:
 
 ```text
 rancher-machine create --driver ionoscloud test-machine
