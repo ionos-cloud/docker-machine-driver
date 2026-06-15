@@ -14,7 +14,7 @@ rancher-machine create --help --driver ionoscloud
 
 ## Options
 
-Available Options for the IONOS Cloud Docker Machine Driver:
+Available Options for the IONOS CLOUD Docker Machine Driver:
 
 | Option                                  | Description                                                                                                                                                                                   |
 |:----------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

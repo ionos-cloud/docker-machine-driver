@@ -1,6 +1,6 @@
 # Rancher Cluster
 
-IONOS Cloud Docker Machine Driver is compatible with [Rancher](https://rancher.com/).
+IONOS CLOUD Docker Machine Driver is compatible with [Rancher](https://rancher.com/).
 
 ## Installation
 
@@ -34,13 +34,13 @@ docker logs -f container-id
 
 ## Prerequisites
 
-* Your IONOS Cloud account credentials: username and password or token
+* Your IONOS CLOUD account credentials: username and password or token
 * A web server accessible by your browser
 
 
 ## Installing Via The Rancher UI
 
-After logging into Rancher UI, follow the next steps in order to install a cluster with IONOS Cloud as cloud provider, using IONOS Cloud Docker Machine Driver:
+After logging into Rancher UI, follow the next steps in order to install a cluster with IONOS CLOUD as cloud provider, using IONOS CLOUD Docker Machine Driver:
 
 ### RKE1
 
@@ -58,7 +58,7 @@ After logging into Rancher UI, follow the next steps in order to install a clust
   * Go to Node Templates, from the drop-down menu for `User Settings`
   * Click on `Add Node Template` button
   * At this point, `Ionoscloud` should be on the list of `Available Hosts`. Select `Ionoscloud`
-  * Configure the `IONOSCLOUD OPTIONS` as you prefer and add also your password and username for IONOS Cloud account
+  * Configure the `IONOSCLOUD OPTIONS` as you prefer and add also your password and username for IONOS CLOUD account
   * Give a name to the new Node Template and press `Create` button
 * Create New Rancher Cluster
   * Go to Clusters

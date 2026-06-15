@@ -544,7 +544,7 @@ func (d *Driver) DriverName() string {
 
 // PreCreateCheck validates if driver values are valid to create the machine.
 func (d *Driver) PreCreateCheck() error {
-	log.Infof("IONOS Cloud Driver Version: %s", d.Version)
+	log.Infof("IONOS CLOUD Driver Version: %s", d.Version)
 	log.Infof("SDK-GO Version: %s", sdkgo.Version)
 	if d.Token == "" {
 		if d.Username == "" && d.Password == "" {
@@ -735,7 +735,7 @@ func (d *Driver) Remove() error {
 	//   - if a resource is already gone or errors occur while deleting it, we
 	//     continue removing other resources instead of failing
 
-	log.Warn("NOTICE: Please check IONOS Cloud Console/CLI to ensure there are no leftover resources.")
+	log.Warn("NOTICE: Please check IONOS CLOUD Console/CLI to ensure there are no leftover resources.")
 	log.Info("Starting deleting resources...")
 
 	log.Debugf("Datacenter Id: %v", d.DatacenterId)
