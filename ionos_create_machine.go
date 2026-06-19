@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -280,15 +281,25 @@ func (d *Driver) CreateIonosServer() (err error) {
 	}
 
 	for _, additionalLanId := range d.AdditionalLansIds {
+		dhcp := true
+		if val, ok := d.AdditionalNicsDhcp[additionalLanId]; ok {
+			dhcp = val
+		}
 		additionalNic := sdkgo.Nic{
 			Properties: &sdkgo.NicProperties{
 				Name: sdkgo.PtrString(d.MachineName + " " + fmt.Sprint(additionalLanId)),
 				Lan:  sdkgo.PtrInt32(int32(additionalLanId)),
 				Ips:  nil,
-				Dhcp: sdkgo.PtrBool(true),
+				Dhcp: sdkgo.PtrBool(dhcp),
 			},
 		}
 		*attachedNics.Items = append(*attachedNics.Items, additionalNic)
+	}
+	// Warn about DHCP overrides that don't match any attached additional NIC.
+	for lanId := range d.AdditionalNicsDhcp {
+		if !slices.Contains(d.AdditionalLansIds, lanId) {
+			log.Warnf("%s: ignoring DHCP override for LAN id %d, no additional NIC is attached to that LAN", flagAdditionalNicsDhcp, lanId)
+		}
 	}
 
 	serverToCreate.Entities.SetNics(*attachedNics)

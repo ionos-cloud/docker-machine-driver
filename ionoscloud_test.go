@@ -396,6 +396,51 @@ func TestSetConfigFromCustomFlagsAdditionalDisksError(t *testing.T) {
 	assert.Empty(t, checkFlags.InvalidFlags)
 }
 
+func TestSetConfigFromCustomFlagsAdditionalNicsDhcp(t *testing.T) {
+	driver, _ := NewTestDriverFlagsSet(t, map[string]interface{}{
+		flagAdditionalNicsDhcp: []string{"5=false", " 7 = true "},
+	})
+	assert.Equal(t, map[int]bool{5: false, 7: true}, driver.AdditionalNicsDhcp)
+
+	// An unset flag leaves the map nil so additional NICs keep the default DHCP.
+	driver, _ = NewTestDriverFlagsSet(t, map[string]interface{}{})
+	assert.Nil(t, driver.AdditionalNicsDhcp)
+}
+
+func TestSetConfigFromCustomFlagsAdditionalNicsDhcpError(t *testing.T) {
+	driver, _ := NewTestDriver(t, defaultHostName, defaultStorePath)
+
+	checkFlags := &drivers.CheckDriverOptions{
+		FlagsValues: map[string]interface{}{
+			flagAdditionalNicsDhcp: []string{"5"},
+		},
+		CreateFlags: driver.GetCreateFlags(),
+	}
+	err := driver.SetConfigFromFlags(checkFlags)
+	assert.Equal(t, "invalid value for ionoscloud-additional-nics-dhcp: \"5\" must be in the form lanId=dhcp (e.g. 5=false)", err.Error())
+	assert.Empty(t, checkFlags.InvalidFlags)
+
+	checkFlags = &drivers.CheckDriverOptions{
+		FlagsValues: map[string]interface{}{
+			flagAdditionalNicsDhcp: []string{"notInt=false"},
+		},
+		CreateFlags: driver.GetCreateFlags(),
+	}
+	err = driver.SetConfigFromFlags(checkFlags)
+	assert.Equal(t, "invalid value for ionoscloud-additional-nics-dhcp: \"notInt=false\" must be a numeric LAN id followed by =dhcp (e.g. 5=false)", err.Error())
+	assert.Empty(t, checkFlags.InvalidFlags)
+
+	checkFlags = &drivers.CheckDriverOptions{
+		FlagsValues: map[string]interface{}{
+			flagAdditionalNicsDhcp: []string{"5=notBool"},
+		},
+		CreateFlags: driver.GetCreateFlags(),
+	}
+	err = driver.SetConfigFromFlags(checkFlags)
+	assert.Equal(t, "invalid value for ionoscloud-additional-nics-dhcp: \"5=notBool\" must have a boolean DHCP value (true/false)", err.Error())
+	assert.Empty(t, checkFlags.InvalidFlags)
+}
+
 func TestDriverName(t *testing.T) {
 	driver, _ := NewTestDriverFlagsSet(t, authFlagsSet)
 	assert.Equal(t, driverName, driver.DriverName())
@@ -1171,6 +1216,88 @@ func TestCreatePropertiesSet(t *testing.T) {
 				return &serverToCreate, nil
 			}),
 		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(server, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
+	assert.NoError(t, err)
+}
+
+func TestCreateAdditionalNicDhcpDisabled(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.SSHKey = testVar
+	driver.DatacenterName = datacenterName
+	driver.LanName = lanName1
+	// Two additional NICs: LAN 5 is overridden to DHCP off while LAN 7 is left to
+	// the default (on), so this exercises both the override and the fallback paths.
+	driver.AdditionalLansIds = []int{5, 7}
+	driver.AdditionalNicsDhcp = map[int]bool{5: false}
+
+	driver.CpuFamily = cpuFamily
+	driver.Location = testRegion
+	driver.ImagePassword = imagePassword
+	driver.NicDhcp = nicDhcp
+	driver.NicIps = nicIps
+	driver.DiskType = diskType
+	driver.VolumeAvailabilityZone = volumeAvailabilityZone
+	driver.ServerAvailabilityZone = serverAvailabilityZone
+	driver.Cores = cores
+	driver.Ram = ram
+	driver.CloudInit = cloudInit
+	driver.DiskSize = diskSize
+
+	srv := &sdkgo.Server{
+		Id: sdkgo.ToPtr(serverId),
+		Entities: &sdkgo.ServerEntities{
+			Volumes: &sdkgo.AttachedVolumes{
+				Items: &[]sdkgo.Volume{{Id: sdkgo.ToPtr(volumeId)}},
+			},
+			Nics: &sdkgo.Nics{
+				Items: &[]sdkgo.Nic{
+					{
+						Id:         sdkgo.ToPtr(nicId),
+						Properties: &sdkgo.NicProperties{Name: sdkgo.ToPtr(defaultHostName)},
+					},
+					{
+						Id:         sdkgo.ToPtr("nic_id-2"),
+						Properties: &sdkgo.NicProperties{Name: sdkgo.ToPtr("different_name")},
+					},
+				},
+			},
+		},
+	}
+
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{*dc}}, nil),
+		clientMock.EXPECT().GetLans(*dc.Id).Return(&sdkgo.Lans{Items: &[]sdkgo.Lan{*lan_get}}, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
+
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 3)
+				// Primary NIC keeps following --ionoscloud-nic-dhcp.
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, nicDhcp, *nics[0].Properties.Dhcp)
+				// Additional NICs follow the order of AdditionalLansIds ([5, 7]).
+				// LAN 5 picks up the per-NIC override (off)...
+				assert.Equal(t, int32(5), *nics[1].Properties.Lan)
+				assert.Equal(t, false, *nics[1].Properties.Dhcp)
+				// ...while LAN 7, absent from the map, keeps the default (on).
+				assert.Equal(t, int32(7), *nics[2].Properties.Lan)
+				assert.Equal(t, true, *nics[2].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(srv, nil),
 		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
 	)
 	err := driver.PreCreateCheck()
