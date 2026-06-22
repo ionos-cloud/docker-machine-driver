@@ -12,6 +12,7 @@ import (
 	mockutils "github.com/ionos-cloud/docker-machine-driver/internal/utils/mocks"
 	sdkgo "github.com/ionos-cloud/sdk-go/v6"
 	"github.com/rancher/machine/libmachine/drivers"
+	"github.com/rancher/machine/libmachine/log"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
@@ -1304,6 +1305,184 @@ func TestCreateAdditionalNicDhcpDisabled(t *testing.T) {
 	assert.NoError(t, err)
 	err = driver.Create()
 	assert.NoError(t, err)
+}
+
+// A DHCP override whose LAN id is not among the attached additional NICs must be
+// ignored (no NIC is created for it) and surfaced as a warning, while the valid
+// overrides still apply. This drives the warn-and-ignore branch in CreateIonosServer.
+func TestCreateAdditionalNicDhcpOverrideIgnoredForUnattachedLan(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, authFlagsSet)
+	driver.SSHKey = testVar
+	driver.DatacenterName = datacenterName
+	driver.LanName = lanName1
+	// LAN 5 is overridden off, LAN 7 keeps the default on, and LAN 99 is an override
+	// for a LAN that is not attached: it must yield no NIC and a warning.
+	driver.AdditionalLansIds = []int{5, 7}
+	driver.AdditionalNicsDhcp = map[int]bool{5: false, 99: true}
+
+	driver.CpuFamily = cpuFamily
+	driver.Location = testRegion
+	driver.ImagePassword = imagePassword
+	driver.NicDhcp = nicDhcp
+	driver.NicIps = nicIps
+	driver.DiskType = diskType
+	driver.VolumeAvailabilityZone = volumeAvailabilityZone
+	driver.ServerAvailabilityZone = serverAvailabilityZone
+	driver.Cores = cores
+	driver.Ram = ram
+	driver.CloudInit = cloudInit
+	driver.DiskSize = diskSize
+
+	srv := &sdkgo.Server{
+		Id: sdkgo.ToPtr(serverId),
+		Entities: &sdkgo.ServerEntities{
+			Volumes: &sdkgo.AttachedVolumes{
+				Items: &[]sdkgo.Volume{{Id: sdkgo.ToPtr(volumeId)}},
+			},
+			Nics: &sdkgo.Nics{
+				Items: &[]sdkgo.Nic{
+					{
+						Id:         sdkgo.ToPtr(nicId),
+						Properties: &sdkgo.NicProperties{Name: sdkgo.ToPtr(defaultHostName)},
+					},
+					{
+						Id:         sdkgo.ToPtr("nic_id-2"),
+						Properties: &sdkgo.NicProperties{Name: sdkgo.ToPtr("different_name")},
+					},
+				},
+			},
+		},
+	}
+
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{*dc}}, nil),
+		clientMock.EXPECT().GetLans(*dc.Id).Return(&sdkgo.Lans{Items: &[]sdkgo.Lan{*lan_get}}, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
+
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				nics := *serverToCreate.Entities.Nics.Items
+				// Only the primary plus the two attached additional LANs; LAN 99 produces no NIC.
+				assert.Len(t, nics, 3)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, nicDhcp, *nics[0].Properties.Dhcp)
+				assert.Equal(t, int32(5), *nics[1].Properties.Lan)
+				assert.Equal(t, false, *nics[1].Properties.Dhcp)
+				assert.Equal(t, int32(7), *nics[2].Properties.Lan)
+				assert.Equal(t, true, *nics[2].Properties.Dhcp)
+				for _, n := range nics {
+					assert.NotEqual(t, int32(99), *n.Properties.Lan, "override for unattached LAN 99 must not create a NIC")
+				}
+				serverToCreate.Id = &serverId
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(srv, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
+	assert.NoError(t, err)
+
+	// The override for the unattached LAN 99 is reported and dropped.
+	assert.Contains(t, log.History(),
+		fmt.Sprintf("%s: ignoring DHCP override for LAN id %d, no additional NIC is attached to that LAN", flagAdditionalNicsDhcp, 99))
+}
+
+// End-to-end: an additional LAN attached by name via --ionoscloud-additional-lans is
+// resolved to its numeric id during PreCreateCheck, and a DHCP override keyed by that
+// resolved id (--ionoscloud-additional-nics-dhcp=5=false) is applied to the resulting
+// NIC. Exercises the full flag-parse -> name-resolution -> NIC-build chain that the
+// docs promise ("a LAN attached by name must be keyed by its resolved ID").
+func TestCreateAdditionalNicDhcpOverrideForLanAttachedByName(t *testing.T) {
+	driver, clientMock := NewTestDriverFlagsSet(t, map[string]interface{}{
+		flagUsername:           "IONOSCLOUD_USERNAME",
+		flagPassword:           "IONOSCLOUD_PASSWORD",
+		flagAdditionalLans:     []string{lanName2},
+		flagAdditionalNicsDhcp: []string{lanId2 + "=false"},
+	})
+	// Parsing populates the override map keyed by the numeric LAN id.
+	assert.Equal(t, map[int]bool{5: false}, driver.AdditionalNicsDhcp)
+
+	driver.SSHKey = testVar
+	driver.DatacenterName = datacenterName
+	driver.LanName = lanName1
+	driver.CpuFamily = cpuFamily
+	driver.Location = testRegion
+	driver.ImagePassword = imagePassword
+	driver.NicDhcp = nicDhcp
+	driver.NicIps = nicIps
+	driver.DiskType = diskType
+	driver.VolumeAvailabilityZone = volumeAvailabilityZone
+	driver.ServerAvailabilityZone = serverAvailabilityZone
+	driver.Cores = cores
+	driver.Ram = ram
+	driver.CloudInit = cloudInit
+	driver.DiskSize = diskSize
+
+	srv := &sdkgo.Server{
+		Id: sdkgo.ToPtr(serverId),
+		Entities: &sdkgo.ServerEntities{
+			Volumes: &sdkgo.AttachedVolumes{
+				Items: &[]sdkgo.Volume{{Id: sdkgo.ToPtr(volumeId)}},
+			},
+			Nics: &sdkgo.Nics{
+				Items: &[]sdkgo.Nic{
+					{
+						Id:         sdkgo.ToPtr(nicId),
+						Properties: &sdkgo.NicProperties{Name: sdkgo.ToPtr(defaultHostName)},
+					},
+					{
+						Id:         sdkgo.ToPtr("nic_id-2"),
+						Properties: &sdkgo.NicProperties{Name: sdkgo.ToPtr("different_name")},
+					},
+				},
+			},
+		},
+	}
+
+	gomock.InOrder(
+		clientMock.EXPECT().GetDatacenters().Return(&sdkgo.Datacenters{Items: &[]sdkgo.Datacenter{*dc}}, nil),
+		// lanName1 resolves to the primary LAN 1; lanName2 resolves to additional LAN 5.
+		clientMock.EXPECT().GetLans(*dc.Id).Return(&sdkgo.Lans{Items: &[]sdkgo.Lan{*lan_get, *privateLan3}}, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().GetNats(*dc.Id).Return(nats, nil),
+
+		clientMock.EXPECT().GetDatacenter(*dc.Id).Return(dc, nil),
+		clientMock.EXPECT().GetLan(*dc.Id, *lan_get.Id).Return(lan_get, nil),
+		clientMock.EXPECT().GetImageById(imageAlias).Return(&sdkgo.Image{Id: sdkgo.ToPtr(testImageIdVar)}, nil),
+		clientMock.EXPECT().UpdateCloudInitFile(driver.CloudInit, "hostname", []interface{}{driver.MachineName}, true, "skip").Return(cloudInit, nil),
+		clientMock.EXPECT().CreateServer(*dc.Id, gomock.AssignableToTypeOf(sdkgo.Server{})).DoAndReturn(
+			func(datacenterId string, serverToCreate sdkgo.Server) (*sdkgo.Server, error) {
+				nics := *serverToCreate.Entities.Nics.Items
+				assert.Len(t, nics, 2)
+				assert.Equal(t, int32(1), *nics[0].Properties.Lan)
+				assert.Equal(t, nicDhcp, *nics[0].Properties.Dhcp)
+				// The LAN attached by name resolved to id 5 and picked up the 5=false override.
+				assert.Equal(t, int32(5), *nics[1].Properties.Lan)
+				assert.Equal(t, false, *nics[1].Properties.Dhcp)
+				serverToCreate.Id = &serverId
+				return &serverToCreate, nil
+			}),
+		clientMock.EXPECT().GetServer(*dc.Id, serverId, int32(2)).Return(srv, nil),
+		clientMock.EXPECT().GetNic(*dc.Id, serverId, nicId).Return(nic, nil),
+	)
+	err := driver.PreCreateCheck()
+	assert.NoError(t, err)
+	err = driver.Create()
+	assert.NoError(t, err)
+
+	// PreCreateCheck resolved the by-name LAN into the numeric id the override is keyed by.
+	assert.Contains(t, driver.AdditionalLansIds, 5)
 }
 
 func TestCreatePropertiesSetDeFra2(t *testing.T) {
