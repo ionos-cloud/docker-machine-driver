@@ -2,7 +2,7 @@
 
 ## \[7.3.0]
 ### Added
-* `ionoscloud-additional-lans-dhcp` flag to configure DHCP per additional NIC, as a mapping of numeric LAN ID to true/false (e.g. `5=false`). Additional LANs not listed keep DHCP enabled, preserving previous behaviour. The primary NIC is unaffected and continues to use `ionoscloud-nic-dhcp`.
+* `ionoscloud-additional-lans-dhcp` flag to configure DHCP per additional NIC, as a mapping of numeric LAN ID to true/false (e.g. `5:false`). Additional LANs not listed keep DHCP enabled, preserving previous behaviour. The primary NIC is unaffected and continues to use `ionoscloud-nic-dhcp`.
 
 ## \[7.2.0]
 ### Added
