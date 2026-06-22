@@ -29,7 +29,7 @@ Available Options for the IONOS Cloud Docker Machine Driver:
 | `--ionoscloud-lan-name`                 | Existing Ionos Cloud LAN Name (string) in which to create the Docker Host                                                                                                                     |
 | `--ionoscloud-additional-lans`          | Names of existing IONOS Lans to connect the machine to. Names that are not found are ignored                                                                                                                     |
 | `--ionoscloud-additional-lans-ids`      | Numeric IDs of existing IONOS LANs to connect the machine to. Merged with any IDs resolved from `--ionoscloud-additional-lans`                                                                                   |
-| `--ionoscloud-additional-nics-dhcp`     | Per-additional-NIC DHCP setting, as a mapping of numeric LAN ID to true/false \(e.g. `5=false`\). The key is the LAN ID \(a LAN attached by name via `--ionoscloud-additional-lans` must be keyed by its resolved ID; names are not accepted\). Additional LANs not listed default to DHCP enabled. Does not affect the primary NIC, which uses `--ionoscloud-nic-dhcp` |
+| `--ionoscloud-additional-lans-dhcp`     | Per-additional-NIC DHCP setting, as a mapping of numeric LAN ID to true/false \(e.g. `5=false`\). The key is the LAN ID \(a LAN attached by name via `--ionoscloud-additional-lans` must be keyed by its resolved ID; names are not accepted\). Additional LANs not listed default to DHCP enabled. Does not affect the primary NIC, which uses `--ionoscloud-nic-dhcp` |
 | `--ionoscloud-additional-disks`         | A list of disk types and sizes for additional volumes to be created on the machine, the format is DISK_TYPE:DISK_SIZE                                                                                                                   |
 | `--ionoscloud-disk-size`                | Ionos Cloud Volume Disk-Size in GB \(10, 50, 100, 200, 400\)                                                                                                                                  |
 | `--ionoscloud-disk-type`                | Ionos Cloud Volume Disk-Type \(HDD, SSD, SSD Standard, SSD Premium, DAS\). If server type is CUBE this value is ignored and "DAS" is used, "DAS" cannot be used with ENTERPRISE servers                                                                                                                                                 |
@@ -97,7 +97,7 @@ Environment variables are also supported for setting options. This is a list of 
 | `--ionoscloud-lan-name`                   | `IONOSCLOUD_LAN_NAME`                  |
 | `--ionoscloud-additional-lans`            | `IONOSCLOUD_ADDITIONAL_LANS`           |
 | `--ionoscloud-additional-lans-ids`        | `IONOSCLOUD_ADDITIONAL_LANS_IDS`       |
-| `--ionoscloud-additional-nics-dhcp`       | `IONOSCLOUD_ADDITIONAL_NICS_DHCP`      |
+| `--ionoscloud-additional-lans-dhcp`       | `IONOSCLOUD_ADDITIONAL_LANS_DHCP`      |
 | `--ionoscloud-additional-disks`           | `IONOSCLOUD_ADDITIONAL_DISKS`          |
 | `--ionoscloud-disk-size`                  | `IONOSCLOUD_DISK_SIZE`                 |
 | `--ionoscloud-disk-type`                  | `IONOSCLOUD_DISK_TYPE`                 |

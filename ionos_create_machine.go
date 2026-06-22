@@ -282,7 +282,7 @@ func (d *Driver) CreateIonosServer() (err error) {
 
 	for _, additionalLanId := range d.AdditionalLansIds {
 		dhcp := true
-		if val, ok := d.AdditionalNicsDhcp[additionalLanId]; ok {
+		if val, ok := d.AdditionalLansDhcp[additionalLanId]; ok {
 			dhcp = val
 		}
 		additionalNic := sdkgo.Nic{
@@ -296,9 +296,9 @@ func (d *Driver) CreateIonosServer() (err error) {
 		*attachedNics.Items = append(*attachedNics.Items, additionalNic)
 	}
 	// Warn about DHCP overrides that don't match any attached additional NIC.
-	for lanId := range d.AdditionalNicsDhcp {
+	for lanId := range d.AdditionalLansDhcp {
 		if !slices.Contains(d.AdditionalLansIds, lanId) {
-			log.Warnf("%s: ignoring DHCP override for LAN id %d, no additional NIC is attached to that LAN", flagAdditionalNicsDhcp, lanId)
+			log.Warnf("%s: ignoring DHCP override for LAN id %d, no additional NIC is attached to that LAN", flagAdditionalLansDhcp, lanId)
 		}
 	}
 

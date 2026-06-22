@@ -397,48 +397,48 @@ func TestSetConfigFromCustomFlagsAdditionalDisksError(t *testing.T) {
 	assert.Empty(t, checkFlags.InvalidFlags)
 }
 
-func TestSetConfigFromCustomFlagsAdditionalNicsDhcp(t *testing.T) {
+func TestSetConfigFromCustomFlagsAdditionalLansDhcp(t *testing.T) {
 	driver, _ := NewTestDriverFlagsSet(t, map[string]interface{}{
-		flagAdditionalNicsDhcp: []string{"5=false", " 7 = true "},
+		flagAdditionalLansDhcp: []string{"5=false", " 7 = true "},
 	})
-	assert.Equal(t, map[int]bool{5: false, 7: true}, driver.AdditionalNicsDhcp)
+	assert.Equal(t, map[int]bool{5: false, 7: true}, driver.AdditionalLansDhcp)
 
 	// An unset flag leaves the map nil so additional NICs keep the default DHCP.
 	driver, _ = NewTestDriverFlagsSet(t, map[string]interface{}{})
-	assert.Nil(t, driver.AdditionalNicsDhcp)
+	assert.Nil(t, driver.AdditionalLansDhcp)
 }
 
-func TestSetConfigFromCustomFlagsAdditionalNicsDhcpError(t *testing.T) {
+func TestSetConfigFromCustomFlagsAdditionalLansDhcpError(t *testing.T) {
 	driver, _ := NewTestDriver(t, defaultHostName, defaultStorePath)
 
 	checkFlags := &drivers.CheckDriverOptions{
 		FlagsValues: map[string]interface{}{
-			flagAdditionalNicsDhcp: []string{"5"},
+			flagAdditionalLansDhcp: []string{"5"},
 		},
 		CreateFlags: driver.GetCreateFlags(),
 	}
 	err := driver.SetConfigFromFlags(checkFlags)
-	assert.Equal(t, "invalid value for ionoscloud-additional-nics-dhcp: \"5\" must be in the form lanId=dhcp (e.g. 5=false)", err.Error())
+	assert.Equal(t, "invalid value for ionoscloud-additional-lans-dhcp: \"5\" must be in the form lanId=dhcp (e.g. 5=false)", err.Error())
 	assert.Empty(t, checkFlags.InvalidFlags)
 
 	checkFlags = &drivers.CheckDriverOptions{
 		FlagsValues: map[string]interface{}{
-			flagAdditionalNicsDhcp: []string{"notInt=false"},
+			flagAdditionalLansDhcp: []string{"notInt=false"},
 		},
 		CreateFlags: driver.GetCreateFlags(),
 	}
 	err = driver.SetConfigFromFlags(checkFlags)
-	assert.Equal(t, "invalid value for ionoscloud-additional-nics-dhcp: \"notInt=false\" must be a numeric LAN id followed by =dhcp (e.g. 5=false)", err.Error())
+	assert.Equal(t, "invalid value for ionoscloud-additional-lans-dhcp: \"notInt=false\" must be a numeric LAN id followed by =dhcp (e.g. 5=false)", err.Error())
 	assert.Empty(t, checkFlags.InvalidFlags)
 
 	checkFlags = &drivers.CheckDriverOptions{
 		FlagsValues: map[string]interface{}{
-			flagAdditionalNicsDhcp: []string{"5=notBool"},
+			flagAdditionalLansDhcp: []string{"5=notBool"},
 		},
 		CreateFlags: driver.GetCreateFlags(),
 	}
 	err = driver.SetConfigFromFlags(checkFlags)
-	assert.Equal(t, "invalid value for ionoscloud-additional-nics-dhcp: \"5=notBool\" must have a boolean DHCP value (true/false)", err.Error())
+	assert.Equal(t, "invalid value for ionoscloud-additional-lans-dhcp: \"5=notBool\" must have a boolean DHCP value (true/false)", err.Error())
 	assert.Empty(t, checkFlags.InvalidFlags)
 }
 
@@ -1233,7 +1233,7 @@ func TestCreateAdditionalNicDhcpDisabled(t *testing.T) {
 	// Two additional NICs: LAN 5 is overridden to DHCP off while LAN 7 is left to
 	// the default (on), so this exercises both the override and the fallback paths.
 	driver.AdditionalLansIds = []int{5, 7}
-	driver.AdditionalNicsDhcp = map[int]bool{5: false}
+	driver.AdditionalLansDhcp = map[int]bool{5: false}
 
 	driver.CpuFamily = cpuFamily
 	driver.Location = testRegion
@@ -1318,7 +1318,7 @@ func TestCreateAdditionalNicDhcpOverrideIgnoredForUnattachedLan(t *testing.T) {
 	// LAN 5 is overridden off, LAN 7 keeps the default on, and LAN 99 is an override
 	// for a LAN that is not attached: it must yield no NIC and a warning.
 	driver.AdditionalLansIds = []int{5, 7}
-	driver.AdditionalNicsDhcp = map[int]bool{5: false, 99: true}
+	driver.AdditionalLansDhcp = map[int]bool{5: false, 99: true}
 
 	driver.CpuFamily = cpuFamily
 	driver.Location = testRegion
@@ -1393,12 +1393,12 @@ func TestCreateAdditionalNicDhcpOverrideIgnoredForUnattachedLan(t *testing.T) {
 
 	// The override for the unattached LAN 99 is reported and dropped.
 	assert.Contains(t, log.History(),
-		fmt.Sprintf("%s: ignoring DHCP override for LAN id %d, no additional NIC is attached to that LAN", flagAdditionalNicsDhcp, 99))
+		fmt.Sprintf("%s: ignoring DHCP override for LAN id %d, no additional NIC is attached to that LAN", flagAdditionalLansDhcp, 99))
 }
 
 // End-to-end: an additional LAN attached by name via --ionoscloud-additional-lans is
 // resolved to its numeric id during PreCreateCheck, and a DHCP override keyed by that
-// resolved id (--ionoscloud-additional-nics-dhcp=5=false) is applied to the resulting
+// resolved id (--ionoscloud-additional-lans-dhcp=5=false) is applied to the resulting
 // NIC. Exercises the full flag-parse -> name-resolution -> NIC-build chain that the
 // docs promise ("a LAN attached by name must be keyed by its resolved ID").
 func TestCreateAdditionalNicDhcpOverrideForLanAttachedByName(t *testing.T) {
@@ -1406,10 +1406,10 @@ func TestCreateAdditionalNicDhcpOverrideForLanAttachedByName(t *testing.T) {
 		flagUsername:           "IONOSCLOUD_USERNAME",
 		flagPassword:           "IONOSCLOUD_PASSWORD",
 		flagAdditionalLans:     []string{lanName2},
-		flagAdditionalNicsDhcp: []string{lanId2 + "=false"},
+		flagAdditionalLansDhcp: []string{lanId2 + "=false"},
 	})
 	// Parsing populates the override map keyed by the numeric LAN id.
-	assert.Equal(t, map[int]bool{5: false}, driver.AdditionalNicsDhcp)
+	assert.Equal(t, map[int]bool{5: false}, driver.AdditionalLansDhcp)
 
 	driver.SSHKey = testVar
 	driver.DatacenterName = datacenterName
