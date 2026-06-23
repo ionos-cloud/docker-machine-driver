@@ -63,6 +63,7 @@ const (
 	flagPrivateLan             = "ionoscloud-private-lan"
 	flagAdditionalLans         = "ionoscloud-additional-lans"
 	flagAdditionalLansIds      = "ionoscloud-additional-lans-ids"
+	flagAdditionalLansDhcp     = "ionoscloud-additional-lans-dhcp"
 	flagCreateNat              = "ionoscloud-create-nat"
 	flagRKEProvisionUserData   = "ionoscloud-rancher-provision-user-data"
 	flagAppendRKECloudInit     = "ionoscloud-append-rke-cloud-init"
@@ -140,6 +141,7 @@ type Driver struct {
 	LanName                      string
 	AdditionalLans               []string
 	AdditionalLansIds            []int
+	AdditionalLansDhcp           map[int]bool
 	AdditionalNicsIds            []string
 	AdditionalVolumeIds          []string
 	DatacenterId                 string
@@ -264,6 +266,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagAdditionalLansIds,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagAdditionalLansIds),
 			Usage:  "Numeric IDs of existing IONOS LANs to connect the machine to. Merged with any IDs resolved from --ionoscloud-additional-lans",
+		},
+		mcnflag.StringSliceFlag{
+			Name:   flagAdditionalLansDhcp,
+			EnvVar: extflag.KebabCaseToEnvVarCase(flagAdditionalLansDhcp),
+			Usage:  "Per-additional-NIC DHCP setting, as a mapping of numeric LAN ID to true/false (e.g. 5:false). The key is the LAN ID (a LAN attached by name via --ionoscloud-additional-lans must be keyed by its resolved ID); names are not accepted. Additional LANs not listed default to DHCP enabled. Does not affect the primary NIC, which uses --ionoscloud-nic-dhcp",
 		},
 		mcnflag.BoolFlag{
 			Name:   flagWaitForIpChange,
@@ -493,6 +500,25 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 			return fmt.Errorf("invalid value for %s: %q must be a numeric LAN id", flagAdditionalLansIds, raw)
 		}
 		d.AdditionalLansIds = append(d.AdditionalLansIds, id)
+	}
+	d.AdditionalLansDhcp = nil
+	for _, raw := range opts.StringSlice(flagAdditionalLansDhcp) {
+		key, val, ok := strings.Cut(strings.TrimSpace(raw), ":")
+		if !ok {
+			return fmt.Errorf("invalid value for %s: %q must be in the form lanId:dhcp (e.g. 5:false)", flagAdditionalLansDhcp, raw)
+		}
+		id, err := strconv.Atoi(strings.TrimSpace(key))
+		if err != nil {
+			return fmt.Errorf("invalid value for %s: %q must be a numeric LAN id followed by :dhcp (e.g. 5:false)", flagAdditionalLansDhcp, raw)
+		}
+		dhcp, err := strconv.ParseBool(strings.TrimSpace(val))
+		if err != nil {
+			return fmt.Errorf("invalid value for %s: %q must have a boolean DHCP value (true/false)", flagAdditionalLansDhcp, raw)
+		}
+		if d.AdditionalLansDhcp == nil {
+			d.AdditionalLansDhcp = make(map[int]bool)
+		}
+		d.AdditionalLansDhcp[id] = dhcp
 	}
 
 	d.SwarmMaster = opts.Bool("swarm-master")
