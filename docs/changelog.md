@@ -9,6 +9,8 @@
 * `ionoscloud-additional-lans-ids` flag to attach additional LANs to the machine by numeric ID. Values are merged with any IDs resolved from `ionoscloud-additional-lans`.
 ### Fixed
 * `ionoscloud-additional-lans` is no longer silently ignored when the primary NIC is configured via `ionoscloud-lan-id`. Name-to-ID resolution now runs regardless of how the primary LAN is selected.
+### Changed
+* Aligned brand references in flag help, README, and docs to IONOS CLOUD.
 
 ## \[7.1.1]
 ### Fixed

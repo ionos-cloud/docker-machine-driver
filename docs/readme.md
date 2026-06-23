@@ -1,12 +1,12 @@
 ---
-description: This library adds the support for creating Docker Machines hosted on IONOS Cloud.
+description: This library adds the support for creating Docker Machines hosted on IONOS CLOUD.
 ---
 
 # Docker Machine Driver
 
 ## Overview
 
-Docker Machine Driver is the official driver for Docker Machine to use with IONOS Cloud. It adds support for creating Docker Machines hosted on the IONOS Cloud.
+Docker Machine Driver is the official driver for Docker Machine to use with IONOS CLOUD. It adds support for creating Docker Machines hosted on the IONOS CLOUD.
 
 [Docker Machine](https://github.com/docker/machine) lets you create Docker hosts on your computer and inside your own data center. It creates servers, installs Docker on them, then configures the Docker client to talk to them. For more information about Docker Machine, check the official [GitHub Repository](https://github.com/docker/machine).
 
@@ -16,11 +16,11 @@ Docker Machine Driver is the official driver for Docker Machine to use with IONO
 
 #### Installing Docker Machine
 
-This Ionos Cloud plugin works with Docker Machine and with Rancher Machine as well. Before we continue, you will need to install [Docker Machine](https://docs.docker.com/machine/install-machine/) or [Rancher Machine](https://github.com/rancher/machine/releases/).
+This IONOS CLOUD plugin works with Docker Machine and with Rancher Machine as well. Before we continue, you will need to install [Docker Machine](https://docs.docker.com/machine/install-machine/) or [Rancher Machine](https://github.com/rancher/machine/releases/).
 
 #### Installing Go
 
-The Ionos Cloud Docker Machine Driver is written in the Go programming language. Your system will need to have Go installed. Please refer to the [Go Install Documentation](https://golang.org/doc/install) if you do not have Go installed and configured for your system.
+The IONOS CLOUD Docker Machine Driver is written in the Go programming language. Your system will need to have Go installed. Please refer to the [Go Install Documentation](https://golang.org/doc/install) if you do not have Go installed and configured for your system.
 
 Remember to set `$GOPATH` and update `$PATH`. The following are just examples using the `export` command, you will need to adjust the paths for your particular installation.
 
@@ -53,7 +53,7 @@ For Windows users, you can download the latest release available on [Release Pag
 
 #### Local Version
 
-With the prerequisites taken care of, will need to run the following commands to install the Ionos Cloud Docker Machine Driver:
+With the prerequisites taken care of, will need to run the following commands to install the IONOS CLOUD Docker Machine Driver:
 
 ```text
 git clone https://github.com/ionos-cloud/docker-machine-driver.git
@@ -78,7 +78,7 @@ Note that the development version is a work-in-progress of a future stable relea
 
 ### Usage
 
-Before you start using the Ionos Cloud Docker Machine Driver, you need to authenticate in your Ionos Cloud account. Check the steps in the [Authentication](usage/authentication.md) section.
+Before you start using the IONOS CLOUD Docker Machine Driver, you need to authenticate in your IONOS CLOUD account. Check the steps in the [Authentication](usage/authentication.md) section.
 
 In order to see the available options and flags, check the [Options](usage/options.md) section.
 
@@ -86,21 +86,21 @@ For more information about Docker/Rancher Machine commands on how to manage a ma
 
 ### Docker Support
 
-For information on how to create a Docker Machine with Ionos Cloud Docker Machine Driver, check the [Docker Machine](docker/docker-machine.md) section.
+For information on how to create a Docker Machine with IONOS CLOUD Docker Machine Driver, check the [Docker Machine](docker/docker-machine.md) section.
 
-For information on how to create a Docker Machine with Ionos Cloud Docker Machine Driver with [Swarm Mode](https://docs.docker.com/engine/swarm/), check the [Docker Swarm](docker/docker-swarm.md) section.
+For information on how to create a Docker Machine with IONOS CLOUD Docker Machine Driver with [Swarm Mode](https://docs.docker.com/engine/swarm/), check the [Docker Swarm](docker/docker-swarm.md) section.
 
 For more details about possible issues, check the [Troubleshooting](docker/troubleshooting.md) section.
 
 ### Rancher Support
 
-For information on how to create a Rancher Machine with Ionos Cloud Docker Machine Driver, check the [Rancher Machine](https://github.com/ionos-cloud/docker-machine-driver/tree/634b60ff47c8a3294d5955ea0eb19bd3c18ac454/docs/rancher/rancher-machine.md) section.
+For information on how to create a Rancher Machine with IONOS CLOUD Docker Machine Driver, check the [Rancher Machine](https://github.com/ionos-cloud/docker-machine-driver/tree/634b60ff47c8a3294d5955ea0eb19bd3c18ac454/docs/rancher/rancher-machine.md) section.
 
-For information on how to create a Rancher Cluster via Rancher UI, using Ionos Cloud Docker Machine Driver, check the [Rancher Cluster]() section.
+For information on how to create a Rancher Cluster via Rancher UI, using IONOS CLOUD Docker Machine Driver, check the [Rancher Cluster]() section.
 
 ## Feature Reference
 
-The IONOS Cloud Docker Machine Driver aims to offer access to all resources in the IONOS Cloud API and also offers some additional features that make the integration easier:
+The IONOS CLOUD Docker Machine Driver aims to offer access to all resources in the IONOS CLOUD API and also offers some additional features that make the integration easier:
 
 * authentication for API calls
 * handling of asynchronous requests 

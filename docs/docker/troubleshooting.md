@@ -37,7 +37,7 @@ Setting Docker configuration on the remote daemon...
 Error creating machine: Error running provisioning: Unable to verify the Docker daemon is listening: Maximum number of retries (10) exceeded
 ```
 
-The resources on Ionos Cloud are created, but the machine is unable to verify the Docker daemon, even after a number of retries.
+The resources on IONOS CLOUD are created, but the machine is unable to verify the Docker daemon, even after a number of retries.
 
 If you run `docker-machine ls`, the output will probably be:
 

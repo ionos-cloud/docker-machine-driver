@@ -2,7 +2,7 @@
 
 ## Credentials
 
-Before you use Ionos Cloud Docker Machine Driver, you need to authenticate with your Ionos Cloud credentials. These would be the same username and password that you use to log into the [Ionos Cloud DCD](https://dcd.ionos.com/latest/).
+Before you use IONOS CLOUD Docker Machine Driver, you need to authenticate with your IONOS CLOUD credentials. These would be the same username and password that you use to log into the [IONOS CLOUD DCD](https://dcd.ionos.com/latest/).
 
 It is possible to pass your credentials:
 
