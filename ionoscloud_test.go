@@ -359,6 +359,11 @@ func TestSetConfigFromCustomFlagsAdditionalDisks(t *testing.T) {
 	assert.Equal(t, driver.AdditionalDisks, []DiskProperties{{"SSD Standard", 123}, {"SSD", 124}, {"SSD Premium", 412}})
 
 	driver, _ = NewTestDriverFlagsSet(t, map[string]interface{}{
+		flagAdditionalDisks: []string{"ESSENTIAL:50", "BALANCED:60", "PERFORMANCE:70"},
+	})
+	assert.Equal(t, driver.AdditionalDisks, []DiskProperties{{"ESSENTIAL", 50}, {"BALANCED", 60}, {"PERFORMANCE", 70}})
+
+	driver, _ = NewTestDriverFlagsSet(t, map[string]interface{}{
 		flagAdditionalDisks: []string{},
 	})
 	assert.Equal(t, driver.AdditionalDisks, []DiskProperties(nil))
@@ -383,7 +388,7 @@ func TestSetConfigFromCustomFlagsAdditionalDisksError(t *testing.T) {
 		CreateFlags: driver.GetCreateFlags(),
 	}
 	err = driver.SetConfigFromFlags(checkFlags)
-	assert.Equal(t, err.Error(), "invalid additional disk type: wrongDiskType, must be one of [\"HDD\" \"SSD\" \"SSD Standard\" \"SSD Premium\"]")
+	assert.Equal(t, err.Error(), "invalid additional disk type: wrongDiskType, must be one of [\"HDD\" \"SSD\" \"SSD Standard\" \"SSD Premium\" \"ESSENTIAL\" \"BALANCED\" \"PERFORMANCE\"]")
 	assert.Empty(t, checkFlags.InvalidFlags)
 
 	checkFlags = &drivers.CheckDriverOptions{

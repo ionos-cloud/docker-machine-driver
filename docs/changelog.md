@@ -1,5 +1,9 @@
 # Changelog
 
+## \[7.4.0]
+### Added
+* volume performance classes `ESSENTIAL`, `BALANCED` and `PERFORMANCE` are now accepted as disk types (`ionoscloud-disk-type` and `ionoscloud-additional-disks`).
+
 ## \[7.3.0]
 ### Added
 * `ionoscloud-additional-lans-dhcp` flag to configure DHCP per additional NIC, as a mapping of numeric LAN ID to true/false (e.g. `5:false`). Additional LANs not listed keep DHCP enabled, preserving previous behaviour. The primary NIC is unaffected and continues to use `ionoscloud-nic-dhcp`.

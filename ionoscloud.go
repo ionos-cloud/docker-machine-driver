@@ -358,7 +358,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagDiskType,
 			EnvVar: extflag.KebabCaseToEnvVarCase(flagDiskType),
 			Value:  defaultDiskType,
-			Usage:  "IONOS CLOUD Volume Disk-Type (HDD, SSD)",
+			Usage:  "IONOS CLOUD Volume Disk-Type (HDD, SSD, SSD Standard, SSD Premium, ESSENTIAL, BALANCED, PERFORMANCE)",
 		},
 		mcnflag.StringFlag{
 			Name:   flagServerType,
@@ -545,7 +545,7 @@ func (d *Driver) SetAdditionalDisks(additionalDisksStringList []string) error {
 		if len(props) != 2 {
 			return fmt.Errorf("invalid additional disk configuration: %s, must be \"type:size\"", disk)
 		}
-		diskTypes := []string{"HDD", "SSD", "SSD Standard", "SSD Premium"}
+		diskTypes := []string{"HDD", "SSD", "SSD Standard", "SSD Premium", "ESSENTIAL", "BALANCED", "PERFORMANCE"}
 		if !slices.Contains(diskTypes, props[0]) {
 			return fmt.Errorf("invalid additional disk type: %s, must be one of %q", props[0], diskTypes)
 		}
