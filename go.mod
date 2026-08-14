@@ -4,8 +4,8 @@ go 1.26.0
 
 require (
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/ionos-cloud/sdk-go/v6 v6.3.7
-	github.com/rancher/machine v0.15.0-rancher143
+	github.com/ionos-cloud/sdk-go/v6 v6.3.11
+	github.com/rancher/machine v0.15.0-rancher145
 	github.com/stretchr/testify v1.11.1
 )
 
@@ -23,8 +23,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
-	golang.org/x/crypto v0.50.0 // indirect
+	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
-	golang.org/x/term v0.42.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/term v0.45.0 // indirect
 )
