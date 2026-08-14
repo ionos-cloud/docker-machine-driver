@@ -1,6 +1,6 @@
 # Changelog
 
-## \[7.4.0]
+## \[7.3.1]
 ### Added
 * volume performance classes `ESSENTIAL`, `BALANCED` and `PERFORMANCE` are now accepted as disk types (`ionoscloud-disk-type` and `ionoscloud-additional-disks`).
 
